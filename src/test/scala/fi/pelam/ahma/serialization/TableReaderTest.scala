@@ -31,6 +31,12 @@ class TableReaderTest {
   }
 
   @Test
+  def testColCount: Unit = {
+    val table = new TableReader(commentsOnly).read()
+    assertEquals(5, table.colCount)
+  }
+
+  @Test
   def testRowType: Unit = {
     val table = new TableReader(commentsOnly).read()
     assertEquals(RowType.Comment, table.getRowType(RowKey(0)))

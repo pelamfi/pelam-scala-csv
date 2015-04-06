@@ -23,7 +23,7 @@ class Table {
     for (cell <- cells) {
       val key = cell.cellKey
       rowCountPrivate = Math.max(rowCountPrivate, key.rowIndex + 1)
-      colCountPrivate = Math.max(rowCountPrivate, key.colIndex + 1)
+      colCountPrivate = Math.max(colCountPrivate, key.colIndex + 1)
       cellMap(key) = cell
     }
   }
