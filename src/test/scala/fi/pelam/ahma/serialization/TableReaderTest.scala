@@ -27,7 +27,7 @@ class TableReaderTest {
   @Test
   def testRowCount: Unit = {
     val table = new TableReader(commentsOnly).read()
-    assertEquals(4, table.rowCount)
+    assertEquals(3, table.rowCount)
   }
 
   @Test
