@@ -8,20 +8,43 @@ import org.junit.Test
 
 class TableReaderTest {
 
+  val commentsOnly = ByteSource.wrap("Comment,1,2,3,4\nComment\nComment,\n".getBytes(UTF_8))
+
+  val noRowTypes = ByteSource.wrap("1,2,3,4,\n\n\n".getBytes(UTF_8))
+
   @Test(expected = classOf[IllegalArgumentException])
   def testReadFailNoRowId: Unit = {
     // no row types so error
-    new TableReader(ByteSource.wrap("1,2,3,4,\n\n\n".getBytes(UTF_8))).read()
+    new TableReader(noRowTypes).read()
   }
 
-  @Test(expected = classOf[IllegalArgumentException])
-  def testReadSimple: Unit = {
+  @Test
+  def testJustReadSimple: Unit = {
     // Works because row type identified
-    val table = new TableReader(ByteSource.wrap("Comment,1,2,3,4\nComment\nComment,\n".getBytes(UTF_8))).read()
+    new TableReader(commentsOnly).read()
+  }
+
+  @Test
+  def testRowCount: Unit = {
+    val table = new TableReader(commentsOnly).read()
+    assertEquals(4, table.rowCount)
+  }
+
+  @Test
+  def testRowType: Unit = {
+    val table = new TableReader(commentsOnly).read()
     assertEquals(RowType.Comment, table.getRowType(RowKey(0)))
     assertEquals(RowType.Comment, table.getRowType(RowKey(1)))
     assertEquals(RowType.Comment, table.getRowType(RowKey(2)))
-    assertEquals(4, table.rowCount)
+  }
+
+  @Test
+  def testParseSimpleCells: Unit = {
+    assertEquals("SimpleCell(CellKey(0,0),Comment)\n" +
+      "SimpleCell(CellKey(0,1),1)\n" +
+      "SimpleCell(CellKey(1,0),Comment)\n" +
+      "SimpleCell(CellKey(1,1),2)\n", TableReader.parseSimpleCells(',',
+      IndexedSeq("Comment,1", "Comment,2")).fold("")("" + _ + _ + "\n"))
   }
 
   @Test

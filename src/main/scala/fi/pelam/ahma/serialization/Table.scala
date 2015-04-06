@@ -4,6 +4,7 @@ import scala.collection.mutable.HashMap
 
 class Table {
 
+
   private[this] var rowCountPrivate: Int = 0
 
   private[this] var colCountPrivate: Int = 0
@@ -17,6 +18,8 @@ class Table {
   def rowCount = rowCountPrivate
 
   def colCount = colCountPrivate
+
+  def addCells(cells: TraversableOnce[SimpleCell]) = ???
 
   def setCell(key: CellKey, cell: Cell) = ???
 
