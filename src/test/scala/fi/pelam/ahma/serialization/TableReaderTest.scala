@@ -8,9 +8,20 @@ import org.junit.Test
 
 class TableReaderTest {
 
-  @Test
-  def testRead: Unit = {
-    new TableReader(ByteSource.wrap("1,2,3,4,\n\n\n".getBytes(UTF_8)))
+  @Test(expected = classOf[IllegalArgumentException])
+  def testReadFailNoRowId: Unit = {
+    // no row types so error
+    new TableReader(ByteSource.wrap("1,2,3,4,\n\n\n".getBytes(UTF_8))).read()
+  }
+
+  @Test(expected = classOf[IllegalArgumentException])
+  def testReadSimple: Unit = {
+    // Works because row type identified
+    val table = new TableReader(ByteSource.wrap("Comment,1,2,3,4\nComment\nComment,\n".getBytes(UTF_8))).read()
+    assertEquals(RowType.Comment, table.getRowType(RowKey(0)))
+    assertEquals(RowType.Comment, table.getRowType(RowKey(1)))
+    assertEquals(RowType.Comment, table.getRowType(RowKey(2)))
+    assertEquals(4, table.rowCount)
   }
 
   @Test
