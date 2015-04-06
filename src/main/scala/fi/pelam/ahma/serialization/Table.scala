@@ -19,7 +19,12 @@ class Table {
 
   def colCount = colCountPrivate
 
-  def addCells(cells: TraversableOnce[SimpleCell]) = ???
+  def addCells(cells: TraversableOnce[SimpleCell]) = {
+    for (cell <- cells) {
+      val key = cell.cellKey
+      cellMap(key) = cell
+    }
+  }
 
   def setCell(key: CellKey, cell: Cell) = ???
 
