@@ -41,7 +41,17 @@ class TableReader(input: ByteSource) extends Logging {
 
     for (locale <- locales) {
 
-      val (rowTypes, errors) = getRowTypes(cells, locale)
+      val (rowTypes, rowErrors) = getRowTypes(cells, locale)
+
+      val columnHeaderRow = rowTypes.find(_._2 == RowType.ColumnHeader)
+
+      val (colTypes, colErrors) = if (columnHeaderRow.isDefined) {
+        getColTypes(cells, columnHeaderRow.get._1, locale)
+      } else {
+        (Map(), List("No row marked to contain column headers found."))
+      }
+
+      val errors = rowErrors ++ colErrors
 
       if (errors.size == 0) {
         // All row types identified, Consider locale detected
@@ -98,8 +108,10 @@ object TableReader {
     val rowTypeMap = AhmaLocalization.getReverseMap(locale, "RowType", RowType.values.map(_.toString))
 
     val result = for (cell <- cells;
-                      if cell.cellKey.col == Table.rowTypeCol) yield {
+                      if cell.colKey == Table.rowTypeCol) yield {
+
       val rowTypeString = rowTypeMap.get(cell.serializedString)
+
       if (rowTypeString.isDefined) {
         val rowType = RowType.namesToValuesMap(rowTypeString.get)
         cell.rowKey -> rowType
@@ -107,9 +119,35 @@ object TableReader {
         errors += s"Unknown row type '${cell.serializedString}' in language '${locale.getDisplayName()}'"
         cell.rowKey -> RowType.Comment
       }
+
     }
 
     (result.toMap, errors.result)
   }
+
+  def getColTypes(cells: TraversableOnce[Cell], headerRow: RowKey, locale: Locale): (Map[ColKey, ColType], Seq[String]) = {
+
+    val errors = Seq.newBuilder[String]
+
+    val colTypeMap = AhmaLocalization.getReverseMap(locale, "ColType", ColType.values.map(_.toString))
+
+    val result = for (cell <- cells;
+                      if cell.rowKey == headerRow && cell.colKey != Table.rowTypeCol) yield {
+
+      val colTypeString = colTypeMap.get(cell.serializedString)
+
+      if (colTypeString.isDefined) {
+        val colType = ColType.namesToValuesMap(colTypeString.get)
+        cell.colKey -> colType
+      } else {
+        errors += s"Unknown column type '${cell.serializedString}' in language '${locale.getDisplayName()}'"
+        cell.colKey -> null
+      }
+
+    }
+
+    (result.toMap, errors.result)
+  }
+
 
 }

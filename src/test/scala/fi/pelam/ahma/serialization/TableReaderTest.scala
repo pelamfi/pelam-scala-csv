@@ -9,7 +9,7 @@ import org.junit.Test
 
 class TableReaderTest {
 
-  val commentsOnly = ByteSource.wrap("Comment,1,2,3,4\nComment\nComment,\n".getBytes(UTF_8))
+  val headerAndCommentsOnly = ByteSource.wrap("Header\nComment,1,2,3,4\nComment\nComment,\n".getBytes(UTF_8))
 
   val rowAndColTypesFi = ByteSource.wrap(("Comment,1,2,3,4\nTitle,Tyypit,WorkerId,Maks. ValueCCputki,TimeParam1\n" +
     "Worker,ValueCC,4001\n").getBytes(UTF_8))
@@ -27,24 +27,24 @@ class TableReaderTest {
   @Test
   def testJustReadSimple: Unit = {
     // Works because row type identified
-    new TableReader(commentsOnly).read()
+    new TableReader(headerAndCommentsOnly).read()
   }
 
   @Test
   def testRowCount: Unit = {
-    val table = new TableReader(commentsOnly).read()
+    val table = new TableReader(headerAndCommentsOnly).read()
     assertEquals(3, table.rowCount)
   }
 
   @Test
   def testColCount: Unit = {
-    val table = new TableReader(commentsOnly).read()
+    val table = new TableReader(headerAndCommentsOnly).read()
     assertEquals(5, table.colCount)
   }
 
   @Test
   def testRowTypeFi: Unit = {
-    val table = new TableReader(commentsOnly).read()
+    val table = new TableReader(headerAndCommentsOnly).read()
     assertEquals(RowType.Comment, table.getRowType(RowKey(0)))
     assertEquals(RowType.Comment, table.getRowType(RowKey(1)))
     assertEquals(RowType.Comment, table.getRowType(RowKey(2)))
@@ -52,7 +52,7 @@ class TableReaderTest {
 
   @Test
   def testRowType: Unit = {
-    val table = new TableReader(commentsOnly).read()
+    val table = new TableReader(headerAndCommentsOnly).read()
     assertEquals(RowType.Comment, table.getRowType(RowKey(0)))
     assertEquals(RowType.Comment, table.getRowType(RowKey(1)))
     assertEquals(RowType.Comment, table.getRowType(RowKey(2)))
