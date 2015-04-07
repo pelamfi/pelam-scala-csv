@@ -11,7 +11,7 @@ class TableReaderTest {
 
   val headerAndCommentsOnly = ByteSource.wrap("Header\nComment,1,2,3,4\nComment\nComment,\n".getBytes(UTF_8))
 
-  val rowAndColTypesFi = ByteSource.wrap(("Comment,1,2,3,4\nTitle,Tyypit,WorkerId,Maks. ValueCCputki,TimeParam1\n" +
+  val rowAndColTypesFi = ByteSource.wrap(("Comment,1,2,3,4\nTitle,Tyypit,WorkerId,IntParam1,TimeParam1\n" +
     "Worker,ValueCC,4001\n").getBytes(UTF_8))
 
   val commentsOnlyFi = ByteSource.wrap("Comment,1,2,3,4\nComment\nComment,\n".getBytes(UTF_8))
