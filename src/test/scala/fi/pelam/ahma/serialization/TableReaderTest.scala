@@ -1,6 +1,7 @@
 package fi.pelam.ahma.serialization
 
 import java.nio.charset.StandardCharsets._
+import java.util.Locale
 
 import com.google.common.io.ByteSource
 import org.junit.Assert._
@@ -10,9 +11,11 @@ class TableReaderTest {
 
   val commentsOnly = ByteSource.wrap("Comment,1,2,3,4\nComment\nComment,\n".getBytes(UTF_8))
 
-  val noRowTypes = ByteSource.wrap("1,2,3,4,\n\n\n".getBytes(UTF_8))
+  val commentsOnlyFi = ByteSource.wrap("Comment,1,2,3,4\nComment\nComment,\n".getBytes(UTF_8))
 
-  @Test(expected = classOf[IllegalArgumentException])
+  val noRowTypes = ByteSource.wrap("1,2,3,4,\nComment\n\n".getBytes(UTF_8))
+
+  @Test(expected = classOf[RuntimeException])
   def testReadFailNoRowId: Unit = {
     // no row types so error
     new TableReader(noRowTypes).read()
@@ -34,6 +37,14 @@ class TableReaderTest {
   def testColCount: Unit = {
     val table = new TableReader(commentsOnly).read()
     assertEquals(5, table.colCount)
+  }
+
+  @Test
+  def testRowTypeFi: Unit = {
+    val table = new TableReader(commentsOnly).read()
+    assertEquals(RowType.Comment, table.getRowType(RowKey(0)))
+    assertEquals(RowType.Comment, table.getRowType(RowKey(1)))
+    assertEquals(RowType.Comment, table.getRowType(RowKey(2)))
   }
 
   @Test
@@ -63,7 +74,9 @@ class TableReaderTest {
   }
 
   @Test
-  def testGetRowTypes {
+  def testGetRowTypes: Unit = {
+    assertEquals((Map(RowKey(0) -> RowType.Comment), Seq()),
+      TableReader.getRowTypes(List(SimpleCell(CellKey(0, 0), "Comment")), Locale.ROOT))
   }
 
 }

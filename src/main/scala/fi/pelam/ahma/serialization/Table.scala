@@ -4,7 +4,11 @@ import java.util.ResourceBundle
 
 import scala.collection.mutable.HashMap
 
-class Table {
+object Table {
+  val rowTypeCol = ColKey(0)
+}
+
+class Table(private[this] val rowType: Map[RowKey, RowType]) {
 
   private[this] var resourceBundle: ResourceBundle = null
 
@@ -14,7 +18,6 @@ class Table {
 
   private[this] val cellMap = new HashMap[CellKey, Cell]
 
-  private[this] val rowType = new HashMap[RowKey, RowType]
 
   private[this] val colType = new HashMap[ColKey, ColType]
 
@@ -22,18 +25,12 @@ class Table {
 
   def colCount = colCountPrivate
 
-  val rowTypeCol = ColKey(0)
-
   def addCells(cells: TraversableOnce[SimpleCell]) = {
     for (cell <- cells) {
       val key = cell.cellKey
 
       rowCountPrivate = Math.max(rowCountPrivate, key.rowIndex + 1)
       colCountPrivate = Math.max(colCountPrivate, key.colIndex + 1)
-
-      if (key.col == rowTypeCol) {
-
-      }
 
       cellMap(key) = cell
     }
@@ -53,6 +50,6 @@ class Table {
 
   def setColType(key: RowKey, rowType: ColType) = ???
 
-  def getRowType(key: RowKey): Unit = ???
+  def getRowType(key: RowKey) = rowType(key)
 
 }
