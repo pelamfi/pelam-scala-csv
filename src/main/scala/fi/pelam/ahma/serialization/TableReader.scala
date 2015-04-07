@@ -71,8 +71,6 @@ class TableReader(input: ByteSource) extends Logging {
 object TableReader {
   val locales = List(AhmaLocalization.localeEn, AhmaLocalization.localeFi)
 
-  type RowAndColCount = (Int, Int)
-
   def getLines(input: ByteSource, encoding: Charset) = {
     // Bypassing the codec handling in scala.io but using it to extract lines
     val source = Source.fromString(input.asCharSource(StandardCharsets.UTF_8).read())
@@ -80,16 +78,6 @@ object TableReader {
     val lines = source.getLines().toIndexedSeq
 
     lines
-  }
-
-  def getRowAndColCount(keys: TraversableOnce[CellKey]): RowAndColCount = {
-    var colMax = 0
-    var rowMax = 0
-    for (key <- keys) {
-      colMax = Math.max(key.colIndex + 1, colMax)
-      rowMax = Math.max(key.rowIndex + 1, rowMax)
-    }
-    (rowMax, colMax)
   }
 
   def parseSimpleCells(separator: Char, lines: IndexedSeq[String]): IndexedSeq[SimpleCell] = {

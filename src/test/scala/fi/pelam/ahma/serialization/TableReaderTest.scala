@@ -65,15 +65,6 @@ class TableReaderTest {
   }
 
   @Test
-  def testGetRowAndColCount: Unit = {
-    assertEquals((0, 0), TableReader.getRowAndColCount(List()))
-    assertEquals((1, 1), TableReader.getRowAndColCount(List(CellKey(0, 0))))
-    assertEquals((1, 2), TableReader.getRowAndColCount(List(CellKey(0, 1))))
-    assertEquals((2, 1), TableReader.getRowAndColCount(List(CellKey(1, 0))))
-    assertEquals((124, 457), TableReader.getRowAndColCount(List(CellKey(1, 0), CellKey(123, 456))))
-  }
-
-  @Test
   def testGetRowTypes: Unit = {
     assertEquals((Map(RowKey(0) -> RowType.Comment), Seq()),
       TableReader.getRowTypes(List(SimpleCell(CellKey(0, 0), "Comment")), Locale.ROOT))

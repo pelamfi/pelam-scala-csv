@@ -18,7 +18,6 @@ class Table(private[this] val rowType: Map[RowKey, RowType]) {
 
   private[this] val cellMap = new HashMap[CellKey, Cell]
 
-
   private[this] val colType = new HashMap[ColKey, ColType]
 
   def rowCount = rowCountPrivate
