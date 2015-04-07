@@ -11,6 +11,9 @@ class TableReaderTest {
 
   val commentsOnly = ByteSource.wrap("Comment,1,2,3,4\nComment\nComment,\n".getBytes(UTF_8))
 
+  val rowAndColTypesFi = ByteSource.wrap(("Comment,1,2,3,4\n,Title,Tyypit,WorkerId,Maks. ValueCCputki,TimeParam1\n" +
+    "Worker,ValueCC,4001\n").getBytes(UTF_8))
+
   val commentsOnlyFi = ByteSource.wrap("Comment,1,2,3,4\nComment\nComment,\n".getBytes(UTF_8))
 
   val noRowTypes = ByteSource.wrap("1,2,3,4,\nComment\n\n".getBytes(UTF_8))
@@ -68,6 +71,13 @@ class TableReaderTest {
   def testGetRowTypes: Unit = {
     assertEquals((Map(RowKey(0) -> RowType.Comment), Seq()),
       TableReader.getRowTypes(List(SimpleCell(CellKey(0, 0), "Comment")), Locale.ROOT))
+  }
+
+  @Test
+  def testGetRowAndColTypes: Unit = {
+    val table = new TableReader(rowAndColTypesFi).read()
+    assertEquals("RowType,Types,WorkerId,MaxWorkRun,TimeParam1,", table.colTypes.keySet.fold("")("" + _ + _ + ","))
+    assertEquals("Comment,Header,Worker,", table.rowTypes.keySet.fold("")("" + _ + _ + ","))
   }
 
 }

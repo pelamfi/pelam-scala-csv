@@ -8,7 +8,7 @@ object Table {
   val rowTypeCol = ColKey(0)
 }
 
-class Table(private[this] val rowType: Map[RowKey, RowType]) {
+class Table(val rowTypes: Map[RowKey, RowType]) {
 
   private[this] var resourceBundle: ResourceBundle = null
 
@@ -18,7 +18,7 @@ class Table(private[this] val rowType: Map[RowKey, RowType]) {
 
   private[this] val cellMap = new HashMap[CellKey, Cell]
 
-  private[this] val colType = new HashMap[ColKey, ColType]
+  val colTypes = new HashMap[ColKey, ColType]
 
   def rowCount = rowCountPrivate
 
@@ -49,6 +49,6 @@ class Table(private[this] val rowType: Map[RowKey, RowType]) {
 
   def setColType(key: RowKey, rowType: ColType) = ???
 
-  def getRowType(key: RowKey) = rowType(key)
+  def getRowType(key: RowKey) = rowTypes(key)
 
 }
