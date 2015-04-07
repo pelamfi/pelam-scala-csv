@@ -1,9 +1,12 @@
 package fi.pelam.ahma.serialization
 
+import java.util.ResourceBundle
+
 import scala.collection.mutable.HashMap
 
 class Table {
 
+  private[this] var resourceBundle: ResourceBundle = null
 
   private[this] var rowCountPrivate: Int = 0
 
@@ -19,11 +22,19 @@ class Table {
 
   def colCount = colCountPrivate
 
+  val rowTypeCol = ColKey(0)
+
   def addCells(cells: TraversableOnce[SimpleCell]) = {
     for (cell <- cells) {
       val key = cell.cellKey
+
       rowCountPrivate = Math.max(rowCountPrivate, key.rowIndex + 1)
       colCountPrivate = Math.max(colCountPrivate, key.colIndex + 1)
+
+      if (key.col == rowTypeCol) {
+
+      }
+
       cellMap(key) = cell
     }
   }
