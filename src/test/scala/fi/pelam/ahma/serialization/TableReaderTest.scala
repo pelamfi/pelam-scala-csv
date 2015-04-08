@@ -76,8 +76,8 @@ class TableReaderTest {
   @Test
   def testGetRowAndColTypes: Unit = {
     val table = new TableReader(rowAndColTypesFi).read()
-    assertEquals("RowType,Types,WorkerId,MaxWorkRun,TimeParam1,", table.colTypes.keySet.fold("")("" + _ + _ + ","))
-    assertEquals("Comment,Header,Worker,", table.rowTypes.keySet.fold("")("" + _ + _ + ","))
+    assertEquals("Types,WorkerId,MaxWorkRun,TimeParam1,", table.colTypes.values.fold("")("" + _ + _ + ","))
+    assertEquals("Comment,ColumnHeader,Worker,", table.rowTypes.values.fold("")("" + _ + _ + ","))
   }
 
 }

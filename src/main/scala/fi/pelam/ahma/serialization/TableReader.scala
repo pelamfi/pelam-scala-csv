@@ -10,6 +10,9 @@ import grizzled.slf4j.Logging
 import scala.io.Source
 
 class TableReader(input: ByteSource) extends Logging {
+
+  var colTypes: Map[ColKey, ColType] = Map()
+
   var locale: Locale = Locale.ROOT
 
   var rowTypes: Map[RowKey, RowType] = Map()
@@ -30,7 +33,7 @@ class TableReader(input: ByteSource) extends Logging {
 
     detectLocaleAndRowTypes()
 
-    val table = new Table(rowTypes)
+    val table = new Table(rowTypes, colTypes)
 
     table.addCells(cells)
 
@@ -48,7 +51,7 @@ class TableReader(input: ByteSource) extends Logging {
       val (colTypes, colErrors) = if (columnHeaderRow.isDefined) {
         getColTypes(cells, columnHeaderRow.get._1, locale)
       } else {
-        (Map(), List("No row marked to contain column headers found."))
+        (Map[ColKey, ColType](), List("No row marked to contain column headers found."))
       }
 
       val errors = rowErrors ++ colErrors
@@ -57,6 +60,7 @@ class TableReader(input: ByteSource) extends Logging {
         // All row types identified, Consider locale detected
         this.locale = locale
         this.rowTypes = rowTypes
+        this.colTypes = colTypes
         this.errors = None
         return
       } else {
