@@ -4,9 +4,9 @@ sealed abstract class Cell {
 
   val cellKey: CellKey
 
-  def rowKey = cellKey.row
+  def rowKey = cellKey.rowKey
 
-  def colKey = cellKey.col
+  def colKey = cellKey.colKey
 
   def serializedString: String
 
