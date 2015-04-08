@@ -4,6 +4,8 @@ import java.nio.charset.StandardCharsets._
 import java.util.Locale
 
 import com.google.common.io.ByteSource
+import fi.pelam.ahma.serialization.ColType._
+import fi.pelam.ahma.serialization.RowType._
 import org.junit.Assert._
 import org.junit.Test
 
@@ -45,17 +47,17 @@ class TableReaderTest {
   @Test
   def testRowTypeFi: Unit = {
     val table = new TableReader(headerAndCommentsOnly).read()
-    assertEquals(RowType.ColumnHeader, table.getRowType(RowKey(0)))
-    assertEquals(RowType.Comment, table.getRowType(RowKey(1)))
-    assertEquals(RowType.Comment, table.getRowType(RowKey(2)))
+    assertEquals(ColumnHeader, table.getRowType(RowKey(0)))
+    assertEquals(Comment, table.getRowType(RowKey(1)))
+    assertEquals(Comment, table.getRowType(RowKey(2)))
   }
 
   @Test
   def testRowType: Unit = {
     val table = new TableReader(headerAndCommentsOnly).read()
-    assertEquals(RowType.ColumnHeader, table.getRowType(RowKey(0)))
-    assertEquals(RowType.Comment, table.getRowType(RowKey(1)))
-    assertEquals(RowType.Comment, table.getRowType(RowKey(2)))
+    assertEquals(ColumnHeader, table.getRowType(RowKey(0)))
+    assertEquals(Comment, table.getRowType(RowKey(1)))
+    assertEquals(Comment, table.getRowType(RowKey(2)))
   }
 
   @Test
@@ -76,8 +78,8 @@ class TableReaderTest {
   @Test
   def testGetRowAndColTypes: Unit = {
     val table = new TableReader(rowAndColTypesFi).read()
-    assertEquals("Types,WorkerId,MaxWorkRun,TimeParam1,", table.colTypes.values.fold("")("" + _ + _ + ","))
-    assertEquals("Comment,ColumnHeader,Worker,", table.rowTypes.values.fold("")("" + _ + _ + ","))
+    assertEquals(List(Types, WorkerId, MaxWorkRun, TimeParam1), table.colTypes.values.toList)
+    assertEquals(List(Comment, ColumnHeader, Worker), table.rowTypes.values.toList)
   }
 
 }
