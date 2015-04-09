@@ -3,7 +3,7 @@ package fi.pelam.ahma.serialization
 import java.nio.charset.StandardCharsets._
 import java.util.Locale
 
-import com.google.common.io.ByteSource
+import com.google.common.io.{ByteSource, Resources}
 import fi.pelam.ahma.serialization.ColType._
 import fi.pelam.ahma.serialization.RowType._
 import org.junit.Assert._
@@ -80,6 +80,15 @@ class TableReaderTest {
     val table = new TableReader(rowAndColTypesFi).read()
     assertEquals(List(Types, WorkerId, MaxWorkRun, TimeParam1), table.colTypes.values.toList)
     assertEquals(List(Comment, ColumnHeader, Worker), table.rowTypes.values.toList)
+  }
+
+  @Test
+  def readCompletefileFiUtf8Csv: Unit = {
+    val file = Resources.asByteSource(Resources.getResource("csv–file-for-loading"))
+    val table = new TableReader(file).read()
+    assertEquals(List(Types, WorkerId, MaxWorkRun, TimeParam1), table.colTypes.values.toList)
+    assertEquals(List(Comment, ColumnHeader, Worker), table.rowTypes.values.toList)
+
   }
 
 }
