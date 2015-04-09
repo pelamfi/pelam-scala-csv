@@ -34,7 +34,7 @@ class Table(val rowTypes: SortedMap[RowKey, RowType], val colTypes: SortedMap[Co
     }
   }
 
-  def setCell(key: CellKey, cell: Cell) = ???
+  def setCell(cell: Cell) = ???
 
   def setCells(rowKey: RowKey, colType: ColType, cell: IndexedSeq[Cell]) = ???
 
