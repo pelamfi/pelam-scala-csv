@@ -51,18 +51,13 @@ class Table(val rowTypes: SortedMap[RowKey, RowType], val colTypes: SortedMap[Co
     for (i <- 0 until rowCount) yield cellMap.get(CellKey(i, colKey))
   }
 
-  def mapCellKeys[T](rowKey: RowKey)(func: (CellKey) => T): IndexedSeq[T] = {
-    for (i <- 0 until colCount) yield func(CellKey(rowKey, i))
-  }
-
-  def mapCellKeys[T](colKey: ColKey)(func: (CellKey) => T): IndexedSeq[T] = {
-    for (i <- 0 until rowCount) yield func(CellKey(i, colKey))
-  }
-
   def getCellKeys(colKey: ColKey): IndexedSeq[CellKey] = {
     for (i <- 0 until rowCount) yield CellKey(i, colKey)
   }
 
+  def getCellKeys(rowKey: RowKey): IndexedSeq[CellKey] = {
+    for (i <- 0 until colCount) yield CellKey(rowKey, i)
+  }
 
   /**
    * Throws if the number of columns with given type is not 1
