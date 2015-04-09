@@ -7,15 +7,17 @@ import com.google.common.io.ByteSource
 import fi.pelam.ahma.localization.AhmaLocalization
 import grizzled.slf4j.Logging
 
+import scala.collection.SortedMap
+import scala.collection.immutable.TreeMap
 import scala.io.Source
 
 class TableReader(input: ByteSource) extends Logging {
 
-  var colTypes: Map[ColKey, ColType] = Map()
+  var colTypes: SortedMap[ColKey, ColType] = SortedMap()
 
   var locale: Locale = Locale.ROOT
 
-  var rowTypes: Map[RowKey, RowType] = Map()
+  var rowTypes: SortedMap[RowKey, RowType] = SortedMap()
 
   var cells: IndexedSeq[SimpleCell] = IndexedSeq()
 
@@ -51,7 +53,7 @@ class TableReader(input: ByteSource) extends Logging {
       val (colTypes, colErrors) = if (columnHeaderRow.isDefined) {
         getColTypes(cells, columnHeaderRow.get._1, locale)
       } else {
-        (Map[ColKey, ColType](), List("No row marked to contain column headers found."))
+        (TreeMap[ColKey, ColType](), List("No row marked to contain column headers found."))
       }
 
       val errors = rowErrors ++ colErrors
@@ -105,7 +107,7 @@ object TableReader {
     cells.flatten.toIndexedSeq
   }
 
-  def getRowTypes(cells: TraversableOnce[Cell], locale: Locale): (Map[RowKey, RowType], Seq[String]) = {
+  def getRowTypes(cells: TraversableOnce[Cell], locale: Locale): (SortedMap[RowKey, RowType], Seq[String]) = {
 
     val errors = Seq.newBuilder[String]
 
@@ -126,10 +128,10 @@ object TableReader {
 
     }
 
-    (result.toMap, errors.result)
+    (TreeMap[RowKey, RowType]() ++ result, errors.result)
   }
 
-  def getColTypes(cells: TraversableOnce[Cell], headerRow: RowKey, locale: Locale): (Map[ColKey, ColType], Seq[String]) = {
+  def getColTypes(cells: TraversableOnce[Cell], headerRow: RowKey, locale: Locale): (SortedMap[ColKey, ColType], Seq[String]) = {
 
     val errors = Seq.newBuilder[String]
 
@@ -150,7 +152,7 @@ object TableReader {
 
     }
 
-    (result.toMap, errors.result)
+    (TreeMap[ColKey, ColType]() ++ result, errors.result)
   }
 
 

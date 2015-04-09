@@ -2,13 +2,14 @@ package fi.pelam.ahma.serialization
 
 import java.util.ResourceBundle
 
+import scala.collection.SortedMap
 import scala.collection.mutable.HashMap
 
 object Table {
   val rowTypeCol = ColKey(0)
 }
 
-class Table(val rowTypes: Map[RowKey, RowType], val colTypes: Map[ColKey, ColType]) {
+class Table(val rowTypes: SortedMap[RowKey, RowType], val colTypes: SortedMap[ColKey, ColType]) {
 
   private[this] var resourceBundle: ResourceBundle = null
 
@@ -46,5 +47,8 @@ class Table(val rowTypes: Map[RowKey, RowType], val colTypes: Map[ColKey, ColTyp
   def getRowType(key: RowKey) = rowTypes(key)
 
   def getColType(key: ColKey) = colTypes(key)
+
+  def getCol(rowType: RowType, colType: ColType): IndexedSeq[Cell] = ???
+
 
 }

@@ -85,10 +85,15 @@ class TableReaderTest {
   @Test
   def readCompletefileFiUtf8Csv: Unit = {
     val file = Resources.asByteSource(Resources.getResource("csv–file-for-loading"))
-    val table = new TableReader(file).read()
-    assertEquals(List(Types, WorkerId, MaxWorkRun, TimeParam1), table.colTypes.values.toList)
-    assertEquals(List(Comment, ColumnHeader, Worker), table.rowTypes.values.toList)
 
+    val table = new TableReader(file).read()
+
+    assertEquals(List(Types, WorkerId, MaxWorkRun, TimeParam1,
+      SundayWorkPreferred, Week1FreeDays, Week2FreeDays, History, History), table.colTypes.values.toList.slice(0, 9))
+
+    assertEquals(List(Comment, Comment, ColumnHeader, Day, Worker, Worker), table.rowTypes.values.toList.slice(0, 6))
+
+    // table.getCol(Types, Worker)
   }
 
 }
