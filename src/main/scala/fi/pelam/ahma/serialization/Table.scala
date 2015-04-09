@@ -70,7 +70,7 @@ class Table(val rowTypes: SortedMap[RowKey, RowType], val colTypes: SortedMap[Co
   def getSingleColByType(colType: ColType) = {
     val cols = colsByType(colType)
     if (cols.size == 0) {
-      sys.error(s"Expected 1 column of type $colType but no columns found.")
+      sys.error(s"Expected 1 column of type $colType but no columns of that type found.")
     } else if (cols.size > 1) {
       sys.error(s"Expected 1 column of type $colType but more than 1 found.")
     } else {
