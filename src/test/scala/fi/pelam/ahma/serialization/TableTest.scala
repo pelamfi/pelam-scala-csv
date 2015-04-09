@@ -10,7 +10,11 @@ class TableTest {
   val table = new Table(TreeMap(RowKey(0) -> RowType.Comment,
     RowKey(1) -> RowType.Worker,
     RowKey(2) -> RowType.Worker,
-    RowKey(3) -> RowType.Day), TreeMap(ColKey(1) -> ColType.Types))
+    RowKey(3) -> RowType.Day),
+
+    TreeMap(ColKey(1) -> ColType.Types,
+      ColKey(2) -> ColType.History,
+      ColKey(3) -> ColType.History))
 
   val foo = SimpleCell(CellKey(1, 1), "foo")
   val bar = SimpleCell(CellKey(2, 1), "bar")
@@ -35,5 +39,11 @@ class TableTest {
 
     assertEquals(List(Some(foo), None), table.getSingleCol(ColType.Types, RowType.Worker).toList)
   }
+
+  @Test(expected = classOf[RuntimeException])
+  def testSingleColWithAmbiguousColumn: Unit = {
+    table.getSingleCol(ColType.History, RowType.Worker)
+  }
+
 
 }
