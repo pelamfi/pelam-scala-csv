@@ -47,17 +47,17 @@ class TableReaderTest {
   @Test
   def testRowTypeFi: Unit = {
     val table = new TableReader(headerAndCommentsOnly).read()
-    assertEquals(ColumnHeader, table.getRowType(RowKey(0)))
-    assertEquals(Comment, table.getRowType(RowKey(1)))
-    assertEquals(Comment, table.getRowType(RowKey(2)))
+    assertEquals(ColumnHeader, table.rowTypes(RowKey(0)))
+    assertEquals(Comment, table.rowTypes(RowKey(1)))
+    assertEquals(Comment, table.rowTypes(RowKey(2)))
   }
 
   @Test
   def testRowType: Unit = {
     val table = new TableReader(headerAndCommentsOnly).read()
-    assertEquals(ColumnHeader, table.getRowType(RowKey(0)))
-    assertEquals(Comment, table.getRowType(RowKey(1)))
-    assertEquals(Comment, table.getRowType(RowKey(2)))
+    assertEquals(ColumnHeader, table.rowTypes(RowKey(0)))
+    assertEquals(Comment, table.rowTypes(RowKey(1)))
+    assertEquals(Comment, table.rowTypes(RowKey(2)))
   }
 
   @Test

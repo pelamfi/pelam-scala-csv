@@ -37,7 +37,7 @@ class TableReader(input: ByteSource) extends Logging {
 
     val table = new Table(rowTypes, colTypes)
 
-    table.addCells(cells)
+    table.setCells(cells)
 
     table
   }

@@ -11,6 +11,11 @@ object Table {
 
 class Table(val rowTypes: SortedMap[RowKey, RowType], val colTypes: SortedMap[ColKey, ColType]) {
 
+  // http://stackoverflow.com/a/24222250/1148030
+  val rowsByType = rowTypes.groupBy(_._2).mapValues(_.map(_._1).toIndexedSeq)
+
+  val colsByType = colTypes.groupBy(_._2).mapValues(_.map(_._1).toIndexedSeq)
+
   private[this] var resourceBundle: ResourceBundle = null
 
   private[this] var rowCountPrivate: Int = 0
@@ -23,32 +28,69 @@ class Table(val rowTypes: SortedMap[RowKey, RowType], val colTypes: SortedMap[Co
 
   def colCount = colCountPrivate
 
-  def addCells(cells: TraversableOnce[SimpleCell]) = {
+  def setCells(cells: TraversableOnce[SimpleCell]) = {
     for (cell <- cells) {
-      val key = cell.cellKey
-
-      rowCountPrivate = Math.max(rowCountPrivate, key.rowIndex + 1)
-      colCountPrivate = Math.max(colCountPrivate, key.colIndex + 1)
-
-      cellMap(key) = cell
+      setCell(cell)
     }
   }
 
-  def setCell(cell: Cell) = ???
+  def setCell(cell: Cell) = {
+    val key = cell.cellKey
 
-  def setCells(rowKey: RowKey, colType: ColType, cell: IndexedSeq[Cell]) = ???
+    rowCountPrivate = Math.max(rowCountPrivate, key.rowIndex + 1)
+    colCountPrivate = Math.max(colCountPrivate, key.colIndex + 1)
 
-  def setCells(colKey: ColKey, rowType: RowType, cell: IndexedSeq[Cell]) = ???
+    cellMap(key) = cell
+  }
 
-  def getCells(key: RowKey, colType: ColType): IndexedSeq[Cell] = ???
+  def getCells(rowKey: RowKey): IndexedSeq[Option[Cell]] = {
+    for (i <- 0 until colCount) yield cellMap.get(CellKey(rowKey, i))
+  }
 
-  def getCells(key: ColKey, rowType: RowType): IndexedSeq[Cell] = ???
+  def getCells(colKey: ColKey): IndexedSeq[Option[Cell]] = {
+    for (i <- 0 until rowCount) yield cellMap.get(CellKey(i, colKey))
+  }
 
-  def getRowType(key: RowKey) = rowTypes(key)
+  def mapCellKeys[T](rowKey: RowKey)(func: (CellKey) => T): IndexedSeq[T] = {
+    for (i <- 0 until colCount) yield func(CellKey(rowKey, i))
+  }
 
-  def getColType(key: ColKey) = colTypes(key)
+  def mapCellKeys[T](colKey: ColKey)(func: (CellKey) => T): IndexedSeq[T] = {
+    for (i <- 0 until rowCount) yield func(CellKey(i, colKey))
+  }
 
-  def getCol(rowType: RowType, colType: ColType): IndexedSeq[Cell] = ???
+  def getCellKeys(colKey: ColKey): IndexedSeq[CellKey] = {
+    for (i <- 0 until rowCount) yield CellKey(i, colKey)
+  }
+
+
+  /**
+   * Throws if the number of columns with given type is not 1
+   */
+  def getSingleColByType(colType: ColType) = {
+    val cols = colsByType(colType)
+    if (cols.size == 0) {
+      sys.error(s"Expected 1 column of type $colType but no columns found.")
+    } else if (cols.size > 1) {
+      sys.error(s"Expected 1 column of type $colType but more than 1 found.")
+    } else {
+      cols(0)
+    }
+  }
+
+  /**
+   * Get cells from single column of colType for each row of rowType.
+   *
+   * Throws if there are multiple columns with ColType
+   */
+  def getSingleCol(colType: ColType, rowType: RowType): IndexedSeq[Option[Cell]] = {
+    val colKey = getSingleColByType(colType)
+
+    for (cellKey <- getCellKeys(colKey);
+         if rowTypes(cellKey.rowKey) == rowType) yield {
+      cellMap.get(cellKey)
+    }
+  }
 
 
 }

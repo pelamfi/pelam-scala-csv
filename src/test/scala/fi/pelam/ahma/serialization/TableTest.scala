@@ -8,7 +8,7 @@ import scala.collection.immutable.TreeMap
 class TableTest {
 
   @Test
-  def testGetCol: Unit = {
+  def testSingleColTest: Unit = {
     val table = new Table(TreeMap(RowKey(0) -> RowType.Comment,
       RowKey(1) -> RowType.Worker,
       RowKey(2) -> RowType.Worker,
@@ -22,6 +22,6 @@ class TableTest {
     table.setCell(bar)
     table.setCell(SimpleCell(CellKey(3, 1), "x"))
 
-    assertEquals(List(foo, bar), table.getCol(RowType.Worker, ColType.Types).toList)
+    assertEquals(List(Some(foo), Some(bar)), table.getSingleCol(ColType.Types, RowType.Worker).toList)
   }
 }
