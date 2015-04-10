@@ -27,7 +27,7 @@ class TableTest {
     table.setCell(bar)
     table.setCell(SimpleCell(CellKey(3, 1), "x"))
 
-    assertEquals(List(Some(foo), Some(bar)), table.getSingleCol(ColType.Types, RowType.Worker).toList)
+    assertEquals(List(foo, bar), table.getSingleCol(ColType.Types, RowType.Worker).toList)
   }
 
   @Test(expected = classOf[IllegalArgumentException])
@@ -49,7 +49,7 @@ class TableTest {
     table.setCell(foo)
     table.setCell(SimpleCell(CellKey(3, 1), "x"))
 
-    assertEquals(List(Some(foo), None), table.getSingleCol(ColType.Types, RowType.Worker).toList)
+    assertEquals(List(foo, SimpleCell(CellKey(2, 1), "")), table.getSingleCol(ColType.Types, RowType.Worker).toList)
   }
 
   @Test(expected = classOf[RuntimeException])

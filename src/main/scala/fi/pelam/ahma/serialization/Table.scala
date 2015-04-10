@@ -3,7 +3,6 @@ package fi.pelam.ahma.serialization
 import java.util.ResourceBundle
 
 import scala.collection.SortedMap
-import scala.collection.mutable.HashMap
 
 object Table {
   val rowTypeCol = ColKey(0)
@@ -22,16 +21,36 @@ class Table(val rowTypes: SortedMap[RowKey, RowType], val colTypes: SortedMap[Co
 
   val colCount: Int = colTypes.keys.foldLeft(0)((max, key) => Math.max(max, key.index + 1))
 
-  private[this] val cellMap = new HashMap[CellKey, Cell]
+  private[this] val cells: Array[Array[Cell]] = {
+    val initialCellMap = initialCells.map(cell => cell.cellKey -> cell).toMap
+
+    val rowArray = new Array[Array[Cell]](rowCount)
+
+    for (rowIndex <- 0 until rowCount) {
+
+      val rowKey = RowKey(rowIndex)
+      val colArray = new Array[Cell](colCount)
+
+      rowArray(rowIndex) = colArray
+
+      for (colIndex <- 0 until colCount) {
+
+        val cellKey = CellKey(rowKey, colIndex)
+        val cell = initialCellMap.get(cellKey).getOrElse(new SimpleCell(cellKey, ""))
+
+        colArray(colIndex) = cell
+      }
+
+    }
+
+    rowArray
+  }
 
   def setCells(cells: TraversableOnce[Cell]) = {
     for (cell <- cells) {
       setCell(cell)
     }
   }
-
-  setCells(initialCells)
-
 
   def setCell(cell: Cell) = {
     val key = cell.cellKey
@@ -44,15 +63,17 @@ class Table(val rowTypes: SortedMap[RowKey, RowType], val colTypes: SortedMap[Co
       throw new IllegalArgumentException(s"${key.colIndex} is outside the number of rows $colCount. Mark row a comment?")
     }
 
-    cellMap(key) = cell
+    cells(key.rowIndex)(key.colIndex) = cell
   }
 
-  def getCells(rowKey: RowKey): IndexedSeq[Option[Cell]] = {
-    for (i <- 0 until colCount) yield cellMap.get(CellKey(rowKey, i))
+  def getCell(key: CellKey) = cells(key.rowIndex)(key.colIndex)
+
+  def getCells(rowKey: RowKey): IndexedSeq[Cell] = {
+    for (i <- 0 until colCount) yield cells(rowKey.index)(i)
   }
 
-  def getCells(colKey: ColKey): IndexedSeq[Option[Cell]] = {
-    for (i <- 0 until rowCount) yield cellMap.get(CellKey(i, colKey))
+  def getCells(colKey: ColKey): IndexedSeq[Cell] = {
+    for (i <- 0 until rowCount) yield cells(i)(colKey.index)
   }
 
   def getCellKeys(colKey: ColKey): IndexedSeq[CellKey] = {
@@ -82,13 +103,14 @@ class Table(val rowTypes: SortedMap[RowKey, RowType], val colTypes: SortedMap[Co
    *
    * Throws if there are multiple columns with ColType
    */
-  def getSingleCol(colType: ColType, rowType: RowType): IndexedSeq[Option[Cell]] = {
+  def getSingleCol(colType: ColType, rowType: RowType): IndexedSeq[Cell] = {
     val colKey = getSingleColByType(colType)
 
     for (cellKey <- getCellKeys(colKey);
          if rowTypes(cellKey.rowKey) == rowType) yield {
-      cellMap.get(cellKey)
+      getCell(cellKey)
     }
+
   }
 
 
