@@ -18,15 +18,11 @@ class Table(val rowTypes: SortedMap[RowKey, RowType], val colTypes: SortedMap[Co
 
   private[this] var resourceBundle: ResourceBundle = null
 
-  private[this] var rowCountPrivate: Int = 0
+  val rowCount: Int = rowTypes.keys.foldLeft(0)((max, key) => Math.max(max, key.index + 1))
 
-  private[this] var colCountPrivate: Int = 0
+  val colCount: Int = colTypes.keys.foldLeft(0)((max, key) => Math.max(max, key.index + 1))
 
   private[this] val cellMap = new HashMap[CellKey, Cell]
-
-  def rowCount = rowCountPrivate
-
-  def colCount = colCountPrivate
 
   def setCells(cells: TraversableOnce[SimpleCell]) = {
     for (cell <- cells) {
@@ -36,9 +32,6 @@ class Table(val rowTypes: SortedMap[RowKey, RowType], val colTypes: SortedMap[Co
 
   def setCell(cell: Cell) = {
     val key = cell.cellKey
-
-    rowCountPrivate = Math.max(rowCountPrivate, key.rowIndex + 1)
-    colCountPrivate = Math.max(colCountPrivate, key.colIndex + 1)
 
     cellMap(key) = cell
   }

@@ -11,7 +11,7 @@ import org.junit.Test
 
 class TableReaderTest {
 
-  val headerAndCommentsOnly = ByteSource.wrap("Header\nComment,1,2,3,4\nComment\nComment,\n".getBytes(UTF_8))
+  val headerAndCommentsOnly = ByteSource.wrap("Header,Comment,Comment,Comment,Comment\nComment,1,2,3,4\nComment\nComment,\n".getBytes(UTF_8))
 
   val rowAndColTypesFi = ByteSource.wrap(("Comment,1,2,3,4\nTitle,Tyypit,WorkerId,IntParam1,TimeParam1\n" +
     "Worker,ValueCC,4001\n").getBytes(UTF_8))
@@ -48,16 +48,16 @@ class TableReaderTest {
   def testRowTypeFi: Unit = {
     val table = new TableReader(headerAndCommentsOnly).read()
     assertEquals(ColumnHeader, table.rowTypes(RowKey(0)))
-    assertEquals(Comment, table.rowTypes(RowKey(1)))
-    assertEquals(Comment, table.rowTypes(RowKey(2)))
+    assertEquals(CommentRow, table.rowTypes(RowKey(1)))
+    assertEquals(CommentRow, table.rowTypes(RowKey(2)))
   }
 
   @Test
   def testRowType: Unit = {
     val table = new TableReader(headerAndCommentsOnly).read()
     assertEquals(ColumnHeader, table.rowTypes(RowKey(0)))
-    assertEquals(Comment, table.rowTypes(RowKey(1)))
-    assertEquals(Comment, table.rowTypes(RowKey(2)))
+    assertEquals(CommentRow, table.rowTypes(RowKey(1)))
+    assertEquals(CommentRow, table.rowTypes(RowKey(2)))
   }
 
   @Test
@@ -71,7 +71,7 @@ class TableReaderTest {
 
   @Test
   def testGetRowTypes: Unit = {
-    assertEquals((Map(RowKey(0) -> RowType.Comment), Seq()),
+    assertEquals((Map(RowKey(0) -> RowType.CommentRow), Seq()),
       TableReader.getRowTypes(List(SimpleCell(CellKey(0, 0), "Comment")), Locale.ROOT))
   }
 
@@ -79,7 +79,7 @@ class TableReaderTest {
   def testGetRowAndColTypes: Unit = {
     val table = new TableReader(rowAndColTypesFi).read()
     assertEquals(List(Types, WorkerId, MaxWorkRun, TimeParam1), table.colTypes.values.toList)
-    assertEquals(List(Comment, ColumnHeader, Worker), table.rowTypes.values.toList)
+    assertEquals(List(RowType.CommentRow, ColumnHeader, Worker), table.rowTypes.values.toList)
   }
 
   @Test
@@ -91,7 +91,7 @@ class TableReaderTest {
     assertEquals(List(Types, WorkerId, MaxWorkRun, TimeParam1,
       SundayWorkPreferred, Week1FreeDays, Week2FreeDays, History, History), table.colTypes.values.toList.slice(0, 9))
 
-    assertEquals(List(Comment, Comment, ColumnHeader, Day, Worker, Worker), table.rowTypes.values.toList.slice(0, 6))
+    assertEquals(List(CommentRow, CommentRow, ColumnHeader, Day, Worker, Worker), table.rowTypes.values.toList.slice(0, 6))
 
     // table.getCol(Types, Worker)
   }

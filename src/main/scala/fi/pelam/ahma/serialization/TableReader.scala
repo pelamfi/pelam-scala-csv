@@ -123,7 +123,7 @@ object TableReader {
         cell.rowKey -> rowType
       } else {
         errors += s"Unknown row type '${cell.serializedString}' in language '${locale.getDisplayName()}'"
-        cell.rowKey -> RowType.Comment
+        cell.rowKey -> RowType.CommentRow
       }
 
     }

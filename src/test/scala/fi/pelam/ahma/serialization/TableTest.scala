@@ -7,7 +7,7 @@ import scala.collection.immutable.TreeMap
 
 class TableTest {
 
-  val table = new Table(TreeMap(RowKey(0) -> RowType.Comment,
+  val table = new Table(TreeMap(RowKey(0) -> RowType.CommentRow,
     RowKey(1) -> RowType.Worker,
     RowKey(2) -> RowType.Worker,
     RowKey(3) -> RowType.Day),
