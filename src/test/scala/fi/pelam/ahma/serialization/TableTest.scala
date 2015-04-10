@@ -30,6 +30,11 @@ class TableTest {
     assertEquals(List(Some(foo), Some(bar)), table.getSingleCol(ColType.Types, RowType.Worker).toList)
   }
 
+  @Test(expected = classOf[IllegalArgumentException])
+  def testSetCellOutsideBounds: Unit = {
+    table.setCell(SimpleCell(CellKey(4, 3), "x"))
+  }
+
   @Test
   def testSingleColWithEmptyCellTest: Unit = {
 
