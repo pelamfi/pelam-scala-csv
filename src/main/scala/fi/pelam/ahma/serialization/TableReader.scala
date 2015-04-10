@@ -35,9 +35,7 @@ class TableReader(input: ByteSource) extends Logging {
 
     detectLocaleAndRowTypes()
 
-    val table = new Table(rowTypes, colTypes)
-
-    table.setCells(cells)
+    val table = new Table(rowTypes, colTypes, cells)
 
     table
   }

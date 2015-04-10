@@ -9,7 +9,7 @@ object Table {
   val rowTypeCol = ColKey(0)
 }
 
-class Table(val rowTypes: SortedMap[RowKey, RowType], val colTypes: SortedMap[ColKey, ColType]) {
+class Table(val rowTypes: SortedMap[RowKey, RowType], val colTypes: SortedMap[ColKey, ColType], initialCells: TraversableOnce[Cell]) {
 
   // http://stackoverflow.com/a/24222250/1148030
   val rowsByType = rowTypes.groupBy(_._2).mapValues(_.map(_._1).toIndexedSeq)
@@ -24,11 +24,14 @@ class Table(val rowTypes: SortedMap[RowKey, RowType], val colTypes: SortedMap[Co
 
   private[this] val cellMap = new HashMap[CellKey, Cell]
 
-  def setCells(cells: TraversableOnce[SimpleCell]) = {
+  def setCells(cells: TraversableOnce[Cell]) = {
     for (cell <- cells) {
       setCell(cell)
     }
   }
+
+  setCells(initialCells)
+
 
   def setCell(cell: Cell) = {
     val key = cell.cellKey

@@ -14,7 +14,7 @@ class TableTest {
 
     TreeMap(ColKey(1) -> ColType.Types,
       ColKey(2) -> ColType.History,
-      ColKey(3) -> ColType.History))
+      ColKey(3) -> ColType.History), List())
 
   val foo = SimpleCell(CellKey(1, 1), "foo")
   val bar = SimpleCell(CellKey(2, 1), "bar")
