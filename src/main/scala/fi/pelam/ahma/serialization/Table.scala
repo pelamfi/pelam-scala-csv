@@ -36,6 +36,14 @@ class Table(val rowTypes: SortedMap[RowKey, RowType], val colTypes: SortedMap[Co
   def setCell(cell: Cell) = {
     val key = cell.cellKey
 
+    if (key.rowIndex >= rowCount) {
+      throw new IllegalArgumentException(s"${key.rowIndex} is outside the number of rows $rowCount. Mark column a comment?")
+    }
+
+    if (key.colIndex >= colCount) {
+      throw new IllegalArgumentException(s"${key.colIndex} is outside the number of rows $colCount. Mark row a comment?")
+    }
+
     cellMap(key) = cell
   }
 

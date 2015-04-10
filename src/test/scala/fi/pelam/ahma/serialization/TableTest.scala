@@ -32,7 +32,14 @@ class TableTest {
 
   @Test(expected = classOf[IllegalArgumentException])
   def testSetCellOutsideBounds: Unit = {
+    // Table should not allow cells outside initial bounds.
     table.setCell(SimpleCell(CellKey(4, 3), "x"))
+  }
+
+  @Test(expected = classOf[IllegalArgumentException])
+  def testSetCellOutsideBoundsColumn: Unit = {
+    // Table should not allow cells outside initial bounds.
+    table.setCell(SimpleCell(CellKey(1, 4), "x"))
   }
 
   @Test
