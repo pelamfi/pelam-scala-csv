@@ -10,6 +10,7 @@ object Table {
 
 class Table(val rowTypes: SortedMap[RowKey, RowType], val colTypes: SortedMap[ColKey, ColType], initialCells: TraversableOnce[Cell]) {
 
+
   // http://stackoverflow.com/a/24222250/1148030
   val rowsByType = rowTypes.groupBy(_._2).mapValues(_.map(_._1).toIndexedSeq)
 
@@ -113,5 +114,6 @@ class Table(val rowTypes: SortedMap[RowKey, RowType], val colTypes: SortedMap[Co
 
   }
 
+  def getSingleRow(day: RowType, types: Set[ColType]): IndexedSeq[Cell] = ???
 
 }
