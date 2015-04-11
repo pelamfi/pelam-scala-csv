@@ -10,17 +10,20 @@ class TableTest {
   val table = new Table(TreeMap(RowKey(0) -> RowType.CommentRow,
     RowKey(1) -> RowType.Worker,
     RowKey(2) -> RowType.Worker,
-    RowKey(3) -> RowType.Day),
+    RowKey(3) -> RowType.Day,
+    RowKey(4) -> RowType.CommentRow),
 
     TreeMap(ColKey(1) -> ColType.Types,
       ColKey(2) -> ColType.History,
       ColKey(3) -> ColType.History,
-      ColKey(4) -> ColType.Plan), List())
+      ColKey(4) -> ColType.Plan,
+      ColKey(5) -> ColType.CommentCol), List())
 
   val foo = SimpleCell(CellKey(1, 1), "foo")
   val bar = SimpleCell(CellKey(2, 1), "bar")
   val history1 = SimpleCell(CellKey(3, 2), "history1")
   val history2 = SimpleCell(CellKey(3, 3), "history2")
+  val plan1 = SimpleCell(CellKey(3, 4), "plan1")
 
   @Test
   def testGetSingleCol: Unit = {
@@ -39,22 +42,23 @@ class TableTest {
     table.setCell(SimpleCell(CellKey(3, 1), "x"))
     table.setCell(history1)
     table.setCell(history2)
+    table.setCell(plan1)
     table.setCell(SimpleCell(CellKey(3, 5), "x"))
 
-    assertEquals(List(foo, bar), table.getSingleRow(RowType.Day, Set(ColType.History, ColType.Plan)).toList)
+    assertEquals(List(history1, history2, plan1), table.getSingleRow(RowType.Day, Set(ColType.History, ColType.Plan)).toList)
   }
 
 
   @Test(expected = classOf[IllegalArgumentException])
   def testSetCellOutsideBounds: Unit = {
     // Table should not allow cells outside initial bounds.
-    table.setCell(SimpleCell(CellKey(4, 3), "x"))
+    table.setCell(SimpleCell(CellKey(5, 3), "x"))
   }
 
   @Test(expected = classOf[IllegalArgumentException])
   def testSetCellOutsideBoundsColumn: Unit = {
     // Table should not allow cells outside initial bounds.
-    table.setCell(SimpleCell(CellKey(1, 5), "x"))
+    table.setCell(SimpleCell(CellKey(1, 6), "x"))
   }
 
   @Test

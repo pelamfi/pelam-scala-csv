@@ -57,11 +57,11 @@ class Table(val rowTypes: SortedMap[RowKey, RowType], val colTypes: SortedMap[Co
     val key = cell.cellKey
 
     if (key.rowIndex >= rowCount) {
-      throw new IllegalArgumentException(s"${key.rowIndex} is outside the number of rows $rowCount. Mark column a comment?")
+      throw new IllegalArgumentException(s"Row number ${key.rowIndex + 1} is outside the number of rows $rowCount. Mark the row a comment?")
     }
 
     if (key.colIndex >= colCount) {
-      throw new IllegalArgumentException(s"${key.colIndex} is outside the number of rows $colCount. Mark row a comment?")
+      throw new IllegalArgumentException(s"Column number ${key.colIndex + 1} is outside the number of columns $colCount. Mark the column a comment?")
     }
 
     cells(key.rowIndex)(key.colIndex) = cell
@@ -100,6 +100,20 @@ class Table(val rowTypes: SortedMap[RowKey, RowType], val colTypes: SortedMap[Co
   }
 
   /**
+   * Throws if the number of rows with given type is not 1
+   */
+  def getSingleRowByType(rowType: RowType) = {
+    val rows = rowsByType(rowType)
+    if (rows.size == 0) {
+      sys.error(s"Expected 1 row of type $rowType but no rows of that type found.")
+    } else if (rows.size > 1) {
+      sys.error(s"Expected 1 row of type $rowType but more than 1 found.")
+    } else {
+      rows(0)
+    }
+  }
+
+  /**
    * Get cells from single column of colType for each row of rowType.
    *
    * Throws if there are multiple columns with ColType
@@ -108,12 +122,20 @@ class Table(val rowTypes: SortedMap[RowKey, RowType], val colTypes: SortedMap[Co
     val colKey = getSingleColByType(colType)
 
     for (cellKey <- getCellKeys(colKey);
-         if rowTypes(cellKey.rowKey) == rowType) yield {
+         rowKey = cellKey.rowKey;
+         if rowTypes.contains(rowKey) && rowTypes(rowKey) == rowType) yield {
       getCell(cellKey)
     }
-
   }
 
-  def getSingleRow(day: RowType, types: Set[ColType]): IndexedSeq[Cell] = ???
+  def getSingleRow(rowType: RowType, requiredColTypes: Set[ColType]): IndexedSeq[Cell] = {
+    val rowKey = getSingleRowByType(rowType)
+
+    for (cellKey <- getCellKeys(rowKey);
+         colKey = cellKey.colKey;
+         if colTypes.contains(colKey) && requiredColTypes.contains(colTypes(colKey))) yield {
+      getCell(cellKey)
+    }
+  }
 
 }
