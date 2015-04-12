@@ -3,18 +3,28 @@ package fi.pelam.ahma.serialization
 import java.util.ResourceBundle
 
 import scala.collection.SortedMap
+import scala.collection.immutable.TreeMap
 
 object Table {
   val rowTypeCol = ColKey(0)
-}
-
-class Table(val rowTypes: SortedMap[RowKey, RowType], val colTypes: SortedMap[ColKey, ColType], initialCells: TraversableOnce[Cell]) {
-
 
   // http://stackoverflow.com/a/24222250/1148030
-  val rowsByType = rowTypes.groupBy(_._2).mapValues(_.map(_._1).toIndexedSeq)
+  def reverseMap[A, B](map: scala.collection.Map[A, B]): Map[B, IndexedSeq[A]] = map.groupBy(_._2).mapValues(_.map(_._1).toIndexedSeq)
 
-  val colsByType = colTypes.groupBy(_._2).mapValues(_.map(_._1).toIndexedSeq)
+  def reverseMapSorted[A, B <: Ordered[B]](map: Map[A, B]): SortedMap[B, IndexedSeq[A]] =
+    TreeMap[B, IndexedSeq[A]]() ++ reverseMap(map)
+
+}
+
+class Table(val rowTypes: SortedMap[RowKey, RowType],
+  val colTypes: SortedMap[ColKey, ColType],
+  initialCells: TraversableOnce[Cell]) {
+
+  import fi.pelam.ahma.serialization.Table._
+
+  val rowsByType: Map[RowType, IndexedSeq[RowKey]] = reverseMap(rowTypes)
+
+  val colsByType: Map[ColType, IndexedSeq[ColKey]] = reverseMap(colTypes)
 
   private[this] var resourceBundle: ResourceBundle = null
 
@@ -88,7 +98,7 @@ class Table(val rowTypes: SortedMap[RowKey, RowType], val colTypes: SortedMap[Co
   /**
    * Throws if the number of columns with given type is not 1
    */
-  def getSingleColByType(colType: ColType) = {
+  def getSingleColByType(colType: ColType): ColKey = {
     val cols = colsByType(colType)
     if (cols.size == 0) {
       sys.error(s"Expected 1 column of type $colType but no columns of that type found.")
@@ -102,7 +112,7 @@ class Table(val rowTypes: SortedMap[RowKey, RowType], val colTypes: SortedMap[Co
   /**
    * Throws if the number of rows with given type is not 1
    */
-  def getSingleRowByType(rowType: RowType) = {
+  def getSingleRowByType(rowType: RowType): RowKey = {
     val rows = rowsByType(rowType)
     if (rows.size == 0) {
       sys.error(s"Expected 1 row of type $rowType but no rows of that type found.")
