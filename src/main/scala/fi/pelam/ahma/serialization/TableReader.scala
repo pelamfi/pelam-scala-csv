@@ -109,16 +109,15 @@ object TableReader {
 
     val errors = Seq.newBuilder[String]
 
-    val rowTypeMap = AhmaLocalization.getReverseMap(locale, "RowType", RowType.values.map(_.toString))
+    val rowTypeReverseMap = AhmaLocalization.getEnumMap(locale, "RowType", RowType.namesToValuesMap)
 
     val result = for (cell <- cells;
                       if cell.colKey == Table.rowTypeCol) yield {
 
-      val rowTypeString = rowTypeMap.get(cell.serializedString)
+      val rowTypeOption = rowTypeReverseMap.getReverse(cell.serializedString)
 
-      if (rowTypeString.isDefined) {
-        val rowType = RowType.namesToValuesMap(rowTypeString.get)
-        cell.rowKey -> rowType
+      if (rowTypeOption.isDefined) {
+        cell.rowKey -> rowTypeOption.get
       } else {
         errors += s"Unknown row type '${cell.serializedString}' in language '${locale.getDisplayName()}'"
         cell.rowKey -> RowType.CommentRow
@@ -133,16 +132,15 @@ object TableReader {
 
     val errors = Seq.newBuilder[String]
 
-    val colTypeMap = AhmaLocalization.getReverseMap(locale, "ColType", ColType.values.map(_.toString))
+    val colTypeReverseMap = AhmaLocalization.getEnumMap(locale, "ColType", ColType.namesToValuesMap)
 
     val result = for (cell <- cells;
                       if cell.rowKey == headerRow && cell.colKey != Table.rowTypeCol) yield {
 
-      val colTypeString = colTypeMap.get(cell.serializedString)
+      val colTypeOption = colTypeReverseMap.getReverse(cell.serializedString)
 
-      if (colTypeString.isDefined) {
-        val colType = ColType.namesToValuesMap(colTypeString.get)
-        cell.colKey -> colType
+      if (colTypeOption.isDefined) {
+        cell.colKey -> colTypeOption.get
       } else {
         errors += s"Unknown column type '${cell.serializedString}' in language '${locale.getDisplayName()}'"
         cell.colKey -> null
