@@ -10,7 +10,9 @@ object CellKey {
 
 case class CellKey(rowIndex: Int, colIndex: Int) {
 
-  def rowKey = RowKey(rowIndex)
+  val rowKey = RowKey(rowIndex)
 
-  def colKey = ColKey(colIndex)
+  val colKey = ColKey(colIndex)
+
+  override def toString(): String = s"Cell: $rowKey, $colKey"
 }

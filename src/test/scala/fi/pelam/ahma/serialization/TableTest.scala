@@ -1,5 +1,6 @@
 package fi.pelam.ahma.serialization
 
+import fi.pelam.ahma.localization.AhmaLocalization
 import org.junit.Assert._
 import org.junit.Test
 
@@ -7,7 +8,8 @@ import scala.collection.immutable.TreeMap
 
 class TableTest {
 
-  val table = new Table(TreeMap(RowKey(0) -> RowType.CommentRow,
+  val table = new Table(AhmaLocalization.localeEn,
+    TreeMap(RowKey(0) -> RowType.CommentRow,
     RowKey(1) -> RowType.Worker,
     RowKey(2) -> RowType.Worker,
     RowKey(3) -> RowType.Day,
@@ -45,7 +47,7 @@ class TableTest {
     table.setCell(plan1)
     table.setCell(SimpleCell(CellKey(3, 5), "x"))
 
-    assertEquals(List(history1, history2, plan1), table.getSingleRow(RowType.Day, Set(ColType.History, ColType.Plan)).toList)
+    assertEquals(List(history1, history2, plan1), table.getSingleRow(RowType.Day, Set[ColType](ColType.History, ColType.Plan)).toList)
   }
 
 

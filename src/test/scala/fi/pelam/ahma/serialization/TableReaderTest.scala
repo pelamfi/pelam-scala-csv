@@ -62,10 +62,10 @@ class TableReaderTest {
 
   @Test
   def testParseSimpleCells: Unit = {
-    assertEquals("SimpleCell(CellKey(0,0),Comment)\n" +
-      "SimpleCell(CellKey(0,1),1)\n" +
-      "SimpleCell(CellKey(1,0),Comment)\n" +
-      "SimpleCell(CellKey(1,1),2)\n", TableReader.parseSimpleCells(',',
+    assertEquals("SimpleCell(Cell: Row 1 (index 0), Column A (index 0),Comment)\n" +
+      "SimpleCell(Cell: Row 1 (index 0), Column B (index 1),1)\n" +
+      "SimpleCell(Cell: Row 2 (index 1), Column A (index 0),Comment)\n" +
+      "SimpleCell(Cell: Row 2 (index 1), Column B (index 1),2)\n", TableReader.parseSimpleCells(',',
       IndexedSeq("Comment,1", "Comment,2")).fold("")("" + _ + _ + "\n"))
   }
 

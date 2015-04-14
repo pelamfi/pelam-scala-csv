@@ -1,6 +1,6 @@
 package fi.pelam.ahma.serialization
 
-import java.util.ResourceBundle
+import java.util.{Locale, ResourceBundle}
 
 import scala.collection.SortedMap
 import scala.collection.immutable.TreeMap
@@ -16,7 +16,7 @@ object Table {
 
 }
 
-class Table(val rowTypes: SortedMap[RowKey, RowType],
+class Table(val locale: Locale, val rowTypes: SortedMap[RowKey, RowType],
   val colTypes: SortedMap[ColKey, ColType],
   initialCells: TraversableOnce[Cell]) {
 
@@ -138,14 +138,16 @@ class Table(val rowTypes: SortedMap[RowKey, RowType],
     }
   }
 
-  def getSingleRow(rowType: RowType, requiredColTypes: Set[ColType]): IndexedSeq[Cell] = {
-    val rowKey = getSingleRowByType(rowType)
-
+  def getSingleRow(rowKey: RowKey, requiredColTypes: Set[ColType]): IndexedSeq[Cell] = {
     for (cellKey <- getCellKeys(rowKey);
          colKey = cellKey.colKey;
          if colTypes.contains(colKey) && requiredColTypes.contains(colTypes(colKey))) yield {
       getCell(cellKey)
     }
+  }
+
+  def getSingleRow(rowType: RowType, requiredColTypes: Set[ColType]): IndexedSeq[Cell] = {
+    getSingleRow(getSingleRowByType(rowType), requiredColTypes)
   }
 
 }
