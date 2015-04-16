@@ -14,5 +14,5 @@ case class CellKey(rowIndex: Int, colIndex: Int) {
 
   val colKey = ColKey(colIndex)
 
-  override def toString(): String = s"Cell: $rowKey, $colKey"
+  override def toString(): String = s"$rowKey, $colKey"
 }

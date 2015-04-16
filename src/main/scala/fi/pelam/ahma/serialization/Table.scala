@@ -117,7 +117,7 @@ class Table(val locale: Locale, val rowTypes: SortedMap[RowKey, RowType],
     if (rows.size == 0) {
       sys.error(s"Expected 1 row of type $rowType but no rows of that type found.")
     } else if (rows.size > 1) {
-      sys.error(s"Expected 1 row of type $rowType but more than 1 found.")
+      sys.error(s"Expected 1 row of type $rowType but more than 1 found. " + rows.tail.foldLeft(rows.head.toString)(_ + ", " + _))
     } else {
       rows(0)
     }
