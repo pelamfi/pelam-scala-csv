@@ -109,7 +109,7 @@ object TableReader {
 
     val errors = Seq.newBuilder[String]
 
-    val rowTypeReverseMap = AhmaLocalization.getEnumMap(locale, "RowType", RowType.namesToValuesMap)
+    val rowTypeReverseMap = AhmaLocalization.getEnumMap(locale, RowType)
 
     val result = for (cell <- cells;
                       if cell.colKey == Table.rowTypeCol) yield {
@@ -132,7 +132,7 @@ object TableReader {
 
     val errors = Seq.newBuilder[String]
 
-    val colTypeReverseMap = AhmaLocalization.getEnumMap(locale, "ColType", ColType.namesToValuesMap)
+    val colTypeReverseMap = AhmaLocalization.getEnumMap(locale, ColType)
 
     val result = for (cell <- cells;
                       if cell.rowKey == headerRow && cell.colKey != Table.rowTypeCol) yield {
