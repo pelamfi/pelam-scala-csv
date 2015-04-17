@@ -16,6 +16,6 @@ case class SimpleCell(override val cellKey: CellKey,
   override val serializedString: String)
   extends Cell {
 
-  override def toString() = s"Cell containing '$serializedString' at $cellKey "
+  override def toString() = s"Cell containing '$serializedString' at $cellKey"
 
 }

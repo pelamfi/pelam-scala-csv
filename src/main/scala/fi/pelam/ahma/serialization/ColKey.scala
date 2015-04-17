@@ -15,6 +15,6 @@ case class ColKey(index: Int) extends Ordered[ColKey] {
       // as one of the digits.
       i = i / alphabetSize - 1
     } while (i >= 0)
-    s"Column $result (${index + 1})"
+    s"Column $result (${index})"
   }
 }
