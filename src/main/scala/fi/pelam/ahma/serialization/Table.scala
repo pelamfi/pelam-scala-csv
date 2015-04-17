@@ -150,4 +150,10 @@ class Table(val locale: Locale, val rowTypes: SortedMap[RowKey, RowType],
     IndexedSeq() // getSingleRow(getSingleRowByType(rowType), requiredColTypes)
   }
 
+  def getSingleCell(rowKey: RowKey, colType: ColType): Cell = {
+    val colKey = getSingleColByType(colType)
+    getCell(CellKey(rowKey, colKey))
+  }
+
+
 }
