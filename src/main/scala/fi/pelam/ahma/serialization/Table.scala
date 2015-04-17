@@ -147,7 +147,7 @@ class Table(val locale: Locale, val rowTypes: SortedMap[RowKey, RowType],
   }
 
   def getSingleRow(rowType: RowType, requiredColTypes: Set[ColType]): IndexedSeq[Cell] = {
-    getSingleRow(getSingleRowByType(rowType), requiredColTypes)
+    IndexedSeq() // getSingleRow(getSingleRowByType(rowType), requiredColTypes)
   }
 
 }
