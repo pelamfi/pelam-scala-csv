@@ -61,6 +61,14 @@ class TableReaderTest {
   }
 
   @Test
+  def testParseLocalizedNumbersAndQuotes: Unit = {
+    val input = ByteSource.wrap("Title,TimeParam1,BoolParam1\nWorker,\"12,000.00\",TRUE,\n".getBytes(UTF_8))
+    val table = new TableReader(input).read()
+    val cells = table.getCells(RowKey(1))
+    assertEquals("Worker\n12,000.00\n", cells.foldLeft("")(_ + _.serializedString + "\n"))
+  }
+
+  @Test
   def testParseSimpleCells: Unit = {
 
     val parsed: IndexedSeq[SimpleCell] = TableReader.parseSimpleCells(',',
