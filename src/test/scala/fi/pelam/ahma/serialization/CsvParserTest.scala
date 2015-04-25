@@ -37,4 +37,12 @@ class CsvParserTest {
     assertEquals("(0,0)\n(0,1)\n(1,0)\n", parsed.foldLeft("")(_ + _.cellKey.indices + "\n"))
   }
 
+  @Test
+  def testParseQuoteCharsWithinQuotes: Unit = {
+    val parsed = new CsvParser("\"f\"\"oo\",bar\nbaz\n").parse()
+    assertEquals(3, parsed.size)
+    assertEquals("foo\nbar\nbaz\n", parsed.foldLeft("")(_ + _.serializedString + "\n"))
+    assertEquals("(0,0)\n(0,1)\n(1,0)\n", parsed.foldLeft("")(_ + _.cellKey.indices + "\n"))
+  }
+
 }
