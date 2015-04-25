@@ -32,7 +32,6 @@ final class CsvParser(input: String, val separator: Char = ',') {
 
   var cellContentBufferedPos = 0
 
-
   private[this] def skipCellContentUpToPos() = {
     cellContentBufferedPos = pos
   }
@@ -55,8 +54,13 @@ final class CsvParser(input: String, val separator: Char = ',') {
 
   private[this] def handleEndLine() = {
     handleEndCell()
-    col = 0
     line = line + 1
+  }
+
+  def handleStartLine(): Unit = {
+    skipCellContentUpToPos()
+    col = 0
+    lineStart = pos
   }
 
   def parse(): mutable.Buffer[SimpleCell] = {
@@ -92,8 +96,7 @@ final class CsvParser(input: String, val separator: Char = ',') {
             if (peekCharAvailable && peekChar == '\n') {
               handleEndLine()
               pos = pos + 2
-              skipCellContentUpToPos()
-              lineStart = pos
+              handleStartLine()
             } else {
               sys.error(s"Broken linefeed on $line. Expected LF after CR, but got char ${char.toInt}")
             }
@@ -102,8 +105,7 @@ final class CsvParser(input: String, val separator: Char = ',') {
           case '\n' => {
             handleEndLine()
             pos = pos + 1
-            skipCellContentUpToPos()
-            lineStart = pos
+            handleStartLine()
           }
 
           case _ => {
