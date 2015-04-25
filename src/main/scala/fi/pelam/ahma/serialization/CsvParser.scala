@@ -78,20 +78,21 @@ final class CsvParser(input: String, val separator: Char = ',') {
           case c: Char if c == separator => {
             handleEndCell()
             pos = pos + 1
-            cellContentBufferedPos = pos
+            skipCellContentUpToPos()
           }
 
           case '"' => {
             bufferCellContentUpToPos()
             state = Quoted
             pos = pos + 1
+            skipCellContentUpToPos()
           }
 
           case '\r' => {
             if (peekCharAvailable && peekChar == '\n') {
               handleEndLine()
               pos = pos + 2
-              cellContentBufferedPos = pos
+              skipCellContentUpToPos()
               lineStart = pos
             } else {
               sys.error(s"Broken linefeed on $line. Expected LF after CR, but got char ${char.toInt}")
@@ -101,7 +102,7 @@ final class CsvParser(input: String, val separator: Char = ',') {
           case '\n' => {
             handleEndLine()
             pos = pos + 1
-            cellContentBufferedPos = pos
+            skipCellContentUpToPos()
             lineStart = pos
           }
 
