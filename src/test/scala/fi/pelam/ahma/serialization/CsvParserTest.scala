@@ -34,6 +34,12 @@ class CsvParserTest {
   }
 
   @Test
+  def testParseUnterminatedLastLine: Unit = {
+    val parsed = new CsvParser("foo,bar\r\nbaz").parse()
+    assertCsv3Cells(parsed)
+  }
+
+  @Test
   def testParseQuotes: Unit = {
     val parsed = new CsvParser("\"foo\",\"bar\"\nbaz\n").parse()
     assertCsv3Cells(parsed)

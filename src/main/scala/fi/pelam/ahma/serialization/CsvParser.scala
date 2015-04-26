@@ -139,7 +139,8 @@ final class CsvParser(input: String, val separator: Char = ',') {
     }
 
     if (pos != lineStart) {
-      sys.error(s"Last line $line was not terminated with line feed.")
+      // Gloss over missing final linefeed
+      handleEndLine()
     }
 
     builder

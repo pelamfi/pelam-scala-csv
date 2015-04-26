@@ -71,8 +71,7 @@ class TableReaderTest {
   @Test
   def testParseSimpleCells: Unit = {
 
-    val parsed: IndexedSeq[SimpleCell] = TableReader.parseSimpleCells(',',
-      IndexedSeq("Comment,1", "Comment,2"))
+    val parsed = TableReader.parseSimpleCells(',', "Comment,1\nComment,2")
 
     val expected = "Cell containing 'Comment' at Row 1, Column A (0)\n" +
       "Cell containing '1' at Row 1, Column B (1)\n" +

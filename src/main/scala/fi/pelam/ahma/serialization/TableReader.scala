@@ -1,15 +1,14 @@
 package fi.pelam.ahma.serialization
 
-import java.nio.charset.{Charset, StandardCharsets}
+import java.nio.charset.StandardCharsets
 import java.util.Locale
 
 import com.google.common.io.ByteSource
 import fi.pelam.ahma.localization.AhmaLocalization
 import grizzled.slf4j.Logging
 
-import scala.collection.SortedMap
 import scala.collection.immutable.TreeMap
-import scala.io.Source
+import scala.collection.{SortedMap, mutable}
 
 class TableReader(input: ByteSource) extends Logging {
 
@@ -19,7 +18,7 @@ class TableReader(input: ByteSource) extends Logging {
 
   var rowTypes: SortedMap[RowKey, RowType] = SortedMap()
 
-  var cells: IndexedSeq[SimpleCell] = IndexedSeq()
+  var cells: mutable.Buffer[SimpleCell] = mutable.Buffer()
 
   var errors: Option[Seq[String]] = None
 
@@ -28,10 +27,10 @@ class TableReader(input: ByteSource) extends Logging {
   def read(): Table = {
 
     // TODO: Charset detection (try UTF16 and iso8859)
-    val lines = getLines(input, StandardCharsets.UTF_8)
+    val inputString = input.asCharSource(StandardCharsets.UTF_8).read()
 
     // TODO: Separator detection
-    this.cells = parseSimpleCells(',', lines)
+    this.cells = parseSimpleCells(',', inputString)
 
     detectLocaleAndRowTypes()
 
@@ -85,24 +84,8 @@ class TableReader(input: ByteSource) extends Logging {
 object TableReader {
   val locales = List(AhmaLocalization.localeEn, AhmaLocalization.localeFi)
 
-  def getLines(input: ByteSource, encoding: Charset) = {
-    // Bypassing the codec handling in scala.io but using it to extract lines
-    val source = Source.fromString(input.asCharSource(StandardCharsets.UTF_8).read())
-
-    val lines = source.getLines().toIndexedSeq
-
-    lines
-  }
-
-  def parseSimpleCells(separator: Char, lines: IndexedSeq[String]): IndexedSeq[SimpleCell] = {
-    val cells = for (line <- lines.zipWithIndex) yield {
-      for (cell <- line._1.split(separator).zipWithIndex) yield {
-        val key = new CellKey(line._2, cell._2)
-        new SimpleCell(key, cell._1)
-      }
-    }
-
-    cells.flatten.toIndexedSeq
+  def parseSimpleCells(separator: Char, input: String): mutable.Buffer[SimpleCell] = {
+    new CsvParser(input, separator = separator).parse()
   }
 
   def getRowTypes(cells: TraversableOnce[Cell], locale: Locale): (SortedMap[RowKey, RowType], Seq[String]) = {
