@@ -65,7 +65,7 @@ class TableReaderTest {
     val input = ByteSource.wrap("Title,TimeParam1,BoolParam1\nWorker,\"12,000.00\",TRUE,\n".getBytes(UTF_8))
     val table = new TableReader(input).read()
     val cells = table.getCells(RowKey(1))
-    assertEquals("Worker\n12,000.00\n", cells.foldLeft("")(_ + _.serializedString + "\n"))
+    assertEquals("Worker\n12,000.00\nTRUE\n", cells.foldLeft("")(_ + _.serializedString + "\n"))
   }
 
   @Test
@@ -100,8 +100,8 @@ class TableReaderTest {
 
     val table = new TableReader(file).read()
 
-    assertEquals(List(Types, WorkerId, MaxWorkRun, TimeParam1,
-      SundayWorkPreferred, Week1FreeDays, Week2FreeDays, History, History), table.colTypes.values.toList.slice(0, 9))
+    assertEquals(List(Types, WorkerId, MaxWorkRun, CommentCol, TimeParam1,
+      SundayWorkPreferred, Week1FreeDays, Week2FreeDays, History, History), table.colTypes.values.toList.slice(0, 10))
 
     assertEquals(List(CommentRow, CommentRow, ColumnHeader, Day, Worker, Worker), table.rowTypes.values.toList.slice(0, 6))
 
