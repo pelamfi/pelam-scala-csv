@@ -23,30 +23,30 @@ class TableReaderTest {
   @Test(expected = classOf[RuntimeException])
   def testReadFailNoRowId: Unit = {
     // no row types so error
-    new TableReader(noRowTypes).read()
+    new TableReader(noRowTypes, Map()).read()
   }
 
   @Test
   def testJustReadSimple: Unit = {
     // Works because row type identified
-    new TableReader(headerAndCommentsOnly).read()
+    new TableReader(headerAndCommentsOnly, Map()).read()
   }
 
   @Test
   def testRowCount: Unit = {
-    val table = new TableReader(headerAndCommentsOnly).read()
+    val table = new TableReader(headerAndCommentsOnly, Map()).read()
     assertEquals(4, table.rowCount)
   }
 
   @Test
   def testColCount: Unit = {
-    val table = new TableReader(headerAndCommentsOnly).read()
+    val table = new TableReader(headerAndCommentsOnly, Map()).read()
     assertEquals(5, table.colCount)
   }
 
   @Test
   def testRowTypeFi: Unit = {
-    val table = new TableReader(headerAndCommentsOnly).read()
+    val table = new TableReader(headerAndCommentsOnly, Map()).read()
     assertEquals(ColumnHeader, table.rowTypes(RowKey(0)))
     assertEquals(CommentRow, table.rowTypes(RowKey(1)))
     assertEquals(CommentRow, table.rowTypes(RowKey(2)))
@@ -54,7 +54,7 @@ class TableReaderTest {
 
   @Test
   def testRowType: Unit = {
-    val table = new TableReader(headerAndCommentsOnly).read()
+    val table = new TableReader(headerAndCommentsOnly, Map()).read()
     assertEquals(ColumnHeader, table.rowTypes(RowKey(0)))
     assertEquals(CommentRow, table.rowTypes(RowKey(1)))
     assertEquals(CommentRow, table.rowTypes(RowKey(2)))
@@ -62,8 +62,8 @@ class TableReaderTest {
 
   @Test
   def testParseLocalizedNumbersAndQuotes: Unit = {
-    val input = ByteSource.wrap("Title,TimeParam1,BoolParam1\nWorker,\"12,000.00\",TRUE,\n".getBytes(UTF_8))
-    val table = new TableReader(input).read()
+    val input = ByteSource.wrap("Title,TimeParam1,BoolParam1\nWorker,\"12,000.00\",TRUE\n".getBytes(UTF_8))
+    val table = new TableReader(input, Map()).read()
     val cells = table.getCells(RowKey(1))
     assertEquals("Worker\n12,000.00\nTRUE\n", cells.foldLeft("")(_ + _.serializedString + "\n"))
   }
@@ -89,8 +89,8 @@ class TableReaderTest {
 
   @Test
   def testGetRowAndColTypes: Unit = {
-    val table = new TableReader(rowAndColTypesFi).read()
-    assertEquals(List(Types, WorkerId, MaxWorkRun, TimeParam1), table.colTypes.values.toList)
+    val table = new TableReader(rowAndColTypesFi, Map()).read()
+    assertEquals(List(RowHeader, Types, WorkerId, MaxWorkRun, TimeParam1), table.colTypes.values.toList)
     assertEquals(List(RowType.CommentRow, ColumnHeader, Worker), table.rowTypes.values.toList)
   }
 
@@ -98,10 +98,10 @@ class TableReaderTest {
   def readCompletefileFiUtf8Csv: Unit = {
     val file = Resources.asByteSource(Resources.getResource("csv–file-for-loading"))
 
-    val table = new TableReader(file).read()
+    val table = new TableReader(file, Map()).read()
 
-    assertEquals(List(Types, WorkerId, MaxWorkRun, CommentCol, TimeParam1,
-      SundayWorkPreferred, Week1FreeDays, Week2FreeDays, History, History), table.colTypes.values.toList.slice(0, 10))
+    assertEquals(List(RowHeader, Types, WorkerId, MaxWorkRun, CommentCol, TimeParam1,
+      SundayWorkPreferred, Week1FreeDays, Week2FreeDays, History, History), table.colTypes.values.toList.slice(0, 11))
 
     assertEquals(List(CommentRow, CommentRow, ColumnHeader, Day, Worker, Worker), table.rowTypes.values.toList.slice(0, 6))
 
