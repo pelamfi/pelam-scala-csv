@@ -18,7 +18,7 @@ class TableReader(input: ByteSource) extends Logging {
 
   var rowTypes: SortedMap[RowKey, RowType] = SortedMap()
 
-  var cells: mutable.Buffer[SimpleCell] = mutable.Buffer()
+  var cells: mutable.Buffer[StringCell] = mutable.Buffer()
 
   var errors: Option[Seq[String]] = None
 
@@ -32,23 +32,25 @@ class TableReader(input: ByteSource) extends Logging {
     // TODO: Separator detection
     this.cells = parseSimpleCells(',', inputString)
 
-    detectLocaleAndRowTypes()
+    detectStringLocaleAndRowTypes()
+
+    detectNumberLocaleAndUpgradeCells()
 
     val table = new Table(locale, rowTypes, colTypes, cells)
 
     table
   }
 
-  def detectLocaleAndRowTypes(): Unit = {
+  def detectStringLocaleAndRowTypes(): Unit = {
 
-    for (locale <- locales) {
+    for (stringLocale <- locales) {
 
-      val (rowTypes, rowErrors) = getRowTypes(cells, locale)
+      val (rowTypes, rowErrors) = getRowTypes(cells, stringLocale)
 
       val columnHeaderRow = rowTypes.find(_._2 == RowType.ColumnHeader)
 
       val (colTypes, colErrors) = if (columnHeaderRow.isDefined) {
-        getColTypes(cells, columnHeaderRow.get._1, locale)
+        getColTypes(cells, columnHeaderRow.get._1, stringLocale)
       } else {
         (TreeMap[ColKey, ColType](), List("No row marked to contain column headers found."))
       }
@@ -56,8 +58,8 @@ class TableReader(input: ByteSource) extends Logging {
       val errors = rowErrors ++ colErrors
 
       if (errors.size == 0) {
-        // All row types identified, Consider locale detected
-        this.locale = locale
+        // All row types identified, Consider stringLocale detected
+        this.locale = stringLocale
         this.rowTypes = rowTypes
         this.colTypes = colTypes
         this.errors = None
@@ -78,13 +80,17 @@ class TableReader(input: ByteSource) extends Logging {
     sys.error(message)
   }
 
+  def detectNumberLocaleAndUpgradeCells(): Unit = {
+
+  }
+
 
 }
 
 object TableReader {
   val locales = List(AhmaLocalization.localeEn, AhmaLocalization.localeFi)
 
-  def parseSimpleCells(separator: Char, input: String): mutable.Buffer[SimpleCell] = {
+  def parseSimpleCells(separator: Char, input: String): mutable.Buffer[StringCell] = {
     new CsvParser(input, separator = separator).parse()
   }
 

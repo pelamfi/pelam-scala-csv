@@ -63,7 +63,7 @@ class CsvParserTest {
     assertCsv3Cells(parsed)
   }
 
-  def assertCsv3Cells(parsed: mutable.Buffer[SimpleCell]): Unit = {
+  def assertCsv3Cells(parsed: mutable.Buffer[StringCell]): Unit = {
     assertEquals("foo\nbar\nbaz\n", parsed.foldLeft("")(_ + _.serializedString + "\n"))
     assertEquals("(0,0)\n(0,1)\n(1,0)\n", parsed.foldLeft("")(_ + _.cellKey.indices + "\n"))
   }

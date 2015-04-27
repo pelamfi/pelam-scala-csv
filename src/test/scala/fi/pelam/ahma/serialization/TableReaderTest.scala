@@ -84,7 +84,7 @@ class TableReaderTest {
   @Test
   def testGetRowTypes: Unit = {
     assertEquals((Map(RowKey(0) -> RowType.CommentRow), Seq()),
-      TableReader.getRowTypes(List(SimpleCell(CellKey(0, 0), "Comment")), Locale.ROOT))
+      TableReader.getRowTypes(List(StringCell(CellKey(0, 0), "Comment")), Locale.ROOT))
   }
 
   @Test

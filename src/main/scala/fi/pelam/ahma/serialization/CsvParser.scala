@@ -16,7 +16,7 @@ final class CsvParser(input: String, val separator: Char = ',') {
 
   import fi.pelam.ahma.serialization.CsvParser._
 
-  val builder = mutable.Buffer[SimpleCell]()
+  val builder = mutable.Buffer[StringCell]()
 
   var pos: Int = 0
 
@@ -42,7 +42,7 @@ final class CsvParser(input: String, val separator: Char = ',') {
   }
 
   private[this] def emitCell() = {
-    builder += SimpleCell(CellKey(line, col), cellContentBuffer.toString())
+    builder += StringCell(CellKey(line, col), cellContentBuffer.toString())
     col += 1
     cellContentBuffer = new StringBuilder()
   }
@@ -63,7 +63,7 @@ final class CsvParser(input: String, val separator: Char = ',') {
     lineStart = pos
   }
 
-  def parse(): mutable.Buffer[SimpleCell] = {
+  def parse(): mutable.Buffer[StringCell] = {
 
     while (pos < input.length) {
       val char = input.charAt(pos)

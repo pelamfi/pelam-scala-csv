@@ -47,7 +47,7 @@ class Table(val locale: Locale, val rowTypes: SortedMap[RowKey, RowType],
       for (colIndex <- 0 until colCount) {
 
         val cellKey = CellKey(rowKey, colIndex)
-        val cell = initialCellMap.get(cellKey).getOrElse(new SimpleCell(cellKey, ""))
+        val cell = initialCellMap.get(cellKey).getOrElse(new StringCell(cellKey, ""))
 
         colArray(colIndex) = cell
       }
