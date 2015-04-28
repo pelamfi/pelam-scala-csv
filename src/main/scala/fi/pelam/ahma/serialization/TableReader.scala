@@ -82,6 +82,20 @@ class TableReader(input: ByteSource, cellTypes: CellTypes.CellTypeMap) extends L
     sys.error(message)
   }
 
+  def upgradeCell(cell: Cell, locale: Locale): Either[TableReadingError, Cell] = {
+    val cellType = getCellType(cell)
+    if (cellTypes.contains(cellType)) {
+      val factory = cellTypes(cellType)
+      val result = factory.fromString(cell.cellKey, locale, cell.serializedString)
+
+      // Add cell type to possible error message
+      result.fold(error => Left(error.copy(msg = error.msg + s" $cellType")), Right(_))
+    } else {
+      // Unchanged
+      Right(cell)
+    }
+  }
+
   def detectDataLocaleAndUpgradeCells(): Unit = {
 
     // Guess first the already detected cellTypeLocale, if that fails try english.
@@ -91,13 +105,7 @@ class TableReader(input: ByteSource, cellTypes: CellTypes.CellTypeMap) extends L
     val perLocaleResults = for (locale <- dataLocaleCandidates) yield {
 
       val cellsUpgradedOrErrors = for (cell <- cells) yield {
-        val typeKey: (RowType, ColType) = getCellTypeKey(cell)
-
-        val upgradedOrError = cellTypes.get(typeKey)
-          .map(_.fromString(cell.cellKey, locale, cell.serializedString))
-          .getOrElse(Right(cell))
-
-        upgradedOrError
+        upgradeCell(cell, locale)
       }
 
       // http://stackoverflow.com/a/26579082/1148030
@@ -108,16 +116,24 @@ class TableReader(input: ByteSource, cellTypes: CellTypes.CellTypeMap) extends L
       result
     }
 
+    // Pick the one with no errors or least number of errors (in case of failure)
     val bestResult = perLocaleResults.sortWith((a, b) => a.errors.size - b.errors.size < 0).head
 
     if (bestResult.errors.isEmpty) {
       this.dataLocale = bestResult.locale
       cells = bestResult.cells
+    } else {
+      val message = "Failed to parse data in some cells and or identify language/locale.\n" +
+        bestResult.errors.foldLeft("")(_ + _ + "\n")
+
+      error(message)
+
+      sys.error(message)
     }
 
   }
 
-  def getCellTypeKey(cell: Cell) = (getRowType(cell), getColType(cell))
+  def getCellType(cell: Cell) = CellType(getRowType(cell), getColType(cell))
 
   def getColType(cell: Cell): ColType = colTypes.getOrElse(cell.colKey, ColType.CommentCol)
 
