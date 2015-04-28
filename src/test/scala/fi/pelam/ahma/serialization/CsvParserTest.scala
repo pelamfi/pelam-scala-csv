@@ -68,5 +68,18 @@ class CsvParserTest {
     assertEquals("(0,0)\n(0,1)\n(1,0)\n", parsed.foldLeft("")(_ + _.cellKey.indices + "\n"))
   }
 
+  @Test
+  def testParseSimpleCells: Unit = {
+
+    val parsed = new CsvParser("Comment,1\nComment,2", ',').parse()
+
+    val expected = "Cell containing 'Comment' at Row 1, Column A (0)\n" +
+      "Cell containing '1' at Row 1, Column B (1)\n" +
+      "Cell containing 'Comment' at Row 2, Column A (0)\n" +
+      "Cell containing '2' at Row 2, Column B (1)\n"
+
+    assertEquals(expected, parsed.foldLeft("")(_ + _ + "\n"))
+  }
+
 
 }

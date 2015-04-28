@@ -32,7 +32,9 @@ class TableReader(input: ByteSource, cellTypes: CellTypes.CellTypeMap) extends L
     val inputString = input.asCharSource(StandardCharsets.UTF_8).read()
 
     // TODO: Separator detection
-    this.cells = parseSimpleCells(',', inputString).toIndexedSeq
+    val csvParser = new CsvParser(inputString, separator = ',')
+
+    this.cells = csvParser.parse().toIndexedSeq
 
     detectStringLocaleAndRowTypes()
 
@@ -147,10 +149,6 @@ object TableReader {
   case class CellUpgradeAndLocaleResults(locale: Locale,
     errors: IndexedSeq[TableReadingError] = IndexedSeq(),
     cells: IndexedSeq[Cell] = IndexedSeq())
-
-  def parseSimpleCells(separator: Char, input: String): IndexedSeq[Cell] = {
-    new CsvParser(input, separator = separator).parse().toIndexedSeq
-  }
 
   def getRowTypes(cells: TraversableOnce[Cell], locale: Locale): (SortedMap[RowKey, RowType], Seq[String]) = {
 
