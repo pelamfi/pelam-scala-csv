@@ -9,6 +9,7 @@ import scala.collection.immutable.TreeMap
 class TableTest {
 
   val table = new Table(AhmaLocalization.localeEn,
+    AhmaLocalization.localeEn,
     TreeMap(RowKey(0) -> RowType.CommentRow,
     RowKey(1) -> RowType.Worker,
     RowKey(2) -> RowType.Worker,

@@ -4,6 +4,7 @@ import java.nio.charset.StandardCharsets._
 import java.util.Locale
 
 import com.google.common.io.{ByteSource, Resources}
+import fi.pelam.ahma.localization.AhmaLocalization
 import fi.pelam.ahma.serialization.ColType._
 import fi.pelam.ahma.serialization.RowType._
 import org.junit.Assert._
@@ -13,8 +14,9 @@ class TableReaderTest {
 
   val headerAndCommentsOnly = ByteSource.wrap("Header,Comment,Comment,Comment,Comment\nComment,1,2,3,4\nComment\nComment,\n".getBytes(UTF_8))
 
-  val rowAndColTypesFi = ByteSource.wrap(("Comment,1,2,3,4\nTitle,Tyypit,WorkerId,IntParam1,TimeParam1\n" +
-    "Worker,ValueCC,4001\n").getBytes(UTF_8))
+  val rowAndColTypesFiDataEn = ByteSource.wrap(("Comment,1,2,3,4\n" +
+    "Title,Tyypit,WorkerId,IntParam1,TimeParam1\n" +
+    "Worker,ValueCC,4001,8,\"12,000\"\n").getBytes(UTF_8))
 
   val commentsOnlyFi = ByteSource.wrap("Comment,1,2,3,4\nComment\nComment,\n".getBytes(UTF_8))
 
@@ -69,10 +71,36 @@ class TableReaderTest {
   }
 
   @Test
-  def testUpgradeCellType: Unit = ???
+  def testUpgradeCellType: Unit = {
+    val table = new TableReader(rowAndColTypesFiDataEn,
+      Map(CellType(RowType.Worker, ColType.TimeParam1) -> IntegerCell)).read()
+
+    val cells = table.getSingleCol(ColType.TimeParam1, RowType.Worker)
+
+    assertEquals(AhmaLocalization.localeEn, table.dataLocale)
+
+    val expectedIntegerCell = IntegerCell.fromString(CellKey(2, 4), AhmaLocalization.localeEn, "12000").right.get
+
+    assertEquals(IndexedSeq(expectedIntegerCell), cells)
+  }
 
   @Test
-  def testUpgradeCellTypeParsingFailed: Unit = ???
+  def testUpgradeCellTypeParsingFailed: Unit = {
+    val rowAndColTypesFiDataEn = ByteSource.wrap(
+      ("Title,Tyypit,WorkerId,IntParam1,TimeParam1\n" +
+        "Worker,ValueCC,4001,8,injected-error-should-be-number\n").getBytes(UTF_8))
+
+    try {
+      new TableReader(rowAndColTypesFiDataEn,
+        Map(CellType(RowType.Worker, ColType.TimeParam1) -> IntegerCell)).read()
+      fail()
+    } catch {
+      case e: Exception => {
+        assertEquals("Failed to parse data in some cells and or identify language/locale.\n" +
+          "Expected integer, but value 'injected-error-should-be-number' could not be parsed with locale $locale at Cell at Row D, column 3\n", e.getMessage())
+      }
+    }
+  }
 
   @Test
   def testGetRowTypes: Unit = {
@@ -82,7 +110,7 @@ class TableReaderTest {
 
   @Test
   def testGetRowAndColTypes: Unit = {
-    val table = new TableReader(rowAndColTypesFi, Map()).read()
+    val table = new TableReader(rowAndColTypesFiDataEn, Map()).read()
     assertEquals(List(RowHeader, Types, WorkerId, MaxWorkRun, TimeParam1), table.colTypes.values.toList)
     assertEquals(List(RowType.CommentRow, ColumnHeader, Worker), table.rowTypes.values.toList)
   }

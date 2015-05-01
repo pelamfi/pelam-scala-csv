@@ -40,7 +40,7 @@ class TableReader(input: ByteSource, cellTypes: CellTypes.CellTypeMap) extends L
 
     detectDataLocaleAndUpgradeCells()
 
-    val table = new Table(cellTypeLocale, rowTypes, colTypes, cells)
+    val table = new Table(cellTypeLocale, cellTypeLocale, rowTypes, colTypes, cells)
 
     table
   }

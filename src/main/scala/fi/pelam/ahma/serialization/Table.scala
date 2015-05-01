@@ -16,7 +16,7 @@ object Table {
 
 }
 
-class Table(val locale: Locale, val rowTypes: SortedMap[RowKey, RowType],
+class Table(val stringLocale: Locale, val dataLocale: Locale, val rowTypes: SortedMap[RowKey, RowType],
   val colTypes: SortedMap[ColKey, ColType],
   initialCells: TraversableOnce[Cell]) {
 
