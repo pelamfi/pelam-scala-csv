@@ -1,6 +1,6 @@
 package fi.pelam.ahma.serialization
 
-import java.text.NumberFormat
+import java.text.{NumberFormat, ParsePosition}
 import java.util.Locale
 
 import scala.reflect.macros.ParseException
@@ -24,21 +24,30 @@ object IntegerCell extends CellFactory {
 
     try {
 
-      val number = numberFormat.parse(input)
+      val position = new ParsePosition(0)
 
-      val intValue = number.intValue()
+      val trimmedInput = input.trim
 
-      if (intValue == number) {
-        Right(IntegerCell(cellKey, numberFormat, intValue))
+      val number = numberFormat.parse(trimmedInput, position)
+
+      if (position.getIndex() != trimmedInput.size) {
+        Left(TableReadingError(s"Expected integer, but input '$input' could not be fully parsed with locale $locale at $cellKey"))
       } else {
-        Left(TableReadingError(s"Expected integer, but value '$input' is decimal at $cellKey"))
+
+        val intValue = number.intValue()
+
+        if (intValue == number) {
+          Right(IntegerCell(cellKey, numberFormat, intValue))
+        } else {
+          Left(TableReadingError(s"Expected integer, but value '$input' is decimal at $cellKey"))
+        }
+
       }
 
     } catch {
       case e: ParseException =>
-        Left(TableReadingError(s"Expected integer, but value '$input' could not be parsed with locale $locale at $cellKey"))
+        Left(TableReadingError(s"Expected integer, but input '$input' could not be parsed with locale $locale at $cellKey"))
     }
-
   }
 }
 
