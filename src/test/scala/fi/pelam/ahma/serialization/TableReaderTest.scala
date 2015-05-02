@@ -16,7 +16,7 @@ class TableReaderTest {
 
   val rowAndColTypesFiDataEn = ByteSource.wrap(("Comment,1,2,3,4\n" +
     "Title,Tyypit,WorkerId,IntParam1,TimeParam1\n" +
-    "Worker,ValueCC,4001,8,\"12,000\"\n").getBytes(UTF_8))
+    "Worker,ValueCC,4001,8,\"12,000.00\"\n").getBytes(UTF_8))
 
   val commentsOnlyFi = ByteSource.wrap("Comment,1,2,3,4\nComment\nComment,\n".getBytes(UTF_8))
 
@@ -97,7 +97,7 @@ class TableReaderTest {
     } catch {
       case e: Exception => {
         assertEquals("Failed to parse data in some cells and or identify language/locale.\n" +
-          "Expected integer, but value 'injected-error-should-be-number' could not be parsed with locale $locale at Cell at Row D, column 3\n", e.getMessage())
+          "TableReadingError(Expected integer, but input 'injected-error-should-be-number' could not be fully parsed with locale fi at Row 2, Column E (4) CellType(Worker,TimeParam1))\n", e.getMessage())
       }
     }
   }
