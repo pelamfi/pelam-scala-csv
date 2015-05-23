@@ -63,7 +63,7 @@ class CsvWriterTest {
     assertEquals("foo", CsvWriter.serialize(StringCell(CellKey(0, 0), "foo"), ','))
     assertEquals("\"f,oo\"", CsvWriter.serialize(StringCell(CellKey(0, 0), "f,oo"), ','))
     assertEquals("\"f,,oo\"", CsvWriter.serialize(StringCell(CellKey(0, 0), "f,,oo"), ','))
-    assertEquals("\"f\"\"oo\"", CsvWriter.serialize(StringCell(CellKey(0, 0), "ff\"oo"), ','))
+    assertEquals("\"f\"\"oo\"", CsvWriter.serialize(StringCell(CellKey(0, 0), "f\"oo"), ','))
   }
 
 }

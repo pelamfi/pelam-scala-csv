@@ -1,6 +1,8 @@
 package fi.pelam.ahma.serialization
 
-class CsvWriter(val output: java.io.Writer, val separator: Char = ',') {
+import fi.pelam.ahma.serialization.CsvConstants._
+
+class CsvWriter(val output: java.io.Writer, val separator: Char = defaultSeparatorChar) {
 
   import CsvWriter._
 
@@ -47,10 +49,6 @@ class CsvWriter(val output: java.io.Writer, val separator: Char = ',') {
 }
 
 object CsvWriter {
-
-  val quoteChar: Char = '"'
-  val quote: String = quoteChar.toString
-  val doubleQuote: String = quote + quote
 
   def serialize(cell: Cell, separator: Char): String = {
     val cellSerialized = cell.serializedString

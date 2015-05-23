@@ -1,5 +1,7 @@
 package fi.pelam.ahma.serialization
 
+import fi.pelam.ahma.serialization.CsvConstants._
+
 import scala.collection.mutable
 
 final object CsvReader {
@@ -9,10 +11,9 @@ final object CsvReader {
   case object CellContent extends State
 
   case object Quoted extends State
-
 }
 
-final class CsvReader(input: String, val separator: Char = ',') {
+final class CsvReader(input: String, val separator: Char = defaultSeparatorChar) {
 
   import fi.pelam.ahma.serialization.CsvReader._
 
@@ -63,6 +64,7 @@ final class CsvReader(input: String, val separator: Char = ',') {
     lineStart = pos
   }
 
+  // TODO: Make CsvReader stream like
   def parse(): mutable.Buffer[StringCell] = {
 
     while (pos < input.length) {
