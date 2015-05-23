@@ -29,10 +29,14 @@ class TableReader(input: ByteSource, cellTypes: CellTypes.CellTypeMap) extends L
   def read(): Table = {
 
     // TODO: Charset detection (try UTF16 and iso8859)
-    val inputString = input.asCharSource(StandardCharsets.UTF_8).read()
+    val charset = StandardCharsets.UTF_8
+
+    val inputString = input.asCharSource(charset).read()
 
     // TODO: Separator detection
-    val csvParser = new CsvReader(inputString, separator = ',')
+    val csvSeparator = CsvConstants.defaultSeparatorChar
+
+    val csvParser = new CsvReader(inputString, separator = csvSeparator)
 
     this.cells = csvParser.readAll().toIndexedSeq
 
@@ -40,7 +44,7 @@ class TableReader(input: ByteSource, cellTypes: CellTypes.CellTypeMap) extends L
 
     detectDataLocaleAndUpgradeCells()
 
-    val table = new Table(cellTypeLocale, dataLocale, rowTypes, colTypes, cells)
+    val table = new Table(charset, csvSeparator, cellTypeLocale, dataLocale, rowTypes, colTypes, cells)
 
     table
   }

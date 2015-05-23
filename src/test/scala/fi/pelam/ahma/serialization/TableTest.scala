@@ -1,20 +1,22 @@
 package fi.pelam.ahma.serialization
 
+import com.google.common.base.Charsets
 import fi.pelam.ahma.localization.AhmaLocalization
 import org.junit.Assert._
 import org.junit.Test
 
 import scala.collection.immutable.TreeMap
 
-class TableTest {
-
-  val table = new Table(AhmaLocalization.localeEn,
+object TableTest {
+  def makeTable() = new Table(Charsets.UTF_8,
+    CsvConstants.defaultSeparatorChar,
+    AhmaLocalization.localeEn,
     AhmaLocalization.localeEn,
     TreeMap(RowKey(0) -> RowType.CommentRow,
-    RowKey(1) -> RowType.Worker,
-    RowKey(2) -> RowType.Worker,
-    RowKey(3) -> RowType.Day,
-    RowKey(4) -> RowType.CommentRow),
+      RowKey(1) -> RowType.Worker,
+      RowKey(2) -> RowType.Worker,
+      RowKey(3) -> RowType.Day,
+      RowKey(4) -> RowType.CommentRow),
 
     TreeMap(ColKey(1) -> ColType.Types,
       ColKey(2) -> ColType.History,
@@ -27,6 +29,13 @@ class TableTest {
   val history1 = StringCell(CellKey(3, 2), "history1")
   val history2 = StringCell(CellKey(3, 3), "history2")
   val plan1 = StringCell(CellKey(3, 4), "plan1")
+}
+
+class TableTest {
+
+  import TableTest._
+
+  val table = makeTable()
 
   @Test
   def testGetSingleCol: Unit = {

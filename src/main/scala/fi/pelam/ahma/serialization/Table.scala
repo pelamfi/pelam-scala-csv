@@ -1,5 +1,6 @@
 package fi.pelam.ahma.serialization
 
+import java.nio.charset.Charset
 import java.util.{Locale, ResourceBundle}
 
 import scala.collection.SortedMap
@@ -16,7 +17,11 @@ object Table {
 
 }
 
-class Table(val stringLocale: Locale, val dataLocale: Locale, val rowTypes: SortedMap[RowKey, RowType],
+class Table(val charset: Charset,
+  val csvSeparator: Char,
+  val stringLocale: Locale,
+  val dataLocale: Locale,
+  val rowTypes: SortedMap[RowKey, RowType],
   val colTypes: SortedMap[ColKey, ColType],
   initialCells: TraversableOnce[Cell]) {
 
@@ -81,6 +86,11 @@ class Table(val stringLocale: Locale, val dataLocale: Locale, val rowTypes: Sort
 
   def getCells(rowKey: RowKey): IndexedSeq[Cell] = {
     for (i <- 0 until colCount) yield cells(rowKey.index)(i)
+  }
+
+  def getCells(): IndexedSeq[Cell] = {
+    for (i <- 0 until rowCount;
+         j <- 0 until colCount) yield cells(i)(j)
   }
 
   def getCells(colKey: ColKey): IndexedSeq[Cell] = {
