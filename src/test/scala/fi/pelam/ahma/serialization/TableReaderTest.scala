@@ -126,7 +126,7 @@ class TableReaderTest {
 
     assertEquals(List(CommentRow, CommentRow, ColumnHeader, Day, Worker, Worker), table.rowTypes.values.toList.slice(0, 6))
 
-    // table.getCol(Types, Worker)
+    assertEquals("ValueAA/ValueBB/ValueCC", table.getSingleCol(Types, Worker)(3).serializedString)
   }
 
 }
