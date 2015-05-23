@@ -32,7 +32,7 @@ class TableReader(input: ByteSource, cellTypes: CellTypes.CellTypeMap) extends L
     val inputString = input.asCharSource(StandardCharsets.UTF_8).read()
 
     // TODO: Separator detection
-    val csvParser = new CsvParser(inputString, separator = ',')
+    val csvParser = new CsvReader(inputString, separator = ',')
 
     this.cells = csvParser.parse().toIndexedSeq
 

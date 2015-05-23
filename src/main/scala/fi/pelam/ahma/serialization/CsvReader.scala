@@ -2,7 +2,7 @@ package fi.pelam.ahma.serialization
 
 import scala.collection.mutable
 
-final object CsvParser {
+final object CsvReader {
 
   sealed abstract class State
 
@@ -12,9 +12,9 @@ final object CsvParser {
 
 }
 
-final class CsvParser(input: String, val separator: Char = ',') {
+final class CsvReader(input: String, val separator: Char = ',') {
 
-  import fi.pelam.ahma.serialization.CsvParser._
+  import fi.pelam.ahma.serialization.CsvReader._
 
   val builder = mutable.Buffer[StringCell]()
 
