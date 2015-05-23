@@ -65,7 +65,7 @@ final class CsvReader(input: String, val separator: Char = defaultSeparatorChar)
   }
 
   // TODO: Make CsvReader stream like
-  def parse(): mutable.Buffer[StringCell] = {
+  def readAll(): mutable.Buffer[StringCell] = {
 
     while (pos < input.length) {
       val char = input.charAt(pos)

@@ -1,6 +1,7 @@
 package fi.pelam.ahma.serialization
 
-import com.google.common.io.CharStreams
+import com.google.common.base.Charsets
+import com.google.common.io.{CharStreams, Resources}
 import org.junit.Assert._
 import org.junit.Test
 
@@ -64,6 +65,16 @@ class CsvWriterTest {
     assertEquals("\"f,oo\"", CsvWriter.serialize(StringCell(CellKey(0, 0), "f,oo"), ','))
     assertEquals("\"f,,oo\"", CsvWriter.serialize(StringCell(CellKey(0, 0), "f,,oo"), ','))
     assertEquals("\"f\"\"oo\"", CsvWriter.serialize(StringCell(CellKey(0, 0), "f\"oo"), ','))
+  }
+
+  @Test
+  def loopbackTest: Unit = {
+    val file = Resources.asByteSource(Resources.getResource("csv–file-for-loading"))
+    val csvStringOrig = file.asCharSource(Charsets.UTF_8).read()
+    val readOrigCells = new CsvReader(csvStringOrig).readAll()
+    csvWriter.write(readOrigCells)
+
+    assertEquals(csvStringOrig, stringBuilder.toString())
   }
 
 }

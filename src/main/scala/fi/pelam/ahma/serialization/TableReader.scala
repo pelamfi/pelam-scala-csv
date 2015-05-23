@@ -34,7 +34,7 @@ class TableReader(input: ByteSource, cellTypes: CellTypes.CellTypeMap) extends L
     // TODO: Separator detection
     val csvParser = new CsvReader(inputString, separator = ',')
 
-    this.cells = csvParser.parse().toIndexedSeq
+    this.cells = csvParser.readAll().toIndexedSeq
 
     detectStringLocaleAndRowTypes()
 
