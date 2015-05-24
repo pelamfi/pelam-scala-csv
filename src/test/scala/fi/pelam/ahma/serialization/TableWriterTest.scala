@@ -8,12 +8,20 @@ import org.junit.Assert._
 import org.junit.Test
 
 object TableWriterTest {
-  val testFile = Resources.asByteSource(Resources.getResource("csv–file-for-loading"))
+
+  val testFileName = "csv–file-for-loading"
+
+  lazy val testFile = Resources.asByteSource(Resources.getResource(testFileName))
 
   val testFileCharset = Charsets.UTF_8
 
   // Added \n because table writer ensures there is traling newline
-  val testFileContent = new String(testFile.read(), testFileCharset) + "\n"
+  lazy val testFileContent = readTestFile(testFileName) + "\n"
+
+  def readTestFile(resource: String) = {
+    val testFile = Resources.asByteSource(Resources.getResource(resource))
+    new String(testFile.read(), testFileCharset)
+  }
 
 }
 
