@@ -1,7 +1,5 @@
 package fi.pelam.ahma.serialization
 
-import com.google.common.collect.ComparisonChain
-
 object CellKey {
   def apply(rowKey: RowKey, colIndex: Int): CellKey = CellKey(rowKey.index, colIndex)
 
@@ -24,9 +22,8 @@ case class CellKey(rowIndex: Int, colIndex: Int) extends Ordered[CellKey] {
   override def toString(): String = s"$rowKey, $colKey"
 
   override def compare(that: CellKey): Int = {
-    ComparisonChain.start()
-      .compare(rowIndex, that.rowIndex)
-      .compare(colIndex, that.colIndex)
-      .result()
+    // http://stackoverflow.com/a/19348339/1148030
+    import scala.math.Ordered.orderingToOrdered
+    (this.rowIndex, this.colIndex) compare(that.rowIndex, that.colIndex)
   }
 }
