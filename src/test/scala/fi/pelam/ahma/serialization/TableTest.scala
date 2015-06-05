@@ -8,7 +8,7 @@ import org.junit.Test
 import scala.collection.immutable.TreeMap
 
 object TableTest {
-  def makeTable() = new Table(Charsets.UTF_8,
+  def makeTable() = Table(Charsets.UTF_8,
     CsvConstants.defaultSeparatorChar,
     AhmaLocalization.localeEn,
     AhmaLocalization.localeEn,
@@ -22,7 +22,7 @@ object TableTest {
       ColKey(2) -> ColType.History,
       ColKey(3) -> ColType.History,
       ColKey(4) -> ColType.Plan,
-      ColKey(5) -> ColType.CommentCol), List())
+      ColKey(5) -> ColType.CommentCol), List[Cell]())
 
   val foo = StringCell(CellKey(1, 1), "foo")
   val bar = StringCell(CellKey(2, 1), "bar")
@@ -35,15 +35,16 @@ class TableTest {
 
   import TableTest._
 
-  val table = makeTable()
+  var table = makeTable()
 
   @Test
   def testGetSingleCol: Unit = {
 
-    table.setCell(StringCell(CellKey(1, 2), "x"))
-    table.setCell(foo)
-    table.setCell(bar)
-    table.setCell(StringCell(CellKey(3, 1), "x"))
+    table = table.updatedCells(
+      StringCell(CellKey(1, 2), "x"),
+      foo,
+      bar,
+      StringCell(CellKey(3, 1), "x"))
 
     assertEquals(List(foo, bar), table.getSingleCol(ColType.Types, RowType.Worker).toList)
   }
@@ -51,11 +52,11 @@ class TableTest {
   @Test
   def testGetSingleRow: Unit = {
 
-    table.setCell(StringCell(CellKey(3, 1), "x"))
-    table.setCell(history1)
-    table.setCell(history2)
-    table.setCell(plan1)
-    table.setCell(StringCell(CellKey(3, 5), "x"))
+    table = table.updatedCells(StringCell(CellKey(3, 1), "x"),
+      history1,
+      history2,
+      plan1,
+      StringCell(CellKey(3, 5), "x"))
 
     assertEquals(List(history1, history2, plan1), table.getSingleRow(RowType.Day, Set[ColType](ColType.History, ColType.Plan)).toList)
   }
@@ -64,21 +65,21 @@ class TableTest {
   @Test(expected = classOf[IllegalArgumentException])
   def testSetCellOutsideBounds: Unit = {
     // Table should not allow cells outside initial bounds.
-    table.setCell(StringCell(CellKey(5, 3), "x"))
+    table = table.updatedCells(StringCell(CellKey(5, 3), "x"))
   }
 
   @Test(expected = classOf[IllegalArgumentException])
   def testSetCellOutsideBoundsColumn: Unit = {
     // Table should not allow cells outside initial bounds.
-    table.setCell(StringCell(CellKey(1, 6), "x"))
+    table = table.updatedCells(StringCell(CellKey(1, 6), "x"))
   }
 
   @Test
   def testSingleColWithEmptyCell: Unit = {
 
-    table.setCell(StringCell(CellKey(1, 2), "x"))
-    table.setCell(foo)
-    table.setCell(StringCell(CellKey(3, 1), "x"))
+    table = table.updatedCells(StringCell(CellKey(1, 2), "x"),
+      foo,
+      StringCell(CellKey(3, 1), "x"))
 
     assertEquals(List(foo, StringCell(CellKey(2, 1), "")), table.getSingleCol(ColType.Types, RowType.Worker).toList)
   }

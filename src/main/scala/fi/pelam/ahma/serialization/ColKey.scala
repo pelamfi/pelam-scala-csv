@@ -1,8 +1,6 @@
 package fi.pelam.ahma.serialization
 
-case class ColKey(index: Int) extends Ordered[ColKey] {
-
-  override def compare(that: ColKey): Int = this.index - that.index
+case class ColKey(index: Int) extends AxisKey[ColKey] {
 
   override def toString(): String = {
     var i = index

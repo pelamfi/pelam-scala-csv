@@ -1,7 +1,7 @@
 package fi.pelam.ahma.serialization
 
 import java.nio.charset.Charset
-import java.util.{Locale, ResourceBundle}
+import java.util.Locale
 
 import scala.collection.SortedMap
 import scala.collection.immutable.TreeMap
@@ -15,29 +15,7 @@ object Table {
   def reverseMapSorted[A, B <: Ordered[B]](map: Map[A, B]): SortedMap[B, IndexedSeq[A]] =
     TreeMap[B, IndexedSeq[A]]() ++ reverseMap(map)
 
-}
-
-class Table(val charset: Charset,
-  val csvSeparator: Char,
-  val stringLocale: Locale,
-  val dataLocale: Locale,
-  val rowTypes: SortedMap[RowKey, RowType],
-  val colTypes: SortedMap[ColKey, ColType],
-  initialCells: TraversableOnce[Cell]) {
-
-  import fi.pelam.ahma.serialization.Table._
-
-  val rowsByType: Map[RowType, IndexedSeq[RowKey]] = reverseMap(rowTypes)
-
-  val colsByType: Map[ColType, IndexedSeq[ColKey]] = reverseMap(colTypes)
-
-  private[this] var resourceBundle: ResourceBundle = null
-
-  val rowCount: Int = rowTypes.keys.foldLeft(0)((max, key) => Math.max(max, key.index + 1))
-
-  val colCount: Int = colTypes.keys.foldLeft(0)((max, key) => Math.max(max, key.index + 1))
-
-  private[this] val cells: Array[Array[Cell]] = {
+  def buildCells(initialCells: TraversableOnce[Cell], rowCount: Int, colCount: Int): IndexedSeq[IndexedSeq[Cell]] = {
     val initialCellMap = initialCells.map(cell => cell.cellKey -> cell).toMap
 
     val rowArray = new Array[Array[Cell]](rowCount)
@@ -56,19 +34,57 @@ class Table(val charset: Charset,
 
         colArray(colIndex) = cell
       }
-
     }
 
-    rowArray
+    rowArray.map(_.toIndexedSeq).toIndexedSeq
   }
 
-  def setCells(cells: TraversableOnce[Cell]) = {
+  def tableSize(keys: TraversableOnce[AxisKey[_]]) = keys.foldLeft(0)((max, key) => Math.max(max, key.index + 1))
+
+  def apply(charset: Charset,
+    csvSeparator: Char,
+    stringLocale: Locale,
+    dataLocale: Locale,
+    rowTypes: SortedMap[RowKey, RowType],
+    colTypes: SortedMap[ColKey, ColType],
+    cells: TraversableOnce[Cell]): Table = {
+
+    val builtCells = buildCells(cells, tableSize(rowTypes.keys), tableSize(colTypes.keys))
+
+    Table(charset, csvSeparator, stringLocale, dataLocale, rowTypes, colTypes, builtCells)
+  }
+
+}
+
+case class Table(charset: Charset,
+  csvSeparator: Char,
+  stringLocale: Locale,
+  dataLocale: Locale,
+  rowTypes: SortedMap[RowKey, RowType],
+  colTypes: SortedMap[ColKey, ColType],
+  cells: IndexedSeq[IndexedSeq[Cell]]) {
+
+  import fi.pelam.ahma.serialization.Table._
+
+  val rowsByType: Map[RowType, IndexedSeq[RowKey]] = reverseMap(rowTypes)
+
+  val colsByType: Map[ColType, IndexedSeq[ColKey]] = reverseMap(colTypes)
+
+  val rowCount: Int = rowTypes.keys.foldLeft(0)((max, key) => Math.max(max, key.index + 1))
+
+  val colCount: Int = colTypes.keys.foldLeft(0)((max, key) => Math.max(max, key.index + 1))
+
+  def updatedCells(cells: TraversableOnce[Cell]): Table = {
+    var table = this
     for (cell <- cells) {
-      setCell(cell)
+      table = table.updatedCell(cell)
     }
+    table
   }
 
-  def setCell(cell: Cell) = {
+  def updatedCells(cells: Cell*): Table = updatedCells(cells)
+
+  def updatedCell(cell: Cell): Table = {
     val key = cell.cellKey
 
     if (key.rowIndex >= rowCount) {
@@ -79,7 +95,9 @@ class Table(val charset: Charset,
       throw new IllegalArgumentException(s"Column number ${key.colIndex + 1} is outside the number of columns $colCount. Mark the column a comment?")
     }
 
-    cells(key.rowIndex)(key.colIndex) = cell
+    val updatedCells = cells.updated(key.rowIndex, cells(key.rowIndex).updated(key.colIndex, cell))
+
+    copy(cells = updatedCells)
   }
 
   def getCell(key: CellKey) = cells(key.rowIndex)(key.colIndex)
