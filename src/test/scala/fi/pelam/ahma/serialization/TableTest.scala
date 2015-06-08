@@ -18,7 +18,7 @@ object TableTest {
       RowKey(3) -> RowType.Day,
       RowKey(4) -> RowType.CommentRow),
 
-    TreeMap(ColKey(1) -> ColType.Types,
+    TreeMap(ColKey(1) -> ColType.Qualifications,
       ColKey(2) -> ColType.History,
       ColKey(3) -> ColType.History,
       ColKey(4) -> ColType.Plan,
@@ -46,7 +46,7 @@ class TableTest {
       bar,
       StringCell(CellKey(3, 1), "x"))
 
-    assertEquals(List(foo, bar), table.getSingleCol(ColType.Types, RowType.Worker).toList)
+    assertEquals(List(foo, bar), table.getSingleCol(ColType.Qualifications, RowType.Worker).toList)
   }
 
   @Test
@@ -81,7 +81,7 @@ class TableTest {
       foo,
       StringCell(CellKey(3, 1), "x"))
 
-    assertEquals(List(foo, StringCell(CellKey(2, 1), "")), table.getSingleCol(ColType.Types, RowType.Worker).toList)
+    assertEquals(List(foo, StringCell(CellKey(2, 1), "")), table.getSingleCol(ColType.Qualifications, RowType.Worker).toList)
   }
 
   @Test(expected = classOf[RuntimeException])

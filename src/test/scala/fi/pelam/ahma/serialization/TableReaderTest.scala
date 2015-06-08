@@ -111,7 +111,7 @@ class TableReaderTest {
   @Test
   def testGetRowAndColTypes: Unit = {
     val table = new TableReader(rowAndColTypesFiDataEn, Map()).read()
-    assertEquals(List(RowHeader, Types, WorkerId, MaxWorkRun, TimeParam1), table.colTypes.values.toList)
+    assertEquals(List(RowHeader, Qualifications, WorkerId, MaxWorkRun, TimeParam1), table.colTypes.values.toList)
     assertEquals(List(RowType.CommentRow, ColumnHeader, Worker), table.rowTypes.values.toList)
   }
 
@@ -121,12 +121,12 @@ class TableReaderTest {
 
     val table = new TableReader(file, Map()).read()
 
-    assertEquals(List(RowHeader, Types, WorkerId, MaxWorkRun, CommentCol, TimeParam1,
+    assertEquals(List(RowHeader, Qualifications, WorkerId, MaxWorkRun, CommentCol, TimeParam1,
       SundayWorkPreferred, Week1FreeDays, Week2FreeDays, History, History), table.colTypes.values.toList.slice(0, 11))
 
     assertEquals(List(CommentRow, CommentRow, ColumnHeader, Day, Worker, Worker), table.rowTypes.values.toList.slice(0, 6))
 
-    assertEquals("ValueAA/ValueBB/ValueCC", table.getSingleCol(Types, Worker)(3).serializedString)
+    assertEquals("ValueAA/ValueBB/ValueCC", table.getSingleCol(Qualifications, Worker)(3).serializedString)
   }
 
 }
