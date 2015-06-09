@@ -72,7 +72,7 @@ class CsvWriterTest {
     val file = Resources.asByteSource(Resources.getResource("csv–file-for-loading"))
     val csvStringOrig = file.asCharSource(Charsets.UTF_8).read()
 
-    val readOrigCells = new CsvReader(csvStringOrig).readAll()
+    val readOrigCells = new CsvReader(csvStringOrig).toIndexedSeq
 
     assertEquals("Initial data cell count sanity check", 1170, readOrigCells.size)
 

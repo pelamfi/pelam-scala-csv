@@ -65,6 +65,13 @@ final class CsvReader(input: String, val separator: Char = defaultSeparatorChar)
 
   private[this] var cellContentBufferedPos = 0
 
+  // Start iterator so that hasNext works
+  readNext()
+
+  override def next(): StringCell = nextOption.get
+
+  override def hasNext: Boolean = cell.isDefined
+
   private[this] def skipCharsUpToPos() = {
     cellContentBufferedPos = pos
   }
@@ -163,13 +170,11 @@ final class CsvReader(input: String, val separator: Char = defaultSeparatorChar)
 
   def nextOption(): Option[StringCell] = {
     val prereadCell = cell
-    read()
+    readNext()
     prereadCell
   }
 
-  override def next(): StringCell = nextOption.get
-
-  private[this] def read(): Option[StringCell] = {
+  private[this] def readNext(): Unit = {
     cell = None
 
     do {
@@ -225,13 +230,5 @@ final class CsvReader(input: String, val separator: Char = defaultSeparatorChar)
 
       // Loop until we can emit cell or input stream exhausted
     } while (state != StreamEnd && cell.isEmpty)
-
-    cell
   }
-
-  def readAll() = toIndexedSeq
-
-  override def hasNext: Boolean = cell.isDefined
-
-  read()
 }

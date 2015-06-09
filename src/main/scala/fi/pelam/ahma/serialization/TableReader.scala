@@ -38,7 +38,7 @@ class TableReader(input: ByteSource, cellTypes: CellTypes.CellTypeMap) extends L
 
     val csvParser = new CsvReader(inputString, separator = csvSeparator)
 
-    this.cells = csvParser.readAll().toIndexedSeq
+    this.cells = csvParser.toIndexedSeq
 
     detectStringLocaleAndRowTypes()
 
