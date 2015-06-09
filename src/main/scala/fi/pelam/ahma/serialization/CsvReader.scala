@@ -17,7 +17,7 @@ final class CsvReader(input: String, val separator: Char = defaultSeparatorChar)
 
   import fi.pelam.ahma.serialization.CsvReader._
 
-  val builder = mutable.Buffer[StringCell]()
+  var cell: Option[StringCell] = None
 
   var pos: Int = 0
 
@@ -43,7 +43,10 @@ final class CsvReader(input: String, val separator: Char = defaultSeparatorChar)
   }
 
   private[this] def emitCell() = {
-    builder += StringCell(CellKey(line, col), cellContentBuffer.toString())
+    if (cell.isDefined) {
+      sys.error("Internal error. Cell aready emitted.")
+    }
+    cell = Some(StringCell(CellKey(line, col), cellContentBuffer.toString()))
     col += 1
     cellContentBuffer = new StringBuilder()
   }
@@ -64,10 +67,33 @@ final class CsvReader(input: String, val separator: Char = defaultSeparatorChar)
     lineStart = pos
   }
 
-  // TODO: Make CsvReader stream like
-  def readAll(): mutable.Buffer[StringCell] = {
+  def readAll() = {
+    val buffer = mutable.Buffer[StringCell]()
 
-    while (pos < input.length) {
+    while ( {
+      val cell = read()
+
+      if (cell.isDefined) {
+        buffer += cell.get
+      }
+
+      cell.isDefined
+    }) {
+    }
+
+    buffer
+  }
+
+  def atEnd = pos >= input.size
+
+  def unprocessedData = cellContentBufferedPos < input.size
+
+  // TODO: Make CsvReader stream like
+  def read(): Option[StringCell] = {
+
+    cell = None
+
+    while (!atEnd && cell == None) {
       val char = input.charAt(pos)
 
       val peekCharAvailable = pos + 1 < input.length
@@ -137,15 +163,14 @@ final class CsvReader(input: String, val separator: Char = defaultSeparatorChar)
           }
         }
       }
-      ()
     }
 
-    if (pos != lineStart) {
+    if (unprocessedData && atEnd && cell.isEmpty) {
       // Gloss over missing final linefeed
       handleEndLine()
     }
 
-    builder
+    cell
   }
 
 }
