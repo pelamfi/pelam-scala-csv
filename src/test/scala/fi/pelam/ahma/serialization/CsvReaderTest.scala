@@ -60,6 +60,16 @@ class CsvReaderTest {
   }
 
   @Test
+  def testParseEmptyCellsAndUnterminatedLine: Unit = {
+    val reader = new CsvReader(",,")
+
+    assertEquals(Some(StringCell(CellKey(0, 0), "")), reader.read())
+    assertEquals(Some(StringCell(CellKey(0, 1), "")), reader.read())
+    assertEquals(Some(StringCell(CellKey(0, 2), "")), reader.read())
+    assertEquals(None, reader.read())
+  }
+
+  @Test
   def testParseQuotes: Unit = {
     val parsed = new CsvReader("\"foo\",\"bar\"\nbaz\n").readAll()
     assertCsv3Cells(parsed)
