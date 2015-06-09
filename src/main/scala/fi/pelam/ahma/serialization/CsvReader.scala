@@ -11,29 +11,29 @@ final object CsvReader {
   /**
    * "Zero width" initial state. If input ends here, zero cells will be emitted
    */
-  case object Start extends State
+  case object StreamStart extends State
 
   /**
-   * Zero width initial state for each cell from where we go to CellContent or Quoted.
+   * Zero width initial state for each cell from where we go to CellContent
    *
    * Used to handle case where final line ends without termination.
    */
-  case object StartCell extends State
+  case object CellStart extends State
 
   /**
-   * Within cell collecting data to emit cell.
+   * Within cell collecting data to emit cell. From this state we go to Quoted, Line or EndCell
    */
   case object CellContent extends State
 
   /**
    * Within cell collecting data to emit cell, but with quotes opened.
    */
-  case object Quoted extends State
+  case object QuotedCellContent extends State
 
   /**
    * Cell content ready. Emit cell.
    */
-  case object EndCell extends State
+  case object CellEnd extends State
 
   /**
    * Line end encountered
@@ -44,7 +44,7 @@ final object CsvReader {
    * Final state that signals that input stream has been exhausted and no more
    * cells will be emitted.
    */
-  case object End extends State
+  case object StreamEnd extends State
 }
 
 final class CsvReader(input: String, val separator: Char = defaultSeparatorChar) {
@@ -61,7 +61,7 @@ final class CsvReader(input: String, val separator: Char = defaultSeparatorChar)
 
   private[this] var col: Int = 0
 
-  private[this] var state: State = Start
+  private[this] var state: State = StreamStart
 
   private[this] var cellContentBuffer: StringBuilder = null
 
@@ -108,12 +108,12 @@ final class CsvReader(input: String, val separator: Char = defaultSeparatorChar)
       bufferCellContentUpToPos()
       pos = pos + 1
       skipCharsUpToPos()
-      state = EndCell
+      state = CellEnd
     }
 
     case '"' => {
       bufferCellContentUpToPos()
-      state = Quoted
+      state = QuotedCellContent
       pos = pos + 1
       skipCharsUpToPos()
     }
@@ -171,11 +171,11 @@ final class CsvReader(input: String, val separator: Char = defaultSeparatorChar)
     do {
 
       state match {
-        case Start => if (atEnd) {
-          state = End
+        case StreamStart => if (atEnd) {
+          state = StreamEnd
           // Nothing to do anymore
         } else {
-          state = StartCell
+          state = CellStart
         }
         case CellContent => if (atEnd) {
           bufferCellContentUpToPos()
@@ -184,12 +184,12 @@ final class CsvReader(input: String, val separator: Char = defaultSeparatorChar)
         } else {
           handleCellContentChar()
         }
-        case Quoted => if (atEnd) {
+        case QuotedCellContent => if (atEnd) {
           sys.error("Input stream ended while processing quoted characters.")
         } else {
           handleQuotedChar()
         }
-        case StartCell => {
+        case CellStart => {
           cellContentBuffer = new StringBuilder()
           if (atEnd) {
             // Gloss over zero width cell on final line without line feed
@@ -198,9 +198,9 @@ final class CsvReader(input: String, val separator: Char = defaultSeparatorChar)
             state = CellContent
           }
         }
-        case EndCell => {
+        case CellEnd => {
           emitCell()
-          state = StartCell
+          state = CellStart
         }
         case LineEnd => {
           emitCell()
@@ -210,17 +210,17 @@ final class CsvReader(input: String, val separator: Char = defaultSeparatorChar)
           lineStart = pos
 
           if (atEnd) {
-            state = End
+            state = StreamEnd
           } else {
-            state = StartCell
+            state = CellStart
           }
         }
-        case End => {
+        case StreamEnd => {
         }
       }
 
       // Loop until we can emit cell or input stream exhausted
-    } while (state != End && cell.isEmpty)
+    } while (state != StreamEnd && cell.isEmpty)
 
     cell
   }
@@ -241,5 +241,4 @@ final class CsvReader(input: String, val separator: Char = defaultSeparatorChar)
 
     buffer
   }
-
 }
