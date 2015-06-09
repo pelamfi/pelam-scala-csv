@@ -60,6 +60,26 @@ class CsvReaderTest {
   }
 
   @Test
+  def testParseZeroLengthInput: Unit = {
+    val reader = new CsvReader("")
+    assertEquals(None, reader.read())
+  }
+
+  @Test
+  def testParseInputWithOnlyLinefeed: Unit = {
+    val reader = new CsvReader("\n")
+    assertEquals(Some(StringCell(CellKey(0, 0), "")), reader.read())
+    assertEquals(None, reader.read())
+  }
+
+  @Test
+  def testParseInputWithOnlyLinefeedCrLf: Unit = {
+    val reader = new CsvReader("\r\n")
+    assertEquals(Some(StringCell(CellKey(0, 0), "")), reader.read())
+    assertEquals(None, reader.read())
+  }
+
+  @Test
   def testParseUnterminatedLine: Unit = {
     val reader = new CsvReader("x,y")
 

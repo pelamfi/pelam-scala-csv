@@ -103,7 +103,7 @@ final class CsvReader(input: String, val separator: Char = defaultSeparatorChar)
 
   private[this] def atEnd = pos >= input.size
 
-  private[this] def handleCellContent() = char match {
+  private[this] def handleCellContentChar() = char match {
     case c: Char if c == separator => {
       bufferCellContentUpToPos()
       pos = pos + 1
@@ -141,7 +141,7 @@ final class CsvReader(input: String, val separator: Char = defaultSeparatorChar)
     }
   }
 
-  def handleQuoted() = char match {
+  def handleQuotedChar() = char match {
     case '"' => {
       bufferCellContentUpToPos()
 
@@ -182,12 +182,12 @@ final class CsvReader(input: String, val separator: Char = defaultSeparatorChar)
           // Gloss over final line without line feed
           state = LineEnd
         } else {
-          handleCellContent()
+          handleCellContentChar()
         }
         case Quoted => if (atEnd) {
-          sys.error("Content end while processing quoted data")
+          sys.error("Input stream ended while processing quoted characters.")
         } else {
-          handleQuoted()
+          handleQuotedChar()
         }
         case StartCell => {
           cellContentBuffer = new StringBuilder()
