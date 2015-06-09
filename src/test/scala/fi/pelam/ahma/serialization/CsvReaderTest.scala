@@ -60,6 +60,15 @@ class CsvReaderTest {
   }
 
   @Test
+  def testParseUnterminatedLine: Unit = {
+    val reader = new CsvReader("x,y")
+
+    assertEquals(Some(StringCell(CellKey(0, 0), "x")), reader.read())
+    assertEquals(Some(StringCell(CellKey(0, 1), "y")), reader.read())
+    assertEquals(None, reader.read())
+  }
+
+  @Test
   def testParseEmptyCellsAndUnterminatedLine: Unit = {
     val reader = new CsvReader(",,")
 
@@ -73,6 +82,16 @@ class CsvReaderTest {
   def testParseQuotes: Unit = {
     val parsed = new CsvReader("\"foo\",\"bar\"\nbaz\n").readAll()
     assertCsv3Cells(parsed)
+  }
+
+  @Test(expected = classOf[RuntimeException])
+  def testBrokenQuotes: Unit = {
+    new CsvReader("\"foo\n").read()
+  }
+
+  @Test(expected = classOf[RuntimeException])
+  def testBrokenQuotes2: Unit = {
+    new CsvReader("\"foo").read()
   }
 
   @Test
@@ -101,7 +120,7 @@ class CsvReaderTest {
   @Test
   def testParseSimpleCells: Unit = {
 
-    val parsed = new CsvReader("Comment,1\nComment,2", ',').readAll()
+    val parsed = new CsvReader("Comment,1\nComment,2\n", ',').readAll()
 
     val expected = "Cell containing 'Comment' at Row 1, Column A (0)\n" +
       "Cell containing '1' at Row 1, Column B (1)\n" +

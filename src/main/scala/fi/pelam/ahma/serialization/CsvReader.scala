@@ -8,9 +8,43 @@ final object CsvReader {
 
   sealed abstract class State
 
+  /**
+   * "Zero width" initial state. If input ends here, zero cells will be emitted
+   */
+  case object Start extends State
+
+  /**
+   * Zero width initial state for each cell from where we go to CellContent or Quoted.
+   *
+   * Used to handle case where final line ends without termination.
+   */
+  case object StartCell extends State
+
+  /**
+   * Within cell collecting data to emit cell.
+   */
   case object CellContent extends State
 
+  /**
+   * Within cell collecting data to emit cell, but with quotes opened.
+   */
   case object Quoted extends State
+
+  /**
+   * Cell content ready. Emit cell.
+   */
+  case object EndCell extends State
+
+  /**
+   * Line end encountered
+   */
+  case object LineEnd extends State
+
+  /**
+   * Final state that signals that input stream has been exhausted and no more
+   * cells will be emitted.
+   */
+  case object End extends State
 }
 
 final class CsvReader(input: String, val separator: Char = defaultSeparatorChar) {
@@ -27,9 +61,9 @@ final class CsvReader(input: String, val separator: Char = defaultSeparatorChar)
 
   private[this] var col: Int = 0
 
-  private[this] var state: State = CellContent
+  private[this] var state: State = Start
 
-  private[this] var cellContentBuffer: StringBuilder = new StringBuilder()
+  private[this] var cellContentBuffer: StringBuilder = null
 
   private[this] var cellContentBufferedPos = 0
 
@@ -50,23 +84,11 @@ final class CsvReader(input: String, val separator: Char = defaultSeparatorChar)
     cell = Some(StringCell(CellKey(line, col), cellContentBuffer.toString()))
 
     col += 1
-    cellContentBuffer = new StringBuilder()
   }
 
   private[this] def handleEndCell() = {
     bufferCellContentUpToPos()
     emitCell()
-  }
-
-  private[this] def handleEndLine() = {
-    handleEndCell()
-    line = line + 1
-  }
-
-  private[this] def handleStartLine(): Unit = {
-    skipCharsUpToPos()
-    col = 0
-    lineStart = pos
   }
 
   private[this] def char = input.charAt(pos)
@@ -81,13 +103,12 @@ final class CsvReader(input: String, val separator: Char = defaultSeparatorChar)
 
   private[this] def atEnd = pos >= input.size
 
-  private[this] def unprocessedData = cellContentBufferedPos < input.size
-
   private[this] def handleCellContent() = char match {
     case c: Char if c == separator => {
-      handleEndCell()
+      bufferCellContentUpToPos()
       pos = pos + 1
       skipCharsUpToPos()
+      state = EndCell
     }
 
     case '"' => {
@@ -99,18 +120,20 @@ final class CsvReader(input: String, val separator: Char = defaultSeparatorChar)
 
     case '\r' => {
       if (peekCharAvailable && peekChar == '\n') {
-        handleEndLine()
+        bufferCellContentUpToPos()
         pos = pos + 2
-        handleStartLine()
+        skipCharsUpToPos()
+        state = LineEnd
       } else {
         sys.error(s"Broken linefeed on $line. Expected LF after CR, but got char ${char.toInt}")
       }
     }
 
     case '\n' => {
-      handleEndLine()
+      bufferCellContentUpToPos()
       pos = pos + 1
-      handleStartLine()
+      skipCharsUpToPos()
+      state = LineEnd
     }
 
     case _ => {
@@ -142,20 +165,62 @@ final class CsvReader(input: String, val separator: Char = defaultSeparatorChar)
 
   // TODO: Make CsvReader stream like
   def read(): Option[StringCell] = {
+
     cell = None
 
-    while (!atEnd && cell == None) {
+    do {
 
       state match {
-        case CellContent => handleCellContent()
-        case Quoted => handleQuoted()
-      }
-    }
+        case Start => if (atEnd) {
+          state = End
+          // Nothing to do anymore
+        } else {
+          state = StartCell
+        }
+        case CellContent => if (atEnd) {
+          bufferCellContentUpToPos()
+          // Gloss over final line without line feed
+          state = LineEnd
+        } else {
+          handleCellContent()
+        }
+        case Quoted => if (atEnd) {
+          sys.error("Content end while processing quoted data")
+        } else {
+          handleQuoted()
+        }
+        case StartCell => {
+          cellContentBuffer = new StringBuilder()
+          if (atEnd) {
+            // Gloss over zero width cell on final line without line feed
+            state = LineEnd
+          } else {
+            state = CellContent
+          }
+        }
+        case EndCell => {
+          emitCell()
+          state = StartCell
+        }
+        case LineEnd => {
+          emitCell()
 
-    if (unprocessedData && atEnd && cell.isEmpty) {
-      // Gloss over missing final linefeed
-      handleEndLine()
-    }
+          line = line + 1
+          col = 0
+          lineStart = pos
+
+          if (atEnd) {
+            state = End
+          } else {
+            state = StartCell
+          }
+        }
+        case End => {
+        }
+      }
+
+      // Loop until we can emit cell or input stream exhausted
+    } while (state != End && cell.isEmpty)
 
     cell
   }
