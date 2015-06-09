@@ -42,6 +42,24 @@ class CsvReaderTest {
   }
 
   @Test
+  def testParseUnterminatedLastLineWithExtraCells: Unit = {
+    val parsed = new CsvReader("foo,bar\r\nbaz,x,y").readAll()
+
+    assertEquals("foo\nbar\nbaz\nx\ny\n", parsed.foldLeft("")(_ + _.serializedString + "\n"))
+    assertEquals("(0,0)\n(0,1)\n(1,0)\n(1,1)\n(1,2)\n", parsed.foldLeft("")(_ + _.cellKey.indices + "\n"))
+
+  }
+
+  @Test
+  def testParseUnterminatedLastLineWithEmptyCells: Unit = {
+    val parsed = new CsvReader("foo,bar\r\nbaz,,").readAll()
+
+    assertEquals("foo\nbar\nbaz\n\n\n", parsed.foldLeft("")(_ + _.serializedString + "\n"))
+    assertEquals("(0,0)\n(0,1)\n(1,0)\n(1,1)\n(1,2)\n", parsed.foldLeft("")(_ + _.cellKey.indices + "\n"))
+
+  }
+
+  @Test
   def testParseQuotes: Unit = {
     val parsed = new CsvReader("\"foo\",\"bar\"\nbaz\n").readAll()
     assertCsv3Cells(parsed)
