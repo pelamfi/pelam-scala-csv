@@ -71,7 +71,11 @@ class CsvWriterTest {
   def loopbackTest: Unit = {
     val file = Resources.asByteSource(Resources.getResource("csv–file-for-loading"))
     val csvStringOrig = file.asCharSource(Charsets.UTF_8).read()
+
     val readOrigCells = new CsvReader(csvStringOrig).readAll()
+
+    assertEquals("Initial data cell count sanity check", 1170, readOrigCells.size)
+
     csvWriter.write(readOrigCells)
 
     assertEquals(csvStringOrig, stringBuilder.toString())

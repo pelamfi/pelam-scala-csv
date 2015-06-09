@@ -1,5 +1,7 @@
 package fi.pelam.ahma.serialization
 
+import com.google.common.base.Charsets
+import com.google.common.io.Resources
 import org.junit.Assert._
 import org.junit.Test
 
@@ -81,5 +83,15 @@ class CsvReaderTest {
     assertEquals(expected, parsed.foldLeft("")(_ + _ + "\n"))
   }
 
+  @Test
+  def testLargeFile: Unit = {
+    val file = Resources.asByteSource(Resources.getResource("csv–file-for-loading"))
+
+    val csvString = file.asCharSource(Charsets.UTF_8).read()
+
+    val cells = new CsvReader(csvString).readAll()
+
+    assertEquals("Expected number of cells", 1170, cells.size)
+  }
 
 }
