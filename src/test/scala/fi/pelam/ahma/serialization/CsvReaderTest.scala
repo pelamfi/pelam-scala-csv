@@ -5,8 +5,6 @@ import com.google.common.io.Resources
 import org.junit.Assert._
 import org.junit.Test
 
-import scala.collection.mutable
-
 class CsvReaderTest {
 
   val csv3Cells: String = "foo,bar\nbaz\n"
@@ -62,56 +60,62 @@ class CsvReaderTest {
   @Test
   def testParseZeroLengthInput: Unit = {
     val reader = new CsvReader("")
-    assertEquals(None, reader.read())
+    assertFalse(reader.hasNext)
   }
 
   @Test
   def testParseInputWithOnlyLinefeed: Unit = {
     val reader = new CsvReader("\n")
-    assertEquals(Some(StringCell(CellKey(0, 0), "")), reader.read())
-    assertEquals(None, reader.read())
+    assertTrue(reader.hasNext)
+    assertEquals(StringCell(CellKey(0, 0), ""), reader.next())
+    assertFalse(reader.hasNext)
   }
 
   @Test
   def testParseInputWithOnlyLinefeedCrLf: Unit = {
     val reader = new CsvReader("\r\n")
-    assertEquals(Some(StringCell(CellKey(0, 0), "")), reader.read())
-    assertEquals(None, reader.read())
+    assertTrue(reader.hasNext)
+    assertEquals(StringCell(CellKey(0, 0), ""), reader.next())
+    assertFalse(reader.hasNext)
   }
 
   @Test
   def testParseUnterminatedLine: Unit = {
     val reader = new CsvReader("x,y")
-
-    assertEquals(Some(StringCell(CellKey(0, 0), "x")), reader.read())
-    assertEquals(Some(StringCell(CellKey(0, 1), "y")), reader.read())
-    assertEquals(None, reader.read())
+    assertTrue(reader.hasNext)
+    assertEquals(StringCell(CellKey(0, 0), "x"), reader.next())
+    assertTrue(reader.hasNext)
+    assertEquals(StringCell(CellKey(0, 1), "y"), reader.next())
+    assertFalse(reader.hasNext)
+    assertFalse(reader.hasNext)
   }
 
   @Test
   def testParseEmptyCellsAndUnterminatedLine: Unit = {
     val reader = new CsvReader(",,")
-
-    assertEquals(Some(StringCell(CellKey(0, 0), "")), reader.read())
-    assertEquals(Some(StringCell(CellKey(0, 1), "")), reader.read())
-    assertEquals(Some(StringCell(CellKey(0, 2), "")), reader.read())
-    assertEquals(None, reader.read())
+    assertTrue(reader.hasNext)
+    assertEquals(StringCell(CellKey(0, 0), ""), reader.next())
+    assertTrue(reader.hasNext)
+    assertEquals(StringCell(CellKey(0, 1), ""), reader.next())
+    assertTrue(reader.hasNext)
+    assertEquals(StringCell(CellKey(0, 2), ""), reader.next())
+    assertFalse(reader.hasNext)
   }
 
   @Test
   def testParseQuotes: Unit = {
-    val parsed = new CsvReader("\"foo\",\"bar\"\nbaz\n").readAll()
+    val parsed = new CsvReader("\"foo\",\"bar\"\nbaz\n").toIndexedSeq
     assertCsv3Cells(parsed)
   }
 
   @Test(expected = classOf[RuntimeException])
   def testBrokenQuotes: Unit = {
-    new CsvReader("\"foo\n").read()
+    new CsvReader("\"foo\n")
   }
 
   @Test(expected = classOf[RuntimeException])
   def testBrokenQuotes2: Unit = {
-    new CsvReader("\"foo").read()
+    new CsvReader("\"foo")
   }
 
   @Test
@@ -132,7 +136,7 @@ class CsvReaderTest {
     assertCsv3Cells(parsed)
   }
 
-  def assertCsv3Cells(parsed: mutable.Buffer[StringCell]): Unit = {
+  def assertCsv3Cells(parsed: Seq[StringCell]): Unit = {
     assertEquals("foo\nbar\nbaz\n", parsed.foldLeft("")(_ + _.serializedString + "\n"))
     assertEquals("(0,0)\n(0,1)\n(1,0)\n", parsed.foldLeft("")(_ + _.cellKey.indices + "\n"))
   }

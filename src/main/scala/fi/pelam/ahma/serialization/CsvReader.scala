@@ -2,8 +2,6 @@ package fi.pelam.ahma.serialization
 
 import fi.pelam.ahma.serialization.CsvConstants._
 
-import scala.collection.mutable
-
 final object CsvReader {
 
   sealed abstract class State
@@ -47,7 +45,7 @@ final object CsvReader {
   case object StreamEnd extends State
 }
 
-final class CsvReader(input: String, val separator: Char = defaultSeparatorChar) {
+final class CsvReader(input: String, val separator: Char = defaultSeparatorChar) extends Iterator[StringCell] {
 
   import fi.pelam.ahma.serialization.CsvReader._
 
@@ -163,9 +161,15 @@ final class CsvReader(input: String, val separator: Char = defaultSeparatorChar)
     }
   }
 
-  // TODO: Make CsvReader stream like
-  def read(): Option[StringCell] = {
+  def nextOption(): Option[StringCell] = {
+    val prereadCell = cell
+    read()
+    prereadCell
+  }
 
+  override def next(): StringCell = nextOption.get
+
+  private[this] def read(): Option[StringCell] = {
     cell = None
 
     do {
@@ -225,20 +229,9 @@ final class CsvReader(input: String, val separator: Char = defaultSeparatorChar)
     cell
   }
 
-  def readAll() = {
-    val buffer = mutable.Buffer[StringCell]()
+  def readAll() = toIndexedSeq
 
-    while ( {
-      val cell = read()
+  override def hasNext: Boolean = cell.isDefined
 
-      if (cell.isDefined) {
-        buffer += cell.get
-      }
-
-      cell.isDefined
-    }) {
-    }
-
-    buffer
-  }
+  read()
 }
