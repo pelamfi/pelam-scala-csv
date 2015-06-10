@@ -29,9 +29,20 @@ final object CsvReader {
   case object QuotedCellContent extends State
 
   /**
+   * Double quotes is quote character, single quote ends quotes.
+   * This state checks which it is.
+   */
+  case object PossibleEndQuote extends State
+
+  /**
    * Cell content ready. Emit cell.
    */
   case object CellEnd extends State
+
+  /**
+   * For handling CR LF style line termination
+   */
+  case object CarriageReturn extends State
 
   /**
    * Line end encountered
@@ -52,8 +63,6 @@ final class CsvReader(input: String, val separator: Char = defaultSeparatorChar)
   private[this] var cell: Option[StringCell] = None
 
   private[this] var pos: Int = 0
-
-  private[this] var lineStart: Int = 0
 
   private[this] var line: Int = 0
 
@@ -98,14 +107,6 @@ final class CsvReader(input: String, val separator: Char = defaultSeparatorChar)
 
   private[this] def char = input.charAt(pos)
 
-  private[this] def peekCharAvailable = pos + 1 < input.length
-
-  private[this] def peekChar = if (peekCharAvailable) {
-    input.charAt(pos + 1)
-  } else {
-    '\u0000'
-  }
-
   private[this] def atEnd = pos >= input.size
 
   private[this] def handleCellContentChar() = char match {
@@ -124,14 +125,10 @@ final class CsvReader(input: String, val separator: Char = defaultSeparatorChar)
     }
 
     case '\r' => {
-      if (peekCharAvailable && peekChar == '\n') {
-        bufferCellContentUpToPos()
-        pos = pos + 2
-        skipCharsUpToPos()
-        state = LineEnd
-      } else {
-        sys.error(s"Broken linefeed on $line. Expected LF after CR, but got char ${char.toInt}")
-      }
+      bufferCellContentUpToPos()
+      pos = pos + 1
+      skipCharsUpToPos()
+      state = CarriageReturn
     }
 
     case '\n' => {
@@ -146,19 +143,12 @@ final class CsvReader(input: String, val separator: Char = defaultSeparatorChar)
     }
   }
 
-  def handleQuotedChar() = char match {
+  private[this] def handleQuotedChar() = char match {
     case '"' => {
       bufferCellContentUpToPos()
-
-      if (peekCharAvailable && peekChar == '"') {
-        cellContentBuffer.append('"')
-        pos = pos + 2
-        skipCharsUpToPos()
-      } else {
-        state = CellContent
-        pos = pos + 1
-        skipCharsUpToPos()
-      }
+      state = PossibleEndQuote
+      pos = pos + 1
+      skipCharsUpToPos()
     }
     case '\r' | '\n' | ';' => {
       sys.error(s"Unclosed quote on line $line")
@@ -198,6 +188,32 @@ final class CsvReader(input: String, val separator: Char = defaultSeparatorChar)
         } else {
           handleQuotedChar()
         }
+        case CarriageReturn => if (atEnd) {
+          sys.error(s"Broken linefeed on $line. Expected LF after CR, but stream ended.")
+        } else {
+          if (char == '\n') {
+            pos = pos + 1
+            skipCharsUpToPos()
+            state = LineEnd
+          } else {
+            sys.error(s"Broken linefeed on $line. Expected LF after CR, but got '$char'.")
+          }
+        }
+        case PossibleEndQuote => if (atEnd) {
+          state = CellContent
+        } else {
+          if (char == '"') {
+            // Input quoted quote char.
+            cellContentBuffer.append('"')
+            pos = pos + 1
+            skipCharsUpToPos()
+            state = QuotedCellContent
+            // More quoted stuff coming.
+          } else {
+            state = CellContent
+            // End quoted stuff
+          }
+        }
         case CellStart => {
           cellContentBuffer = new StringBuilder()
           if (atEnd) {
@@ -216,7 +232,6 @@ final class CsvReader(input: String, val separator: Char = defaultSeparatorChar)
 
           line = line + 1
           col = 0
-          lineStart = pos
 
           if (atEnd) {
             state = StreamEnd
