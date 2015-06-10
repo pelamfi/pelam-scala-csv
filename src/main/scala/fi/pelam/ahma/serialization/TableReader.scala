@@ -31,12 +31,12 @@ class TableReader(input: ByteSource, cellTypes: CellTypes.CellTypeMap) extends L
     // TODO: Charset detection (try UTF16 and iso8859)
     val charset = StandardCharsets.UTF_8
 
-    val inputString = input.asCharSource(charset).read()
+    val inputReader = input.asCharSource(charset).openBufferedStream()
 
     // TODO: Separator detection
     val csvSeparator = CsvConstants.defaultSeparatorChar
 
-    val csvParser = new CsvReader(inputString, separator = csvSeparator)
+    val csvParser = new CsvReader(inputReader, separator = csvSeparator)
 
     this.cells = csvParser.toIndexedSeq
 

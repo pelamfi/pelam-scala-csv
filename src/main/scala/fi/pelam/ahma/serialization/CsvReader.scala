@@ -1,5 +1,7 @@
 package fi.pelam.ahma.serialization
 
+import java.io.StringReader
+
 import fi.pelam.ahma.serialization.CsvConstants._
 
 final object CsvReader {
@@ -56,13 +58,19 @@ final object CsvReader {
   case object StreamEnd extends State
 }
 
-final class CsvReader(input: String, val separator: Char = defaultSeparatorChar) extends Iterator[StringCell] {
+final class CsvReader(input: java.io.Reader, val separator: Char) extends Iterator[StringCell] {
+
+  def this(input: String, separator: Char = defaultSeparatorChar) = {
+    this(new StringReader(input), separator)
+  }
+
+  def this(reader: java.io.Reader) = {
+    this(reader, defaultSeparatorChar)
+  }
 
   import fi.pelam.ahma.serialization.CsvReader._
 
   private[this] var cell: Option[StringCell] = None
-
-  private[this] var pos: Int = 0
 
   private[this] var line: Int = 0
 
@@ -72,7 +80,9 @@ final class CsvReader(input: String, val separator: Char = defaultSeparatorChar)
 
   private[this] var cellContentBuffer: StringBuilder = null
 
-  private[this] var cellContentBufferedPos = 0
+  private[this] var char: Int = 0
+
+  private[this] var charConsumed = true
 
   // Start iterator so that hasNext works
   readNext()
@@ -81,14 +91,10 @@ final class CsvReader(input: String, val separator: Char = defaultSeparatorChar)
 
   override def hasNext: Boolean = cell.isDefined
 
-  private[this] def skipCharsUpToPos() = {
-    cellContentBufferedPos = pos
-  }
-
-  private[this] def bufferCellContentUpToPos() = {
-    cellContentBuffer.append(input.substring(cellContentBufferedPos, pos))
-    skipCharsUpToPos()
-  }
+  /**
+   * [[java.io.Reader#read()]] returns -1 at stream end.
+   */
+  private[this] def atEnd = char < 0
 
   private[this] def emitCell() = {
     if (cell.isDefined) {
@@ -101,60 +107,47 @@ final class CsvReader(input: String, val separator: Char = defaultSeparatorChar)
   }
 
   private[this] def handleEndCell() = {
-    bufferCellContentUpToPos()
     emitCell()
   }
 
-  private[this] def char = input.charAt(pos)
-
-  private[this] def atEnd = pos >= input.size
-
   private[this] def handleCellContentChar() = char match {
-    case c: Char if c == separator => {
-      bufferCellContentUpToPos()
-      pos = pos + 1
-      skipCharsUpToPos()
+    case c if c == separator => {
+      charConsumed = true
       state = CellEnd
     }
 
     case '"' => {
-      bufferCellContentUpToPos()
       state = QuotedCellContent
-      pos = pos + 1
-      skipCharsUpToPos()
+      charConsumed = true
     }
 
     case '\r' => {
-      bufferCellContentUpToPos()
-      pos = pos + 1
-      skipCharsUpToPos()
+      charConsumed = true
       state = CarriageReturn
     }
 
     case '\n' => {
-      bufferCellContentUpToPos()
-      pos = pos + 1
-      skipCharsUpToPos()
+      charConsumed = true
       state = LineEnd
     }
 
     case _ => {
-      pos = pos + 1
+      cellContentBuffer.append(char.asInstanceOf[Char])
+      charConsumed = true
     }
   }
 
   private[this] def handleQuotedChar() = char match {
     case '"' => {
-      bufferCellContentUpToPos()
       state = PossibleEndQuote
-      pos = pos + 1
-      skipCharsUpToPos()
+      charConsumed = true
     }
     case '\r' | '\n' | ';' => {
       sys.error(s"Unclosed quote on line $line")
     }
     case _ => {
-      pos = pos + 1
+      cellContentBuffer.append(char.asInstanceOf[Char])
+      charConsumed = true
     }
   }
 
@@ -165,9 +158,20 @@ final class CsvReader(input: String, val separator: Char = defaultSeparatorChar)
   }
 
   private[this] def readNext(): Unit = {
+
     cell = None
 
     do {
+
+      if (charConsumed && !atEnd) {
+        char = input.read()
+
+        if (atEnd) {
+          input.close()
+        }
+
+        charConsumed = false
+      }
 
       state match {
         case StreamStart => if (atEnd) {
@@ -177,7 +181,6 @@ final class CsvReader(input: String, val separator: Char = defaultSeparatorChar)
           state = CellStart
         }
         case CellContent => if (atEnd) {
-          bufferCellContentUpToPos()
           // Gloss over final line without line feed
           state = LineEnd
         } else {
@@ -192,8 +195,7 @@ final class CsvReader(input: String, val separator: Char = defaultSeparatorChar)
           sys.error(s"Broken linefeed on $line. Expected LF after CR, but stream ended.")
         } else {
           if (char == '\n') {
-            pos = pos + 1
-            skipCharsUpToPos()
+            charConsumed = true
             state = LineEnd
           } else {
             sys.error(s"Broken linefeed on $line. Expected LF after CR, but got '$char'.")
@@ -205,8 +207,7 @@ final class CsvReader(input: String, val separator: Char = defaultSeparatorChar)
           if (char == '"') {
             // Input quoted quote char.
             cellContentBuffer.append('"')
-            pos = pos + 1
-            skipCharsUpToPos()
+            charConsumed = true
             state = QuotedCellContent
             // More quoted stuff coming.
           } else {
