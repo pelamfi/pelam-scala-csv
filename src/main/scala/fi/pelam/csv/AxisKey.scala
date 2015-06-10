@@ -1,4 +1,4 @@
-package fi.pelam.ahma.serialization
+package fi.pelam.csv
 
 /**
  * Base type for RowKey and ColKey

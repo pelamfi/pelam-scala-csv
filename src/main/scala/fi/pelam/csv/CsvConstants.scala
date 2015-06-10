@@ -1,4 +1,4 @@
-package fi.pelam.ahma.serialization
+package fi.pelam.csv
 
 object CsvConstants {
 

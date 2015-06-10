@@ -1,16 +1,19 @@
-package fi.pelam.ahma.serialization
+package fi.pelam.csv
 
 import java.nio.charset.StandardCharsets
 import java.util.Locale
 
 import com.google.common.io.ByteSource
 import fi.pelam.ahma.localization.AhmaLocalization
+import fi.pelam.ahma.serialization.{CellTypes, ColType, RowType}
 import grizzled.slf4j.Logging
 
 import scala.collection.SortedMap
 import scala.collection.immutable.TreeMap
 
 class TableReader(input: ByteSource, cellTypes: CellTypes.CellTypeMap) extends Logging {
+
+  import TableReader._
 
   var colTypes: SortedMap[ColKey, ColType] = SortedMap()
 
@@ -23,8 +26,6 @@ class TableReader(input: ByteSource, cellTypes: CellTypes.CellTypeMap) extends L
   var cells: IndexedSeq[Cell] = IndexedSeq()
 
   var errors: Option[Seq[String]] = None
-
-  import fi.pelam.ahma.serialization.TableReader._
 
   def read(): Table = {
 

@@ -1,4 +1,4 @@
-package fi.pelam.ahma.serialization
+package fi.pelam.csv
 
 import org.junit.Assert._
 import org.junit.Test

@@ -1,4 +1,4 @@
-package fi.pelam.ahma.serialization
+package fi.pelam.csv
 
 import java.nio.charset.StandardCharsets._
 import java.util.Locale
@@ -7,6 +7,7 @@ import com.google.common.io.{ByteSource, Resources}
 import fi.pelam.ahma.localization.AhmaLocalization
 import fi.pelam.ahma.serialization.ColType._
 import fi.pelam.ahma.serialization.RowType._
+import fi.pelam.ahma.serialization._
 import org.junit.Assert._
 import org.junit.Test
 

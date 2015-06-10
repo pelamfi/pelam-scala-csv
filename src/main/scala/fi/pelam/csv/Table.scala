@@ -1,7 +1,9 @@
-package fi.pelam.ahma.serialization
+package fi.pelam.csv
 
 import java.nio.charset.Charset
 import java.util.Locale
+
+import fi.pelam.ahma.serialization.{ColType, RowType}
 
 import scala.collection.SortedMap
 import scala.collection.immutable.TreeMap
@@ -64,7 +66,7 @@ case class Table(charset: Charset,
   colTypes: SortedMap[ColKey, ColType],
   cells: IndexedSeq[IndexedSeq[Cell]]) {
 
-  import fi.pelam.ahma.serialization.Table._
+  import Table._
 
   val rowsByType: Map[RowType, IndexedSeq[RowKey]] = reverseMap(rowTypes)
 

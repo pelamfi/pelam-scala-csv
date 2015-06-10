@@ -1,8 +1,8 @@
-package fi.pelam.ahma.serialization
+package fi.pelam.csv
 
 import java.io.StringReader
 
-import fi.pelam.ahma.serialization.CsvConstants._
+import fi.pelam.csv.CsvConstants._
 
 final object CsvReader {
 
@@ -60,6 +60,8 @@ final object CsvReader {
 
 final class CsvReader(input: java.io.Reader, val separator: Char) extends Iterator[StringCell] {
 
+  import CsvReader._
+
   def this(input: String, separator: Char = defaultSeparatorChar) = {
     this(new StringReader(input), separator)
   }
@@ -67,8 +69,6 @@ final class CsvReader(input: java.io.Reader, val separator: Char) extends Iterat
   def this(reader: java.io.Reader) = {
     this(reader, defaultSeparatorChar)
   }
-
-  import fi.pelam.ahma.serialization.CsvReader._
 
   private[this] var cell: Option[StringCell] = None
 

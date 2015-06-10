@@ -1,4 +1,4 @@
-package fi.pelam.ahma.serialization
+package fi.pelam.csv
 
 object CellKey {
   def apply(rowKey: RowKey, colIndex: Int): CellKey = CellKey(rowKey.index, colIndex)

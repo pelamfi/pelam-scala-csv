@@ -1,4 +1,4 @@
-package fi.pelam.ahma.serialization
+package fi.pelam.csv
 
 case class RowKey(index: Int) extends AxisKey[RowKey] {
 

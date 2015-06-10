@@ -1,4 +1,4 @@
-package fi.pelam.ahma.serialization
+package fi.pelam.csv
 
 import java.text.{NumberFormat, ParsePosition}
 import java.util.Locale

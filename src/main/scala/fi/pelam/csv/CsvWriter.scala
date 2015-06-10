@@ -1,6 +1,6 @@
-package fi.pelam.ahma.serialization
+package fi.pelam.csv
 
-import fi.pelam.ahma.serialization.CsvConstants._
+import fi.pelam.csv.CsvConstants._
 
 class CsvWriter(val output: java.io.Writer, val separator: Char = defaultSeparatorChar) {
 

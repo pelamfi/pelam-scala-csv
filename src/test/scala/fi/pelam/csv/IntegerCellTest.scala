@@ -1,4 +1,4 @@
-package fi.pelam.ahma.serialization
+package fi.pelam.csv
 
 import fi.pelam.ahma.localization.AhmaLocalization
 import org.junit.Assert._
