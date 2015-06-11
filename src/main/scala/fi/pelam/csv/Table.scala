@@ -12,6 +12,7 @@ object Table {
   val rowTypeCol = ColKey(0)
 
   // http://stackoverflow.com/a/24222250/1148030
+  // TODO: refactor reverseMap
   def reverseMap[A, B](map: scala.collection.Map[A, B]): Map[B, IndexedSeq[A]] = map.groupBy(_._2).mapValues(_.map(_._1).toIndexedSeq)
 
   def reverseMapSorted[A, B <: Ordered[B]](map: Map[A, B]): SortedMap[B, IndexedSeq[A]] =
@@ -58,6 +59,7 @@ object Table {
 
 }
 
+// TODO: Make RowType and ColType generic
 case class Table(charset: Charset,
   csvSeparator: Char,
   stringLocale: Locale,
@@ -90,11 +92,13 @@ case class Table(charset: Charset,
     val key = cell.cellKey
 
     if (key.rowIndex >= rowCount) {
-      throw new IllegalArgumentException(s"Row number ${key.rowIndex + 1} is outside the number of rows $rowCount. Mark the row a comment?")
+      throw new IllegalArgumentException(s"Row number ${key.rowIndex + 1} " +
+        s"is outside the number of rows $rowCount. Mark the row a comment?")
     }
 
     if (key.colIndex >= colCount) {
-      throw new IllegalArgumentException(s"Column number ${key.colIndex + 1} is outside the number of columns $colCount. Mark the column a comment?")
+      throw new IllegalArgumentException(s"Column number ${key.colIndex + 1} " +
+        s"is outside the number of columns $colCount. Mark the column a comment?")
     }
 
     val updatedCells = cells.updated(key.rowIndex, cells(key.rowIndex).updated(key.colIndex, cell))
@@ -144,10 +148,16 @@ case class Table(charset: Charset,
    */
   def getSingleRowByType(rowType: RowType): RowKey = {
     val rows = rowsByType(rowType)
+
     if (rows.size == 0) {
+
       sys.error(s"Expected 1 row of type $rowType but no rows of that type found.")
+
     } else if (rows.size > 1) {
-      sys.error(s"Expected 1 row of type $rowType but more than 1 found. " + rows.tail.foldLeft(rows.head.toString)(_ + ", " + _))
+
+      sys.error(s"Expected 1 row of type $rowType but more than 1 found. " +
+        rows.tail.foldLeft(rows.head.toString)(_ + ", " + _))
+
     } else {
       rows(0)
     }
@@ -188,6 +198,4 @@ case class Table(charset: Charset,
     val colKey = getSingleColByType(colType)
     getCell(CellKey(rowKey, colKey))
   }
-
-
 }

@@ -105,6 +105,7 @@ class TableReader(input: ByteSource, cellTypes: CellTypes.CellTypeMap) extends L
 
   def detectDataLocaleAndUpgradeCells(): Unit = {
 
+    // TODO: Make locale candidate list a parameter
     // Guess first the already detected cellTypeLocale, if that fails try english.
     // This is a way to limit combinations.
     val dataLocaleCandidates = List(cellTypeLocale, AhmaLocalization.localeEn)
@@ -149,6 +150,7 @@ class TableReader(input: ByteSource, cellTypes: CellTypes.CellTypeMap) extends L
 
 object TableReader {
 
+  // TODO: Make locale candidate list a parameter
   val locales = List(AhmaLocalization.localeEn, AhmaLocalization.localeFi)
 
   case class CellUpgradeAndLocaleResults(locale: Locale,
@@ -159,6 +161,7 @@ object TableReader {
 
     val errors = Seq.newBuilder[String]
 
+    // TODO: Make row type and this localized row type name map a parameter
     val rowTypeReverseMap = AhmaLocalization.getEnumMap(locale, RowType)
 
     val result = for (cell <- cells;
@@ -182,6 +185,7 @@ object TableReader {
 
     val errors = Seq.newBuilder[String]
 
+    // TODO: Make row type and this localized row type name map a parameter
     val colTypeReverseMap = AhmaLocalization.getEnumMap(locale, ColType)
 
     val result = for (cell <- cells;
