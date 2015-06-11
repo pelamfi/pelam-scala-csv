@@ -41,7 +41,7 @@ class TableReader(input: ByteSource, cellTypes: CellTypes.CellTypeMap) extends L
 
     this.cells = csvParser.toIndexedSeq
 
-    detectStringLocaleAndRowTypes()
+    detectCellTypeLocaleAndRowTypes()
 
     detectDataLocaleAndUpgradeCells()
 
@@ -50,7 +50,7 @@ class TableReader(input: ByteSource, cellTypes: CellTypes.CellTypeMap) extends L
     table
   }
 
-  def detectStringLocaleAndRowTypes(): Unit = {
+  def detectCellTypeLocaleAndRowTypes(): Unit = {
 
     for (cellTypeLocale <- locales) {
 

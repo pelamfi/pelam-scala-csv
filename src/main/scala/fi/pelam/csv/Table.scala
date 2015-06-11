@@ -46,7 +46,7 @@ object Table {
 
   def apply(charset: Charset,
     csvSeparator: Char,
-    stringLocale: Locale,
+    cellTypeLocale: Locale,
     dataLocale: Locale,
     rowTypes: SortedMap[RowKey, RowType],
     colTypes: SortedMap[ColKey, ColType],
@@ -54,7 +54,7 @@ object Table {
 
     val builtCells = buildCells(cells, tableSize(rowTypes.keys), tableSize(colTypes.keys))
 
-    Table(charset, csvSeparator, stringLocale, dataLocale, rowTypes, colTypes, builtCells)
+    Table(charset, csvSeparator, cellTypeLocale, dataLocale, rowTypes, colTypes, builtCells)
   }
 
 }
@@ -62,7 +62,18 @@ object Table {
 // TODO: Make RowType and ColType generic
 case class Table(charset: Charset,
   csvSeparator: Char,
-  stringLocale: Locale,
+
+  /**
+   * Locale used in names in CSV data identifying types of each column and row
+   */
+  cellTypeLocale: Locale,
+
+  /**
+   * Locale used in encoding eg. integer values into cells.
+   *
+   * This locale is mostly used via individual Cell types like [[IntegerCell]]
+   * which contain individual reference to the same Locale.
+   */
   dataLocale: Locale,
   rowTypes: SortedMap[RowKey, RowType],
   colTypes: SortedMap[ColKey, ColType],
