@@ -2,6 +2,7 @@ package fi.pelam.csv
 
 import java.io.StringReader
 
+import com.google.common.io.CharSource
 import fi.pelam.csv.CsvConstants._
 
 final object CsvReader {
@@ -56,9 +57,67 @@ final object CsvReader {
    * cells will be emitted.
    */
   case object StreamEnd extends State
+
+  /**
+   * Parser won't continue after encountering first error.
+   * Parser will then remain in this state.
+   */
+  case object ErrorState extends State
+
+  case class Error(message: String, at: CellKey) {
+    override def toString = s"Error parsing CSV at $at: $message"
+  }
+
+  type CellOrError = Either[Error, StringCell]
 }
 
-final class CsvReader(input: java.io.Reader, val separator: Char) extends Iterator[StringCell] {
+/**
+ * Implements Scala iterator interface for CsvReader.
+ *
+ * Actual parsing is delegated to [[CsvReaderInternal]]
+ */
+final class CsvReader(input: java.io.Reader, val separator: Char) extends Iterator[CsvReader.CellOrError] {
+
+  import CsvReader._
+
+  def this(inputString: String, separator: Char = CsvConstants.defaultSeparatorChar) = this(CharSource.wrap(inputString).openBufferedStream(), separator)
+
+  def this(input: java.io.Reader) = this(input, CsvConstants.defaultSeparatorChar)
+
+  private[this] val internal = new CsvReaderInternal(input, separator)
+
+  private[this] var cell: Option[CellOrError] = None
+
+  // Start internal reader so that hasNext works
+  cell = internal.read()
+
+  override def next(): CellOrError = nextOption.get
+
+  override def hasNext: Boolean = cell.isDefined
+
+  def nextOption(): Option[CellOrError] = {
+    val prereadCell = cell
+    // Read next cell, so hasNext can work
+    cell = internal.read()
+    prereadCell
+  }
+
+  def raiseOnError: Iterator[StringCell] = this.map {
+    case Left(e: Error) => sys.error(e.toString)
+    case Right(stringCell) => stringCell
+  }
+}
+
+/**
+ * State machine based CSV parser which has single method interface which returns
+ * an option of eiher cell or error.
+ *
+ * See [[CsvReader]] for friendlier Scala collections API like interface (Iterator).
+ *
+ * @param input stream to read CSV from. Input is read on as needed basis and closed if stream end is encountered.
+ * @param separator separator char to use.
+ */
+final class CsvReaderInternal(input: java.io.Reader, val separator: Char) {
 
   import CsvReader._
 
@@ -70,139 +129,137 @@ final class CsvReader(input: java.io.Reader, val separator: Char) extends Iterat
     this(reader, defaultSeparatorChar)
   }
 
-  private[this] var cell: Option[StringCell] = None
 
   private[this] var line: Int = 0
 
   private[this] var col: Int = 0
 
+  private[this] def cellKey = CellKey(line, col)
+
   private[this] var state: State = StreamStart
 
   private[this] var cellContentBuffer: StringBuilder = null
 
+  // An FSM state does not always consume just read the character.
+  // These variables will pass the character to the next FSM state.
   private[this] var char: Int = 0
-
   private[this] var charConsumed = true
-
-  // Start iterator so that hasNext works
-  readNext()
-
-  override def next(): StringCell = nextOption.get
-
-  override def hasNext: Boolean = cell.isDefined
 
   /**
    * [[java.io.Reader#read()]] returns -1 at stream end.
    */
-  private[this] def atEnd = char < 0
+  private[this] def inputExhausted = char < 0
 
-  private[this] def emitCell() = {
-    if (cell.isDefined) {
-      sys.error("Internal error. Cell aready emitted.")
-    }
-
-    cell = Some(StringCell(CellKey(line, col), cellContentBuffer.toString()))
-
+  private[this] def emitCell(): Option[CellOrError] = {
+    val value = Some(Right(StringCell(CellKey(line, col), cellContentBuffer.toString())))
     col += 1
+    value
   }
 
-  private[this] def handleEndCell() = {
-    emitCell()
+  /**
+   * Process one character. Possibly change state.
+   *
+   * Always consumes the char
+   */
+  private[this] def handleCellContentChar(char: Char): Option[CellOrError] = {
+    char match {
+      case c if c == separator => {
+        state = CellEnd
+      }
+      case '"' => {
+        state = QuotedCellContent
+      }
+      case '\r' => {
+        state = CarriageReturn
+      }
+      case '\n' => {
+        state = LineEnd
+      }
+      case _ => {
+        cellContentBuffer.append(char.asInstanceOf[Char])
+      }
+    }
+
+    None
   }
 
-  private[this] def handleCellContentChar() = char match {
-    case c if c == separator => {
-      charConsumed = true
-      state = CellEnd
-    }
-
-    case '"' => {
-      state = QuotedCellContent
-      charConsumed = true
-    }
-
-    case '\r' => {
-      charConsumed = true
-      state = CarriageReturn
-    }
-
-    case '\n' => {
-      charConsumed = true
-      state = LineEnd
-    }
-
-    case _ => {
-      cellContentBuffer.append(char.asInstanceOf[Char])
-      charConsumed = true
-    }
-  }
-
-  private[this] def handleQuotedChar() = char match {
+  /**
+   * Process one character. Possibly change state.
+   *
+   * Always consumes the char
+   */
+  private[this] def handleQuotedChar(char: Char): Option[CellOrError] = char match {
     case '"' => {
       state = PossibleEndQuote
-      charConsumed = true
+      None
     }
     case '\r' | '\n' | ';' => {
-      sys.error(s"Unclosed quote on line $line")
+      state = ErrorState
+      Some(Left(Error(s"Unclosed quote on line $line", cellKey)))
     }
     case _ => {
       cellContentBuffer.append(char.asInstanceOf[Char])
-      charConsumed = true
+      None
     }
   }
 
-  def nextOption(): Option[StringCell] = {
-    val prereadCell = cell
-    readNext()
-    prereadCell
-  }
+  /**
+   * @return None when stream ends.
+   */
+  private[csv] def read(): Option[CellOrError] = {
 
-  private[this] def readNext(): Unit = {
+    while (true) {
 
-    cell = None
-
-    do {
-
-      if (charConsumed && !atEnd) {
+      // Read next char if needed and possible
+      if (charConsumed && !inputExhausted) {
         char = input.read()
 
-        if (atEnd) {
+        if (inputExhausted) {
           input.close()
+        } else {
+          charConsumed = false
         }
-
-        charConsumed = false
       }
 
-      state match {
-        case StreamStart => if (atEnd) {
+      // Process current FSM state and possibly emit cell or error
+      val maybeCellOrError: Option[CellOrError] = state match {
+        case StreamStart => if (inputExhausted) {
           state = StreamEnd
+          None
           // Nothing to do anymore
         } else {
           state = CellStart
+          None
         }
-        case CellContent => if (atEnd) {
+        case CellContent => if (inputExhausted) {
           // Gloss over final line without line feed
           state = LineEnd
+          None
         } else {
-          handleCellContentChar()
+          charConsumed = true
+          handleCellContentChar(char.toChar)
         }
-        case QuotedCellContent => if (atEnd) {
-          sys.error("Input stream ended while processing quoted characters.")
+        case QuotedCellContent => if (inputExhausted) {
+          state = ErrorState
+          Some(Left(Error("Input stream ended while processing quoted characters.", cellKey)))
         } else {
-          handleQuotedChar()
+          charConsumed = true
+          handleQuotedChar(char.toChar)
         }
-        case CarriageReturn => if (atEnd) {
-          sys.error(s"Broken linefeed on $line. Expected LF after CR, but stream ended.")
+        case CarriageReturn => if (inputExhausted) {
+          Some(Left(Error("Broken linefeed. Expected LF after CR, but stream ended.", cellKey)))
         } else {
           if (char == '\n') {
             charConsumed = true
             state = LineEnd
+            None
           } else {
-            sys.error(s"Broken linefeed on $line. Expected LF after CR, but got '$char'.")
+            Some(Left(Error("Broken linefeed. Expected LF after CR, but got '$char'.", cellKey)))
           }
         }
-        case PossibleEndQuote => if (atEnd) {
+        case PossibleEndQuote => if (inputExhausted) {
           state = CellContent
+          None
         } else {
           if (char == '"') {
             // Input quoted quote char.
@@ -210,41 +267,61 @@ final class CsvReader(input: java.io.Reader, val separator: Char) extends Iterat
             charConsumed = true
             state = QuotedCellContent
             // More quoted stuff coming.
+            None
           } else {
             state = CellContent
             // End quoted stuff
+            None
           }
         }
         case CellStart => {
           cellContentBuffer = new StringBuilder()
-          if (atEnd) {
+          if (inputExhausted) {
             // Gloss over zero width cell on final line without line feed
             state = LineEnd
+            None
           } else {
             state = CellContent
+            None
           }
         }
         case CellEnd => {
-          emitCell()
           state = CellStart
+          emitCell()
         }
         case LineEnd => {
-          emitCell()
+          val cell = emitCell()
 
           line = line + 1
           col = 0
 
-          if (atEnd) {
-            state = StreamEnd
+          state = if (inputExhausted) {
+            StreamEnd
           } else {
-            state = CellStart
+            CellStart
           }
+
+          cell
         }
         case StreamEnd => {
+          None
+        }
+        case ErrorState => {
+          None
         }
       }
 
-      // Loop until we can emit cell or input stream exhausted
-    } while (state != StreamEnd && cell.isEmpty)
+      if (maybeCellOrError.isDefined) {
+        return maybeCellOrError
+      } else if (state == StreamEnd) {
+        return None
+      } else if (state == ErrorState) {
+        return Some(Left(Error("CsvReader has encountered error.", cellKey)))
+      }
+
+      // Loop until we can emit cell, input stream exhausted or error has been encountered
+    }
+
+    sys.error("Will never get here")
   }
 }

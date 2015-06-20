@@ -17,31 +17,31 @@ class CsvReaderTest {
 
   @Test
   def testParseContent: Unit = {
-    val parsed = new CsvReader(csv3Cells).toIndexedSeq
+    val parsed = new CsvReader(csv3Cells).raiseOnError.toIndexedSeq
     assertEquals("foo\nbar\nbaz\n", parsed.foldLeft("")(_ + _.serializedString + "\n"))
   }
 
   @Test
   def testParseIndices: Unit = {
-    val parsed = new CsvReader(csv3Cells).toIndexedSeq
+    val parsed = new CsvReader(csv3Cells).raiseOnError.toIndexedSeq
     assertEquals("(0,0)\n(0,1)\n(1,0)\n", parsed.foldLeft("")(_ + _.cellKey.indices + "\n"))
   }
 
   @Test
   def testParseCrLf: Unit = {
-    val parsed = new CsvReader("foo,bar\r\nbaz\n").toIndexedSeq
+    val parsed = new CsvReader("foo,bar\r\nbaz\n").raiseOnError.toIndexedSeq
     assertCsv3Cells(parsed)
   }
 
   @Test
   def testParseUnterminatedLastLine: Unit = {
-    val parsed = new CsvReader("foo,bar\r\nbaz").toIndexedSeq
+    val parsed = new CsvReader("foo,bar\r\nbaz").raiseOnError.toIndexedSeq
     assertCsv3Cells(parsed)
   }
 
   @Test
   def testParseUnterminatedLastLineWithExtraCells: Unit = {
-    val parsed = new CsvReader("foo,bar\r\nbaz,x,y").toIndexedSeq
+    val parsed = new CsvReader("foo,bar\r\nbaz,x,y").raiseOnError.toIndexedSeq
 
     assertEquals("foo\nbar\nbaz\nx\ny\n", parsed.foldLeft("")(_ + _.serializedString + "\n"))
     assertEquals("(0,0)\n(0,1)\n(1,0)\n(1,1)\n(1,2)\n", parsed.foldLeft("")(_ + _.cellKey.indices + "\n"))
@@ -50,7 +50,7 @@ class CsvReaderTest {
 
   @Test
   def testParseUnterminatedLastLineWithEmptyCells: Unit = {
-    val parsed = new CsvReader("foo,bar\r\nbaz,,").toIndexedSeq
+    val parsed = new CsvReader("foo,bar\r\nbaz,,").raiseOnError.toIndexedSeq
 
     assertEquals("foo\nbar\nbaz\n\n\n", parsed.foldLeft("")(_ + _.serializedString + "\n"))
     assertEquals("(0,0)\n(0,1)\n(1,0)\n(1,1)\n(1,2)\n", parsed.foldLeft("")(_ + _.cellKey.indices + "\n"))
@@ -65,7 +65,7 @@ class CsvReaderTest {
 
   @Test
   def testParseInputWithOnlyLinefeed: Unit = {
-    val reader = new CsvReader("\n")
+    val reader = new CsvReader("\n").raiseOnError
     assertTrue(reader.hasNext)
     assertEquals(StringCell(CellKey(0, 0), ""), reader.next())
     assertFalse(reader.hasNext)
@@ -73,7 +73,7 @@ class CsvReaderTest {
 
   @Test
   def testParseInputWithOnlyLinefeedCrLf: Unit = {
-    val reader = new CsvReader("\r\n")
+    val reader = new CsvReader("\r\n").raiseOnError
     assertTrue(reader.hasNext)
     assertEquals(StringCell(CellKey(0, 0), ""), reader.next())
     assertFalse(reader.hasNext)
@@ -81,7 +81,7 @@ class CsvReaderTest {
 
   @Test
   def testParseUnterminatedLine: Unit = {
-    val reader = new CsvReader("x,y")
+    val reader = new CsvReader("x,y").raiseOnError
     assertTrue(reader.hasNext)
     assertEquals(StringCell(CellKey(0, 0), "x"), reader.next())
     assertTrue(reader.hasNext)
@@ -92,7 +92,7 @@ class CsvReaderTest {
 
   @Test
   def testParseEmptyCellsAndUnterminatedLine: Unit = {
-    val reader = new CsvReader(",,")
+    val reader = new CsvReader(",,").raiseOnError
     assertTrue(reader.hasNext)
     assertEquals(StringCell(CellKey(0, 0), ""), reader.next())
     assertTrue(reader.hasNext)
@@ -104,35 +104,43 @@ class CsvReaderTest {
 
   @Test
   def testParseQuotes: Unit = {
-    val parsed = new CsvReader("\"foo\",\"bar\"\nbaz\n").toIndexedSeq
+    val parsed = new CsvReader("\"foo\",\"bar\"\nbaz\n").raiseOnError.toIndexedSeq
     assertCsv3Cells(parsed)
   }
 
   @Test(expected = classOf[RuntimeException])
   def testBrokenQuotes: Unit = {
-    new CsvReader("\"foo\n")
+    new CsvReader("\"foo\n").raiseOnError.toIndexedSeq
   }
 
   @Test(expected = classOf[RuntimeException])
   def testBrokenQuotes2: Unit = {
-    new CsvReader("\"foo")
+    try {
+      new CsvReader("\"foo").raiseOnError.toIndexedSeq
+    } catch {
+      case e: RuntimeException => {
+        assertEquals("java.lang.RuntimeException: Error parsing CSV at Row 1, " +
+          "Column A (0): Input stream ended while processing quoted characters.", e.toString)
+        throw e
+      }
+    }
   }
 
   @Test
   def testParseComplexQuotes: Unit = {
-    val parsed = new CsvReader("fo\"o\",\"b\"ar\nbaz\n").toIndexedSeq
+    val parsed = new CsvReader("fo\"o\",\"b\"ar\nbaz\n").raiseOnError.toIndexedSeq
     assertCsv3Cells(parsed)
   }
 
   @Test
   def testParseQuoteCharsWithinQuotes: Unit = {
-    val parsed = new CsvReader("\"f\"\"oo\",bar\nbaz\n").toIndexedSeq
+    val parsed = new CsvReader("\"f\"\"oo\",bar\nbaz\n").raiseOnError.toIndexedSeq
     assertEquals("f\"oo\nbar\nbaz\n", parsed.foldLeft("")(_ + _.serializedString + "\n"))
   }
 
   @Test
   def testParseChangeSeparator: Unit = {
-    val parsed = new CsvReader("foo;bar\nbaz\n", separator = ';').toIndexedSeq
+    val parsed = new CsvReader("foo;bar\nbaz\n", separator = ';').raiseOnError.toIndexedSeq
     assertCsv3Cells(parsed)
   }
 
@@ -144,7 +152,7 @@ class CsvReaderTest {
   @Test
   def testParseSimpleCells: Unit = {
 
-    val parsed = new CsvReader("Comment,1\nComment,2\n", ',').toIndexedSeq
+    val parsed = new CsvReader("Comment,1\nComment,2\n", ',').raiseOnError.toIndexedSeq
 
     val expected = "Cell containing 'Comment' at Row 1, Column A (0)\n" +
       "Cell containing '1' at Row 1, Column B (1)\n" +
