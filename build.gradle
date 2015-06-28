@@ -1,0 +1,22 @@
+apply plugin: 'scala'
+apply plugin: 'idea'
+apply plugin: 'maven-publish'
+
+group = 'fi.pelam'
+version = '0.1'
+sourceCompatibility = 1.8
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    compile 'org.scala-lang:scala-library:2.11.4'
+    testCompile 'junit:junit:4.12'
+}
+
+idea {
+    module {
+        excludeDirs += file(".idea")
+    }
+}
