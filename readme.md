@@ -1,7 +1,8 @@
 Pelam's Scala CSV Library
 =========================
 
-NOTE: THIS 
+NOTE: THIS PROJECT IS NOT YET FUNCTIONAL.
+See History section below...
 
 Scala library for reading and writing CSV data. 
 
