@@ -1,6 +1,6 @@
 package fi.pelam.csv
 
-import com.google.common.io.CharSource
+import java.io.StringReader
 
 final object CsvReader {
 
@@ -77,7 +77,7 @@ final class CsvReader(input: java.io.Reader, val separator: Char) extends Iterat
 
   import CsvReader._
 
-  def this(inputString: String, separator: Char = CsvConstants.defaultSeparatorChar) = this(CharSource.wrap(inputString).openBufferedStream(), separator)
+  def this(inputString: String, separator: Char = CsvConstants.defaultSeparatorChar) = this(new StringReader(inputString), separator)
 
   def this(input: java.io.Reader) = this(input, CsvConstants.defaultSeparatorChar)
 

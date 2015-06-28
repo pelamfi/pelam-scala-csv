@@ -1,9 +1,7 @@
 package fi.pelam.csv
 
-import java.text.{NumberFormat, ParsePosition}
+import java.text.{ParseException, NumberFormat, ParsePosition}
 import java.util.Locale
-
-import scala.reflect.macros.ParseException
 
 case class IntegerCell(override val cellKey: CellKey,
   val numberFormat: NumberFormat, val value: Int)
@@ -20,7 +18,7 @@ object IntegerCell extends CellFactory {
 
   override def fromString(cellKey: CellKey, locale: Locale, input: String): Either[TableReadingError, IntegerCell] = {
 
-    val numberFormat = NumberFormat.getInstance(locale)
+    val numberFormat: java.text.NumberFormat = NumberFormat.getInstance(locale)
 
     try {
 

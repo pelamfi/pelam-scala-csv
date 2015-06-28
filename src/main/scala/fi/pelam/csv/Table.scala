@@ -3,8 +3,6 @@ package fi.pelam.csv
 import java.nio.charset.Charset
 import java.util.Locale
 
-import fi.pelam.ahma.serialization.{ColType, RowType}
-
 import scala.collection.SortedMap
 import scala.collection.immutable.TreeMap
 
@@ -44,13 +42,13 @@ object Table {
 
   def tableSize(keys: TraversableOnce[AxisKey[_]]) = keys.foldLeft(0)((max, key) => Math.max(max, key.index + 1))
 
-  def apply(charset: Charset,
+  def apply[RT, CT](charset: Charset,
     csvSeparator: Char,
     cellTypeLocale: Locale,
     dataLocale: Locale,
-    rowTypes: SortedMap[RowKey, RowType],
-    colTypes: SortedMap[ColKey, ColType],
-    cells: TraversableOnce[Cell]): Table = {
+    rowTypes: SortedMap[RowKey, RT],
+    colTypes: SortedMap[ColKey, CT],
+    cells: TraversableOnce[Cell]): Table[RT, CT] = {
 
     val builtCells = buildCells(cells, tableSize(rowTypes.keys), tableSize(colTypes.keys))
 
@@ -59,8 +57,7 @@ object Table {
 
 }
 
-// TODO: Make RowType and ColType generic
-case class Table(charset: Charset,
+case class Table[RT, CT](charset: Charset,
   csvSeparator: Char,
 
   /**
@@ -75,21 +72,21 @@ case class Table(charset: Charset,
    * which contain individual reference to the same Locale.
    */
   dataLocale: Locale,
-  rowTypes: SortedMap[RowKey, RowType],
-  colTypes: SortedMap[ColKey, ColType],
+  rowTypes: SortedMap[RowKey, RT],
+  colTypes: SortedMap[ColKey, CT],
   cells: IndexedSeq[IndexedSeq[Cell]]) {
 
   import Table._
 
-  val rowsByType: Map[RowType, IndexedSeq[RowKey]] = reverseMap(rowTypes)
+  val rowsByType: Map[RT, IndexedSeq[RowKey]] = reverseMap(rowTypes)
 
-  val colsByType: Map[ColType, IndexedSeq[ColKey]] = reverseMap(colTypes)
+  val colsByType: Map[CT, IndexedSeq[ColKey]] = reverseMap(colTypes)
 
   val rowCount: Int = rowTypes.keys.foldLeft(0)((max, key) => Math.max(max, key.index + 1))
 
   val colCount: Int = colTypes.keys.foldLeft(0)((max, key) => Math.max(max, key.index + 1))
 
-  def updatedCells(cells: TraversableOnce[Cell]): Table = {
+  def updatedCells(cells: TraversableOnce[Cell]): Table[RT, CT] = {
     var table = this
     for (cell <- cells) {
       table = table.updatedCell(cell)
@@ -97,9 +94,9 @@ case class Table(charset: Charset,
     table
   }
 
-  def updatedCells(cells: Cell*): Table = updatedCells(cells)
+  def updatedCells(cells: Cell*): Table[RT, CT] = updatedCells(cells)
 
-  def updatedCell(cell: Cell): Table = {
+  def updatedCell(cell: Cell): Table[RT, CT] = {
     val key = cell.cellKey
 
     if (key.rowIndex >= rowCount) {
@@ -143,7 +140,7 @@ case class Table(charset: Charset,
   /**
    * Throws if the number of columns with given type is not 1
    */
-  def getSingleColByType(colType: ColType): ColKey = {
+  def getSingleColByType(colType: CT): ColKey = {
     val cols = colsByType(colType)
     if (cols.size == 0) {
       sys.error(s"Expected 1 column of type $colType but no columns of that type found.")
@@ -157,7 +154,7 @@ case class Table(charset: Charset,
   /**
    * Throws if the number of rows with given type is not 1
    */
-  def getSingleRowByType(rowType: RowType): RowKey = {
+  def getSingleRowByType(rowType: RT): RowKey = {
     val rows = rowsByType(rowType)
 
     if (rows.size == 0) {
@@ -177,9 +174,9 @@ case class Table(charset: Charset,
   /**
    * Get cells from single column of colType for each row of rowType.
    *
-   * Throws if there are multiple columns with ColType
+   * Throws if there are multiple columns with CT
    */
-  def getSingleCol(colType: ColType, rowType: RowType): IndexedSeq[Cell] = {
+  def getSingleCol(colType: CT, rowType: RT): IndexedSeq[Cell] = {
     val colKey = getSingleColByType(colType)
 
     for (cellKey <- getCellKeys(colKey);
@@ -189,7 +186,7 @@ case class Table(charset: Charset,
     }
   }
 
-  def getSingleRow(rowKey: RowKey, requiredColTypes: Set[ColType]): IndexedSeq[Cell] = {
+  def getSingleRow(rowKey: RowKey, requiredColTypes: Set[CT]): IndexedSeq[Cell] = {
     for (cellKey <- getCellKeys(rowKey);
          colKey = cellKey.colKey;
          if colTypes.contains(colKey) && requiredColTypes.contains(colTypes(colKey))) yield {
@@ -197,15 +194,15 @@ case class Table(charset: Charset,
     }
   }
 
-  def getSingleRow(rowType: RowType, requiredColTypes: Set[ColType]): IndexedSeq[Cell] = {
+  def getSingleRow(rowType: RT, requiredColTypes: Set[CT]): IndexedSeq[Cell] = {
     getSingleRow(getSingleRowByType(rowType), requiredColTypes)
   }
 
-  def getSingleRow(rowKey: RowKey, colType: ColType): IndexedSeq[Cell] = {
-    getSingleRow(rowKey, Set[ColType](colType))
+  def getSingleRow(rowKey: RowKey, colType: CT): IndexedSeq[Cell] = {
+    getSingleRow(rowKey, Set[CT](colType))
   }
 
-  def getSingleCell(rowKey: RowKey, colType: ColType): Cell = {
+  def getSingleCell(rowKey: RowKey, colType: CT): Cell = {
     val colKey = getSingleColByType(colType)
     getCell(CellKey(rowKey, colKey))
   }

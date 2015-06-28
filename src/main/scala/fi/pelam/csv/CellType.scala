@@ -1,7 +1,5 @@
 package fi.pelam.csv
 
-import fi.pelam.ahma.serialization.{ColType, RowType}
-
-case class CellType(rowType: RowType, colType: ColType) {
+case class CellType[RT, CT](rowType: RT, colType: CT) {
 
 }

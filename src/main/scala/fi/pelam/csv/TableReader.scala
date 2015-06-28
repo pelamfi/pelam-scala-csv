@@ -3,36 +3,31 @@ package fi.pelam.csv
 import java.nio.charset.StandardCharsets
 import java.util.Locale
 
-import com.google.common.io.ByteSource
-import fi.pelam.ahma.localization.AhmaLocalization
-import fi.pelam.ahma.serialization.{CellTypes, ColType, RowType}
-import grizzled.slf4j.Logging
-
 import scala.collection.SortedMap
 import scala.collection.immutable.TreeMap
 
-class TableReader(input: ByteSource, cellTypes: CellTypes.CellTypeMap) extends Logging {
+class TableReader[RT, CT](inputSource: () => java.io.Reader, cellTypes: TableReader.CellFactories[RT, CT]) {
 
   import TableReader._
 
-  var colTypes: SortedMap[ColKey, ColType] = SortedMap()
+  var colTypes: SortedMap[ColKey, CT] = SortedMap()
 
   var cellTypeLocale: Locale = Locale.ROOT
 
   var dataLocale: Locale = Locale.ROOT
 
-  var rowTypes: SortedMap[RowKey, RowType] = SortedMap()
+  var rowTypes: SortedMap[RowKey, RT] = SortedMap()
 
   var cells: IndexedSeq[Cell] = IndexedSeq()
 
   var errors: Option[Seq[String]] = None
 
-  def read(): Table = {
+  def read(): Table[RT, CT] = {
 
     // TODO: Charset detection (try UTF16 and iso8859)
     val charset = StandardCharsets.UTF_8
 
-    val inputReader = input.asCharSource(charset).openBufferedStream()
+    val inputReader: java.io.Reader = inputSource()
 
     // TODO: Separator detection
     val csvSeparator = CsvConstants.defaultSeparatorChar
@@ -56,12 +51,12 @@ class TableReader(input: ByteSource, cellTypes: CellTypes.CellTypeMap) extends L
 
       val (rowTypes, rowErrors) = getRowTypes(cells, cellTypeLocale)
 
-      val columnHeaderRow = rowTypes.find(_._2 == RowType.ColumnHeader)
+      val columnHeaderRow = rowTypes.find(_._2 == RT.ColumnHeader)
 
       val (colTypes, colErrors) = if (columnHeaderRow.isDefined) {
         getColTypes(cells, columnHeaderRow.get._1, cellTypeLocale)
       } else {
-        (TreeMap[ColKey, ColType](), List("No row marked to contain column headers found."))
+        (TreeMap[ColKey, CT](), List("No row marked to contain column headers found."))
       }
 
       val errors = rowErrors ++ colErrors
@@ -90,16 +85,17 @@ class TableReader(input: ByteSource, cellTypes: CellTypes.CellTypeMap) extends L
   }
 
   def upgradeCell(cell: Cell, locale: Locale): Either[TableReadingError, Cell] = {
-    val cellType = getCellType(cell)
-    if (cellTypes.contains(cellType)) {
-      val factory = cellTypes(cellType)
-      val result = factory.fromString(cell.cellKey, locale, cell.serializedString)
+    for (cellType <- getCellType(cell)) yield {
+      if (cellTypes.isDefinedAt(cellType)) {
+        val factory = cellTypes(cellType)
+        val result = factory.fromString(cell.cellKey, locale, cell.serializedString)
 
-      // Add cell type to possible error message
-      result.fold(error => Left(error.copy(msg = error.msg + s" $cellType")), Right(_))
-    } else {
-      // Unchanged
-      Right(cell)
+        // Add cell type to possible error message
+        result.fold(error => Left(error.copy(msg = error.msg + s" $cellType")), Right(_))
+      } else {
+        // Unchanged
+        Right(cell)
+      }
     }
   }
 
@@ -141,28 +137,38 @@ class TableReader(input: ByteSource, cellTypes: CellTypes.CellTypeMap) extends L
 
   }
 
-  def getCellType(cell: Cell) = CellType(getRowType(cell), getColType(cell))
+  def getCellType(cell: Cell): Option[CellType[RT, CT]] = {
+    for(rowType <- getRowType(cell);
+        colType <- getColType(cell)) yield {
+      CellType(rowType, colType)
+    }
+  }
 
-  def getColType(cell: Cell): ColType = colTypes.getOrElse(cell.colKey, ColType.CommentCol)
+  def getColType(cell: Cell): Option[CT] = colTypes.get(cell.colKey)
 
-  def getRowType(cell: Cell): RowType = rowTypes.getOrElse(cell.rowKey, RowType.CommentRow)
+  def getRowType(cell: Cell): Option[RT] = rowTypes.get(cell.rowKey)
 }
 
 object TableReader {
+  // TODO: Move elsewhere
+  val localeEn: Locale = Locale.forLanguageTag("EN")
+
+  // TODO: Names of these things, CellFactories, cellTypes, CellFactory
+  type CellFactories[RT, CT] = PartialFunction[CellType[RT, CT], CellFactory]
 
   // TODO: Make locale candidate list a parameter
-  val locales = List(AhmaLocalization.localeEn, AhmaLocalization.localeFi)
+  val locales = List(localeEn)
 
   case class CellUpgradeAndLocaleResults(locale: Locale,
     errors: IndexedSeq[TableReadingError] = IndexedSeq(),
     cells: IndexedSeq[Cell] = IndexedSeq())
 
-  def getRowTypes(cells: TraversableOnce[Cell], locale: Locale): (SortedMap[RowKey, RowType], Seq[String]) = {
+  def getRowTypes[RT, CT](cells: TraversableOnce[Cell], locale: Locale): (SortedMap[RowKey, RT], Seq[String]) = {
 
     val errors = Seq.newBuilder[String]
 
     // TODO: Make row type and this localized row type name map a parameter
-    val rowTypeReverseMap = AhmaLocalization.getEnumMap(locale, RowType)
+    val rowTypeReverseMap = AhmaLocalization.getEnumMap(locale, RT)
 
     val result = for (cell <- cells;
                       if cell.colKey == Table.rowTypeCol) yield {
@@ -173,20 +179,20 @@ object TableReader {
         cell.rowKey -> rowTypeOption.get
       } else {
         errors += s"Unknown row type '${cell.serializedString}' in language '${locale.getDisplayName()}'"
-        cell.rowKey -> RowType.CommentRow
+        cell.rowKey -> RT.CommentRow
       }
 
     }
 
-    (TreeMap[RowKey, RowType]() ++ result, errors.result)
+    (TreeMap[RowKey, RT]() ++ result, errors.result)
   }
 
-  def getColTypes(cells: TraversableOnce[Cell], headerRow: RowKey, locale: Locale): (SortedMap[ColKey, ColType], Seq[String]) = {
+  def getColTypes[RT, CT](cells: TraversableOnce[Cell], headerRow: RowKey, locale: Locale): (SortedMap[ColKey, CT], Seq[String]) = {
 
     val errors = Seq.newBuilder[String]
 
     // TODO: Make row type and this localized row type name map a parameter
-    val colTypeReverseMap = AhmaLocalization.getEnumMap(locale, ColType)
+    val colTypeReverseMap = AhmaLocalization.getEnumMap(locale, CT)
 
     val result = for (cell <- cells;
                       if cell.rowKey == headerRow) yield {
@@ -202,7 +208,7 @@ object TableReader {
 
     }
 
-    (TreeMap[ColKey, ColType]() ++ result, errors.result)
+    (TreeMap[ColKey, CT]() ++ result, errors.result)
   }
 
 
