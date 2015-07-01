@@ -170,7 +170,7 @@ class CsvReaderTest {
 
     val cells = new CsvReader(csvString).toIndexedSeq
 
-    assertEquals("Expected number of cells", 1170, cells.size)
+    assertEquals("Expected number of cells", 180, cells.size)
   }
 
 }

@@ -74,7 +74,7 @@ class CsvWriterTest {
 
     val readOrigCells = new CsvReader(csvStringOrig).raiseOnError.toIndexedSeq
 
-    assertEquals("Initial data cell count sanity check", 1170, readOrigCells.size)
+    assertEquals("Initial data cell count sanity check", 180, readOrigCells.size)
 
     csvWriter.write(readOrigCells)
 
