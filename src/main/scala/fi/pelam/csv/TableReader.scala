@@ -1,102 +1,108 @@
 package fi.pelam.csv
 
+import java.io.BufferedReader
 import java.nio.charset.StandardCharsets
 import java.util.Locale
 
 import scala.collection.SortedMap
 import scala.collection.immutable.TreeMap
 
-class TableReader[RT, CT](inputSource: () => java.io.Reader, cellTypes: TableReader.CellFactories[RT, CT]) {
+class TableReader[RT, CT](openInputStream: () => java.io.InputStream,
+  cellTypes: TableReader.CellFactories[RT, CT] = Map[CellType[RT, CT], CellFactory](), // TODO: Default cell factory
+  rowTypeDefinition: TableReader.RowTypeDefinition[RT, CT] = TableReader.emptyRowTypeDefinition[RT, CT],
+  colTypeDefinition: TableReader.ColTypeDefinition[RT, CT] = TableReader.emptyColTypeDefinition[RT, CT]) {
 
   import TableReader._
 
-  var colTypes: SortedMap[ColKey, CT] = SortedMap()
-
-  var cellTypeLocale: Locale = Locale.ROOT
-
   var dataLocale: Locale = Locale.ROOT
-
-  var rowTypes: SortedMap[RowKey, RT] = SortedMap()
 
   var cells: IndexedSeq[Cell] = IndexedSeq()
 
-  var errors: Option[Seq[String]] = None
+  // TODO: Naming
+  var detectedCellTypes: Option[TypesFoo[RT, CT]] = None
 
   def read(): Table[RT, CT] = {
 
     // TODO: Charset detection (try UTF16 and iso8859)
     val charset = StandardCharsets.UTF_8
 
-    val inputReader: java.io.Reader = inputSource()
+    val inputStream = openInputStream()
 
-    // TODO: Separator detection
-    val csvSeparator = CsvConstants.defaultSeparatorChar
+    try {
 
-    val csvParser = new CsvReader(inputReader, separator = csvSeparator)
+      val inputReader: java.io.Reader = new BufferedReader(new java.io.InputStreamReader(inputStream, charset), 1024)
 
-    this.cells = csvParser.raiseOnError.toIndexedSeq
+      // TODO: Separator detection
+      val csvSeparator = CsvConstants.defaultSeparatorChar
 
-    detectCellTypeLocaleAndRowTypes()
+      val csvParser = new CsvReader(inputReader, separator = csvSeparator)
 
-    detectDataLocaleAndUpgradeCells()
+      this.cells = csvParser.raiseOnError.toIndexedSeq
 
-    val table = Table(charset, csvSeparator, cellTypeLocale, dataLocale, rowTypes, colTypes, cells)
+      detectCellTypeLocaleAndRowTypes()
 
-    table
+      detectDataLocaleAndUpgradeCells()
+
+      val detected = detectedCellTypes.get
+
+      // Return final product
+      Table(charset, csvSeparator, detected.cellTypesLocale, dataLocale, detected.rowTypes, detected.colTypes, cells)
+
+    } finally {
+      inputStream.close()
+    }
   }
 
   def detectCellTypeLocaleAndRowTypes(): Unit = {
 
     for (cellTypeLocale <- locales) {
 
-      val (rowTypes, rowErrors) = getRowTypes(cells, cellTypeLocale)
+      // TODO: Naming of everything here...
 
-      val columnHeaderRow = rowTypes.find(_._2 == RT.ColumnHeader)
+      val types = detectCellTypes(cells, cellTypeLocale, rowTypeDefinition, colTypeDefinition)
 
-      val (colTypes, colErrors) = if (columnHeaderRow.isDefined) {
-        getColTypes(cells, columnHeaderRow.get._1, cellTypeLocale)
-      } else {
-        (TreeMap[ColKey, CT](), List("No row marked to contain column headers found."))
-      }
-
-      val errors = rowErrors ++ colErrors
-
-      if (errors.size == 0) {
+      if (types.errors.size == 0) {
         // All row types are now identified. Consider cellTypeLocale to be properly detected.
-        this.cellTypeLocale = cellTypeLocale
-        this.rowTypes = rowTypes
-        this.colTypes = colTypes
-        this.errors = None
+        this.detectedCellTypes = Some(types)
+
+        // Detection heuristic ends on first zero errors solution as an optimization
         return
       } else {
         // Prefer to report the shortest list of errors
-        if (this.errors.map(_.size > errors.size).getOrElse(true)) {
-          this.errors = Some(errors)
+        this.detectedCellTypes = this.detectedCellTypes match {
+          case None => Some(types)
+          case Some(prevBest) if prevBest.errors.size > types.errors.size => Some(types)
+          case Some(prevBest) => Some(prevBest)
         }
       }
     }
 
-    val message = "Failed to identify language and/or some row names in the first column.\n" +
-      errors.map(_.fold("")(_ + _ + "\n")).getOrElse("")
+    // Throw if errors
+    for (types <- this.detectedCellTypes;
+         if types.errors.size > 0) {
 
-    error(message)
+      val message = "Failed to identify language and/or some row names in the first column.\n" +
+        types.errors.foldLeft("")(_ + _.msg + "\n")
 
-    sys.error(message)
+      sys.error(message)
+    }
   }
 
   def upgradeCell(cell: Cell, locale: Locale): Either[TableReadingError, Cell] = {
-    for (cellType <- getCellType(cell)) yield {
-      if (cellTypes.isDefinedAt(cellType)) {
-        val factory = cellTypes(cellType)
-        val result = factory.fromString(cell.cellKey, locale, cell.serializedString)
+    val upgraded = for (cellType: CellType[RT, CT] <- getCellType(cell);
+         factory <- cellTypes.lift(cellType)) yield {
 
+      val result = factory.fromString(cell.cellKey, locale, cell.serializedString)
+
+      result match {
         // Add cell type to possible error message
-        result.fold(error => Left(error.copy(msg = error.msg + s" $cellType")), Right(_))
-      } else {
-        // Unchanged
-        Right(cell)
+        case Left(error) => Left(error.copy(msg = error.msg + s" $cellType"))
+        case cell => cell
       }
     }
+
+    // Handle no cell type defined case
+    upgraded.getOrElse(Right(cell))
   }
 
   def detectDataLocaleAndUpgradeCells(): Unit = {
@@ -104,7 +110,7 @@ class TableReader[RT, CT](inputSource: () => java.io.Reader, cellTypes: TableRea
     // TODO: Make locale candidate list a parameter
     // Guess first the already detected cellTypeLocale, if that fails try english.
     // This is a way to limit combinations.
-    val dataLocaleCandidates = List(cellTypeLocale, AhmaLocalization.localeEn)
+    val dataLocaleCandidates = List(localeEn)
 
     val perLocaleResults = for (locale <- dataLocaleCandidates) yield {
 
@@ -130,8 +136,6 @@ class TableReader[RT, CT](inputSource: () => java.io.Reader, cellTypes: TableRea
       val message = "Failed to parse data in some cells and or identify language/locale.\n" +
         bestResult.errors.foldLeft("")(_ + _ + "\n")
 
-      error(message)
-
       sys.error(message)
     }
 
@@ -144,12 +148,36 @@ class TableReader[RT, CT](inputSource: () => java.io.Reader, cellTypes: TableRea
     }
   }
 
-  def getColType(cell: Cell): Option[CT] = colTypes.get(cell.colKey)
+  def getColType(cell: Cell): Option[CT] = {
+    for (cellTypes <- detectedCellTypes;
+         colType <- cellTypes.colTypes.get(cell.colKey)) yield colType
+  }
 
-  def getRowType(cell: Cell): Option[RT] = rowTypes.get(cell.rowKey)
+  def getRowType(cell: Cell): Option[RT] = {
+    for (cellTypes <- detectedCellTypes;
+         rowType <- cellTypes.rowTypes.get(cell.rowKey)) yield rowType
+  }
 }
 
 object TableReader {
+  case class TypesFoo[RT, CT](
+    rowTypes: SortedMap[RowKey, RT] = SortedMap[RowKey, RT](),
+    colTypes: SortedMap[ColKey, CT] = SortedMap[ColKey, CT](),
+    errors: Seq[TableReadingError] = IndexedSeq(),
+    cellTypesLocale: Locale
+    )
+
+  // TODO: Name
+  type TypeDefinitionOutput[T] = Option[Either[TableReadingError, T]]
+
+  type RowTypeDefinition[RT, CT] = (Cell, TypesFoo[RT, CT]) => TypeDefinitionOutput[RT]
+
+  type ColTypeDefinition[RT, CT] = (Cell, TypesFoo[RT, CT]) => TypeDefinitionOutput[CT]
+
+  def emptyRowTypeDefinition[RT, CT]: RowTypeDefinition[RT, CT] = (_, _) => None
+
+  def emptyColTypeDefinition[RT, CT]: ColTypeDefinition[RT, CT] = (_, _) => None
+
   // TODO: Move elsewhere
   val localeEn: Locale = Locale.forLanguageTag("EN")
 
@@ -163,53 +191,40 @@ object TableReader {
     errors: IndexedSeq[TableReadingError] = IndexedSeq(),
     cells: IndexedSeq[Cell] = IndexedSeq())
 
-  def getRowTypes[RT, CT](cells: TraversableOnce[Cell], locale: Locale): (SortedMap[RowKey, RT], Seq[String]) = {
+  // type rowTypeDefinition[RT] = (TraversableOnce[Cell], Locale) => (SortedMap[RowKey, RT], Seq[String])
 
-    val errors = Seq.newBuilder[String]
+  def detectCellTypes[RT, CT](cells: TraversableOnce[Cell], locale: Locale,
+    rowTypeDefinition: TableReader.RowTypeDefinition[RT, CT],
+    colTypeDefinition: TableReader.ColTypeDefinition[RT, CT]): TypesFoo[RT, CT] = {
 
-    // TODO: Make row type and this localized row type name map a parameter
-    val rowTypeReverseMap = AhmaLocalization.getEnumMap(locale, RT)
+    val initial = TypesFoo[RT, CT](cellTypesLocale = locale)
 
-    val result = for (cell <- cells;
-                      if cell.colKey == Table.rowTypeCol) yield {
+    // For each cell try to use xTypeDefinition functions to identify column and row types
+    // unless they are already identified.
+    //
+    // Also collect errors detected by those functions to support CSV format detection heuristic.
+    cells.foldLeft[TypesFoo[RT, CT]](initial) { (t: TypesFoo[RT, CT], cell: Cell) =>
 
-      val rowTypeOption = rowTypeReverseMap.getReverse(cell.serializedString)
+      val definition = for (definition <- rowTypeDefinition(cell, t);
+                            if (!t.rowTypes.isDefinedAt(cell.rowKey))) yield definition
 
-      if (rowTypeOption.isDefined) {
-        cell.rowKey -> rowTypeOption.get
-      } else {
-        errors += s"Unknown row type '${cell.serializedString}' in language '${locale.getDisplayName()}'"
-        cell.rowKey -> RT.CommentRow
+      val updatedT: TypesFoo[RT, CT] = definition match {
+        case Some(Left(e)) => t.copy[RT, CT](errors = t.errors :+ e)
+        case Some(Right(rowType)) => t.copy[RT, CT](rowTypes = t.rowTypes.updated(cell.rowKey, rowType))
+        case None => t
       }
 
-    }
+      val definition2 = for (definition2 <- colTypeDefinition(cell, updatedT);
+                             if (!t.colTypes.isDefinedAt(cell.colKey))) yield definition2
 
-    (TreeMap[RowKey, RT]() ++ result, errors.result)
-  }
-
-  def getColTypes[RT, CT](cells: TraversableOnce[Cell], headerRow: RowKey, locale: Locale): (SortedMap[ColKey, CT], Seq[String]) = {
-
-    val errors = Seq.newBuilder[String]
-
-    // TODO: Make row type and this localized row type name map a parameter
-    val colTypeReverseMap = AhmaLocalization.getEnumMap(locale, CT)
-
-    val result = for (cell <- cells;
-                      if cell.rowKey == headerRow) yield {
-
-      val colTypeOption = colTypeReverseMap.getReverse(cell.serializedString)
-
-      if (colTypeOption.isDefined) {
-        cell.colKey -> colTypeOption.get
-      } else {
-        errors += s"Unknown column type '${cell.serializedString}' in language '${locale.getDisplayName()}'"
-        cell.colKey -> null
+      val updatedT2: TypesFoo[RT, CT] = definition2 match {
+        case Some(Left(e)) => t.copy[RT, CT](errors = t.errors :+ e)
+        case Some(Right(colType)) => t.copy[RT, CT](colTypes = t.colTypes.updated(cell.colKey, colType))
+        case None => t
       }
 
+      updatedT2
     }
-
-    (TreeMap[ColKey, CT]() ++ result, errors.result)
   }
-
 
 }

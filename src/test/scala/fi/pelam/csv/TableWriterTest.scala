@@ -3,7 +3,7 @@ package fi.pelam.csv
 import java.io.ByteArrayOutputStream
 
 import com.google.common.base.Charsets
-import com.google.common.io.Resources
+import com.google.common.io.{ByteSource, Resources}
 import org.junit.Assert._
 import org.junit.Test
 
@@ -45,9 +45,13 @@ class TableWriterTest {
     assertEquals(",,,,,\n,foo,,,,\n,bar,,,,\n,,,,,\n,,,,,\n", written)
   }
 
+  implicit def opener(byteSource: ByteSource): () => java.io.InputStream = {
+    () => byteSource.openStream()
+  }
+
   @Test
   def testLoopback: Unit = {
-    val table = new TableReader(testFile, Map()).read()
+    val table = new TableReader[TestRowType, TestColType](testFile, Map()).read()
 
     val writer = new TableWriter(table)
 
