@@ -8,9 +8,10 @@ import scala.collection.SortedMap
 import scala.collection.immutable.TreeMap
 
 class TableReader[RT, CT](openInputStream: () => java.io.InputStream,
-  cellTypes: TableReader.CellFactories[RT, CT] = Map[CellType[RT, CT], CellFactory](), // TODO: Default cell factory
   rowTypeDefinition: TableReader.RowTypeDefinition[RT, CT] = TableReader.emptyRowTypeDefinition[RT, CT],
-  colTypeDefinition: TableReader.ColTypeDefinition[RT, CT] = TableReader.emptyColTypeDefinition[RT, CT]) {
+  colTypeDefinition: TableReader.ColTypeDefinition[RT, CT] = TableReader.emptyColTypeDefinition[RT, CT],
+  cellTypes: TableReader.CellFactories[RT, CT] = Map[CellType[RT, CT], CellFactory]()
+  ) {
 
   import TableReader._
 

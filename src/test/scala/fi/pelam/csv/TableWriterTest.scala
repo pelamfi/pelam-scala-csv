@@ -51,7 +51,7 @@ class TableWriterTest {
 
   @Test
   def testLoopback: Unit = {
-    val table = new TableReader[TestRowType, TestColType](testFile, Map()).read()
+    val table = new TableReader[TestRowType, TestColType](testFile).read()
 
     val writer = new TableWriter(table)
 

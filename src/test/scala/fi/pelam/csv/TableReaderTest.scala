@@ -38,19 +38,19 @@ class TableReaderTest {
 
   @Test
   def testRowCount: Unit = {
-    val table = new TableReader[Unit, Unit](headerAndCommentsOnly, Map()).read()
+    val table = new TableReader(headerAndCommentsOnly).read()
     assertEquals(4, table.rowCount)
   }
 
   @Test
   def testColCount: Unit = {
-    val table = new TableReader[Unit, Unit](headerAndCommentsOnly, Map()).read()
+    val table = new TableReader(headerAndCommentsOnly).read()
     assertEquals(5, table.colCount)
   }
 
   @Test
   def testRowTypeFi: Unit = {
-    val table = new TableReader[Unit, Unit](headerAndCommentsOnly, Map()).read()
+    val table = new TableReader(headerAndCommentsOnly).read()
     assertEquals(ColumnHeader, table.rowTypes(RowKey(0)))
     assertEquals(CommentRow, table.rowTypes(RowKey(1)))
     assertEquals(CommentRow, table.rowTypes(RowKey(2)))
@@ -58,7 +58,7 @@ class TableReaderTest {
 
   @Test
   def testRowType: Unit = {
-    val table = new TableReader[Unit, Unit](headerAndCommentsOnly, Map()).read()
+    val table = new TableReader(headerAndCommentsOnly).read()
     assertEquals(ColumnHeader, table.rowTypes(RowKey(0)))
     assertEquals(CommentRow, table.rowTypes(RowKey(1)))
     assertEquals(CommentRow, table.rowTypes(RowKey(2)))
@@ -67,7 +67,7 @@ class TableReaderTest {
   @Test
   def testParseLocalizedNumbersAndQuotes: Unit = {
     val input = ByteSource.wrap("Title,Salary,BoolParam1\nWorker,\"12,000.00\",TRUE\n".getBytes(UTF_8))
-    val table = new TableReader[Unit, Unit](input, Map()).read()
+    val table = new TableReader(input).read()
     val cells = table.getCells(RowKey(1))
     assertEquals("Worker\n12,000.00\nTRUE\n", cells.foldLeft("")(_ + _.serializedString + "\n"))
   }
@@ -75,7 +75,7 @@ class TableReaderTest {
   @Test
   def testUpgradeCellType: Unit = {
     val table = new TableReader[TestRowType, TestColType](rowAndColTypesFiDataEn,
-      Map(CellType(TestRowType.Worker, TestColType.Salary) -> IntegerCell)).read()
+      cellTypes = Map(CellType(TestRowType.Worker, TestColType.Salary) -> IntegerCell)).read()
 
     val cells = table.getSingleCol(TestColType.Salary, TestRowType.Worker)
 
@@ -94,7 +94,7 @@ class TableReaderTest {
 
     try {
       new TableReader(rowAndColTypesFiDataEn,
-        Map(CellType(TestRowType.Worker, TestColType.Salary) -> IntegerCell)).read()
+        cellTypes = Map(CellType(TestRowType.Worker, TestColType.Salary) -> IntegerCell)).read()
       fail()
     } catch {
       case e: Exception => {
@@ -112,7 +112,7 @@ class TableReaderTest {
 
   @Test
   def testGetRowAndColTypes: Unit = {
-    val table = new TableReader[TestRowType, TestColType](rowAndColTypesFiDataEn, Map()).read()
+    val table = new TableReader[TestRowType, TestColType](rowAndColTypesFiDataEn).read()
     assertEquals(List(RowHeader, Qualifications, WorkerId, IntParam1, Salary), table.colTypes.values.toList)
     assertEquals(List(TestRowType.CommentRow, ColumnHeader, Worker), table.rowTypes.values.toList)
   }
@@ -121,7 +121,7 @@ class TableReaderTest {
   def readCompletefileFiUtf8Csv: Unit = {
     val file = Resources.asByteSource(Resources.getResource("csv–file-for-loading"))
 
-    val table = new TableReader[TestRowType, TestColType](file, Map()).read()
+    val table = new TableReader[TestRowType, TestColType](file).read()
 
     assertEquals(List(RowHeader, Qualifications, WorkerId, IntParam1, CommentCol, Salary,
       BoolParam1, IntParam2, PrevWeek, PrevWeek, PrevWeek), table.colTypes.values.toList.slice(0, 11))
