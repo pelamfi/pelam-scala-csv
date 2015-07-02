@@ -12,8 +12,18 @@ repositories {
 
 dependencies {
     compile 'org.scala-lang:scala-library:2.11.4'
-    testCompile 'com.google.guava:guava:16.0'
+
     testCompile 'junit:junit:4.12'
+
+    // For Java like enums with small amount of
+    // boilerplate https://github.com/lloydmeta/enumeratum
+    // Used in tests for row and column typing.
+    testCompile 'com.beachape:enumeratum_2.11:1.2.1'
+
+    // Used for reading resource in tests.
+    testCompile 'com.google.guava:guava:16.0'
+
+
 }
 
 idea {

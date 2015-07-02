@@ -9,6 +9,8 @@ import org.junit.Test
 import TestRowType._
 import TestColType._
 
+import scala.collection.immutable.SortedMap
+
 class TableReaderTest {
   val headerAndCommentsOnly = ByteSource.wrap("Header,Comment,Comment,Comment,Comment\nComment,1,2,3,4\nComment\nComment,\n".getBytes(UTF_8))
 
@@ -104,10 +106,30 @@ class TableReaderTest {
     }
   }
 
+  val rowTypes: TableReader.RowTypeDefinition[TestRowType, TestColType] = {
+    case (cell: Cell, types) if cell.colKey.index == 0 => {
+        TestRowType.namesToValuesMap.get(cell.serializedString) match {
+          case Some(x) => Right(x)
+          case _ => Left(TableReadingError("Unknown row type."))
+        }
+      }
+  }
+
   @Test
-  def testGetRowTypes: Unit = {
-    assertEquals((Map(RowKey(0) -> TestRowType.CommentRow), Seq()),
-      TableReader.detectCellTypes(List(StringCell(CellKey(0, 0), "Comment")), Locale.ROOT, TableReader.emptyRowTypeDefinition[TestRowType, TestColType], TableReader.emptyColTypeDefinition[TestRowType, TestColType]))
+  def testDetectCellTypes: Unit = {
+    assertEquals(TableReader.TypesFoo(
+      rowTypes = SortedMap(RowKey(0) -> TestRowType.CommentRow),
+      cellTypesLocale = Locale.ROOT),
+      TableReader.detectCellTypes(List(StringCell(CellKey(0, 0), "CommentRow")), Locale.ROOT, rowTypes, PartialFunction.empty))
+  }
+
+  @Test
+  def testDetectCellTypesError: Unit = {
+    val cell = StringCell(CellKey(0, 0), "Bogus")
+    assertEquals(TableReader.TypesFoo(
+      errors = IndexedSeq(TableReadingError("Unknown row type.", Some(cell))),
+      cellTypesLocale = Locale.ROOT),
+      TableReader.detectCellTypes(List(cell), Locale.ROOT, rowTypes, PartialFunction.empty))
   }
 
   @Test

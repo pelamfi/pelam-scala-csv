@@ -8,9 +8,9 @@ import scala.collection.SortedMap
 import scala.collection.immutable.TreeMap
 
 class TableReader[RT, CT](openInputStream: () => java.io.InputStream,
-  rowTypeDefinition: TableReader.RowTypeDefinition[RT, CT] = TableReader.emptyRowTypeDefinition[RT, CT],
-  colTypeDefinition: TableReader.ColTypeDefinition[RT, CT] = TableReader.emptyColTypeDefinition[RT, CT],
-  cellTypes: TableReader.CellFactories[RT, CT] = Map[CellType[RT, CT], CellFactory]()
+  rowTypeDefinition: TableReader.RowTypeDefinition[RT, CT] = PartialFunction.empty,
+  colTypeDefinition: TableReader.ColTypeDefinition[RT, CT] = PartialFunction.empty,
+  cellTypes: TableReader.CellFactories[RT, CT] = PartialFunction.empty
   ) {
 
   import TableReader._
@@ -83,7 +83,7 @@ class TableReader[RT, CT](openInputStream: () => java.io.InputStream,
          if types.errors.size > 0) {
 
       val message = "Failed to identify language and/or some row names in the first column.\n" +
-        types.errors.foldLeft("")(_ + _.msg + "\n")
+        types.errors.foldLeft("")(_ + _ + "\n")
 
       sys.error(message)
     }
@@ -96,8 +96,8 @@ class TableReader[RT, CT](openInputStream: () => java.io.InputStream,
       val result = factory.fromString(cell.cellKey, locale, cell.serializedString)
 
       result match {
-        // Add cell type to possible error message
-        case Left(error) => Left(error.copy(msg = error.msg + s" $cellType"))
+        // Add cell and cell type to possible error message
+        case Left(error: TableReadingError) => Left(error.addedDetails(cell, cellType))
         case cell => cell
       }
     }
@@ -169,15 +169,11 @@ object TableReader {
     )
 
   // TODO: Name
-  type TypeDefinitionOutput[T] = Option[Either[TableReadingError, T]]
+  type TypeDefinitionOutput[T] = Either[TableReadingError, T]
 
-  type RowTypeDefinition[RT, CT] = (Cell, TypesFoo[RT, CT]) => TypeDefinitionOutput[RT]
+  type RowTypeDefinition[RT, CT] = PartialFunction[(Cell, TypesFoo[RT, CT]), TypeDefinitionOutput[RT]]
 
-  type ColTypeDefinition[RT, CT] = (Cell, TypesFoo[RT, CT]) => TypeDefinitionOutput[CT]
-
-  def emptyRowTypeDefinition[RT, CT]: RowTypeDefinition[RT, CT] = (_, _) => None
-
-  def emptyColTypeDefinition[RT, CT]: ColTypeDefinition[RT, CT] = (_, _) => None
+  type ColTypeDefinition[RT, CT] = PartialFunction[(Cell, TypesFoo[RT, CT]), TypeDefinitionOutput[CT]]
 
   // TODO: Move elsewhere
   val localeEn: Locale = Locale.forLanguageTag("EN")
@@ -206,22 +202,26 @@ object TableReader {
     // Also collect errors detected by those functions to support CSV format detection heuristic.
     cells.foldLeft[TypesFoo[RT, CT]](initial) { (t: TypesFoo[RT, CT], cell: Cell) =>
 
-      val definition = for (definition <- rowTypeDefinition(cell, t);
+      val rowTypeDefinitionLifted = rowTypeDefinition.lift
+
+      val definition = for (definition <- rowTypeDefinitionLifted(cell, t);
                             if (!t.rowTypes.isDefinedAt(cell.rowKey))) yield definition
 
       val updatedT: TypesFoo[RT, CT] = definition match {
-        case Some(Left(e)) => t.copy[RT, CT](errors = t.errors :+ e)
+        case Some(Left(e)) => t.copy[RT, CT](errors = t.errors :+ e.addedDetails(cell))
         case Some(Right(rowType)) => t.copy[RT, CT](rowTypes = t.rowTypes.updated(cell.rowKey, rowType))
         case None => t
       }
 
-      val definition2 = for (definition2 <- colTypeDefinition(cell, updatedT);
+      val colTypeDefinitionLifted = colTypeDefinition.lift
+
+      val definition2 = for (definition2 <- colTypeDefinitionLifted(cell, updatedT);
                              if (!t.colTypes.isDefinedAt(cell.colKey))) yield definition2
 
       val updatedT2: TypesFoo[RT, CT] = definition2 match {
-        case Some(Left(e)) => t.copy[RT, CT](errors = t.errors :+ e)
+        case Some(Left(e)) => t.copy[RT, CT](errors = t.errors :+ e.addedDetails(cell))
         case Some(Right(colType)) => t.copy[RT, CT](colTypes = t.colTypes.updated(cell.colKey, colType))
-        case None => t
+        case None => updatedT
       }
 
       updatedT2
