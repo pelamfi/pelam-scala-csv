@@ -4,7 +4,7 @@ case class TableReadingError(msg: String, cell: Option[Cell] = None) {
 
   override def toString() = {
     if (cell.isDefined) {
-      msg + " " + cell
+      msg + " " + cell.get
     } else {
       msg
     }

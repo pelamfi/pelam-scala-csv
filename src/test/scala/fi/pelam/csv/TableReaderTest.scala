@@ -117,7 +117,7 @@ class TableReaderTest {
 
   val colTypes: TableReader.ColTyper[TestRowType, TestColType] = {
     case (cell, _) if cell.colKey.index == 0 => Right(TestColType.RowType)
-    case (cell, types) if cell.rowKey == types.getSingleRowByType(TestRowType.ColumnHeader) => {
+    case (cell, types) if types.rowTypes.get(cell.rowKey) == Some(TestRowType.ColumnHeader) => {
       TestColType.namesToValuesMap.get(cell.serializedString) match {
         case Some(x) => Right(x)
         case _ => Left(TableReadingError("Unknown row type."))
@@ -162,14 +162,17 @@ class TableReaderTest {
   def readCompletefileFiUtf8Csv: Unit = {
     val file = Resources.asByteSource(Resources.getResource("csv–file-for-loading"))
 
-    val table = new TableReader[TestRowType, TestColType](file).read()
+    val table = new TableReader[TestRowType, TestColType](file, rowTypes, colTypes).read()
 
-    assertEquals(List(RowType, Qualifications, WorkerId, IntParam1, CommentCol, Salary,
-      BoolParam1, IntParam2, PrevWeek, PrevWeek, PrevWeek), table.colTypes.values.toList.slice(0, 11))
+    assertEquals(List(RowType, Qualifications, WorkerId, IntParam1, Salary,
+      BoolParam1, PrevWeek, PrevWeek, PrevWeek), table.colTypes.values.toList.slice(0, 9))
 
-    assertEquals(List(CommentRow, CommentRow, ColumnHeader, Day, Worker, Worker), table.rowTypes.values.toList.slice(0, 6))
+    assertEquals(List(CommentRow, CommentRow, ColumnHeader, Day, Worker, Worker),
+      table.rowTypes.values.toList.slice(0, 6))
 
-    assertEquals("ValueAA/ValueBB/ValueCC", table.getSingleCol(Qualifications, Worker)(3).serializedString)
+    assertEquals("Qualifications for all workers should match.", "MSc/MSP,BSc,MBA",
+      table.getSingleCol(Qualifications, Worker).map(_.serializedString).reduce(_ + "," + _))
+
   }
 
 }

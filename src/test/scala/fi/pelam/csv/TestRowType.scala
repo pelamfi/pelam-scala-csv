@@ -12,4 +12,6 @@ object TestRowType extends Enum[TestRowType] {
   case object CommentRow extends TestRowType
   case object Worker extends TestRowType
   case object Day extends TestRowType
+  case object WeekDay extends TestRowType
+  case object Holiday extends TestRowType
 }
