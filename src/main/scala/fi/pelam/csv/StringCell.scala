@@ -9,7 +9,7 @@ case class StringCell(override val cellKey: CellKey,
   override def toString() = s"Cell containing '$serializedString' at $cellKey"
 }
 
-object StringCell extends CellFactory {
+object StringCell extends CellUpgrade {
 
   override def fromString(cellKey: CellKey, locale: Locale, input: String): Either[TableReadingError, StringCell] = {
     Right(StringCell(cellKey, input))

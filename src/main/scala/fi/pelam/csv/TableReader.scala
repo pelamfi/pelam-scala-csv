@@ -7,8 +7,8 @@ import java.util.Locale
 import scala.collection.SortedMap
 
 class TableReader[RT, CT](openInputStream: () => java.io.InputStream,
-  rowTypeDefinition: TableReader.RowTypeDefinition[RT, CT] = PartialFunction.empty,
-  colTypeDefinition: TableReader.ColTypeDefinition[RT, CT] = PartialFunction.empty,
+  rowTypeDefinition: TableReader.RowTyper[RT, CT] = PartialFunction.empty,
+  colTypeDefinition: TableReader.ColTyper[RT, CT] = PartialFunction.empty,
   cellTypes: TableReader.CellUpgrades[RT, CT] = PartialFunction.empty
   ) {
 
@@ -46,7 +46,7 @@ class TableReader[RT, CT](openInputStream: () => java.io.InputStream,
       val detected = detectedCellTypes.get
 
       // Return final product
-      Table(charset, csvSeparator, detected.cellTypesLocale, dataLocale, detected.rowTypes, detected.colTypes, cells)
+      Table(charset, csvSeparator, dataLocale, detected, cells)
 
     } finally {
       inputStream.close()
@@ -59,7 +59,7 @@ class TableReader[RT, CT](openInputStream: () => java.io.InputStream,
 
       // TODO: Naming of everything here...
 
-      val types = detectCellTypes(cells, cellTypeLocale, rowTypeDefinition, colTypeDefinition)
+      val types = buildCellTypes(cells, cellTypeLocale, rowTypeDefinition, colTypeDefinition)
 
       if (types.errors.size == 0) {
         // All row types are now identified. Consider cellTypeLocale to be properly detected.
@@ -145,18 +145,16 @@ class TableReader[RT, CT](openInputStream: () => java.io.InputStream,
 }
 
 object TableReader {
-  // TODO: Name
-  type TypeDefinitionOutput[T] = Either[TableReadingError, T]
+  type TyperOutput[T] = Either[TableReadingError, T]
 
-  type RowTypeDefinition[RT, CT] = PartialFunction[(Cell, CellTypes[RT, CT]), TypeDefinitionOutput[RT]]
+  type RowTyper[RT, CT] = PartialFunction[(Cell, CellTypes[RT, CT]), TyperOutput[RT]]
 
-  type ColTypeDefinition[RT, CT] = PartialFunction[(Cell, CellTypes[RT, CT]), TypeDefinitionOutput[CT]]
+  type ColTyper[RT, CT] = PartialFunction[(Cell, CellTypes[RT, CT]), TyperOutput[CT]]
 
   // TODO: Move elsewhere
   val localeEn: Locale = Locale.forLanguageTag("EN")
 
-  // TODO: Names of these things, CellFactories, cellTypes, CellFactory
-  type CellUpgrades[RT, CT] = PartialFunction[CellType[RT, CT], CellFactory]
+  type CellUpgrades[RT, CT] = PartialFunction[CellType[RT, CT], CellUpgrade]
 
   // TODO: Make locale candidate list a parameter
   val locales = List(localeEn)
@@ -165,43 +163,51 @@ object TableReader {
     errors: IndexedSeq[TableReadingError] = IndexedSeq(),
     cells: IndexedSeq[Cell] = IndexedSeq())
 
-  // type rowTypeDefinition[RT] = (TraversableOnce[Cell], Locale) => (SortedMap[RowKey, RT], Seq[String])
+  def detectRowTypes[RT, CT](rowTypeDefinition: ((Cell, CellTypes[RT, CT])) => Option[TyperOutput[RT]],
+    cell: Cell,
+    cellTypes: CellTypes[RT, CT]): CellTypes[RT, CT] = {
 
-  def detectCellTypes[RT, CT](cells: TraversableOnce[Cell], locale: Locale,
-    rowTypeDefinition: TableReader.RowTypeDefinition[RT, CT],
-    colTypeDefinition: TableReader.ColTypeDefinition[RT, CT]): CellTypes[RT, CT] = {
+    if (cellTypes.rowTypes.isDefinedAt(cell.rowKey)) {
+      cellTypes
+    } else {
+      rowTypeDefinition(cell, cellTypes) match {
+        case Some(Left(e)) => cellTypes.copy[RT, CT](errors = cellTypes.errors :+ e.addedDetails(cell))
+        case Some(Right(rowType)) => cellTypes.copy[RT, CT](rowTypes = cellTypes.rowTypes.updated(cell.rowKey, rowType))
+        case None => cellTypes
+      }
+    }
+  }
+
+  def detectColTypes[RT, CT](colTypeDefinition: ((Cell, CellTypes[RT, CT])) => Option[TyperOutput[CT]],
+    cell: Cell,
+    cellTypes: CellTypes[RT, CT]): CellTypes[RT, CT] = {
+
+    if (cellTypes.colTypes.isDefinedAt(cell.colKey)) {
+      cellTypes
+    } else {
+      colTypeDefinition(cell, cellTypes) match {
+        case Some(Left(e)) => cellTypes.copy[RT, CT](errors = cellTypes.errors :+ e.addedDetails(cell))
+        case Some(Right(colType)) => cellTypes.copy[RT, CT](colTypes = cellTypes.colTypes.updated(cell.colKey, colType))
+        case None => cellTypes
+      }
+    }
+  }
+
+  def buildCellTypes[RT, CT](cells: TraversableOnce[Cell], locale: Locale,
+    rowTypeDefinition: TableReader.RowTyper[RT, CT],
+    colTypeDefinition: TableReader.ColTyper[RT, CT]): CellTypes[RT, CT] = {
 
     val initial = CellTypes[RT, CT](cellTypesLocale = locale)
+
+    val rowTypeDefinitionLifted = rowTypeDefinition.lift
+    val colTypeDefinitionLifted = colTypeDefinition.lift
 
     // For each cell try to use xTypeDefinition functions to identify column and row types
     // unless they are already identified.
     //
     // Also collect errors detected by those functions to support CSV format detection heuristic.
-    cells.foldLeft[CellTypes[RT, CT]](initial) { (t: CellTypes[RT, CT], cell: Cell) =>
-
-      val rowTypeDefinitionLifted = rowTypeDefinition.lift
-
-      val definition = for (definition <- rowTypeDefinitionLifted(cell, t);
-                            if (!t.rowTypes.isDefinedAt(cell.rowKey))) yield definition
-
-      val updatedT: CellTypes[RT, CT] = definition match {
-        case Some(Left(e)) => t.copy[RT, CT](errors = t.errors :+ e.addedDetails(cell))
-        case Some(Right(rowType)) => t.copy[RT, CT](rowTypes = t.rowTypes.updated(cell.rowKey, rowType))
-        case None => t
-      }
-
-      val colTypeDefinitionLifted = colTypeDefinition.lift
-
-      val definition2 = for (definition2 <- colTypeDefinitionLifted(cell, updatedT);
-                             if (!t.colTypes.isDefinedAt(cell.colKey))) yield definition2
-
-      val updatedT2: CellTypes[RT, CT] = definition2 match {
-        case Some(Left(e)) => t.copy[RT, CT](errors = t.errors :+ e.addedDetails(cell))
-        case Some(Right(colType)) => t.copy[RT, CT](colTypes = t.colTypes.updated(cell.colKey, colType))
-        case None => updatedT
-      }
-
-      updatedT2
+    cells.foldLeft[CellTypes[RT, CT]](initial) { (cellTypes: CellTypes[RT, CT], cell: Cell) =>
+      detectColTypes(colTypeDefinitionLifted, cell, detectRowTypes(rowTypeDefinitionLifted, cell, cellTypes))
     }
   }
 

@@ -14,7 +14,7 @@ case class IntegerCell(override val cellKey: CellKey,
   override def toString() = s"Cell containing '$serializedString' at $cellKey"
 }
 
-object IntegerCell extends CellFactory {
+object IntegerCell extends CellUpgrade {
 
   override def fromString(cellKey: CellKey, locale: Locale, input: String): Either[TableReadingError, IntegerCell] = {
 

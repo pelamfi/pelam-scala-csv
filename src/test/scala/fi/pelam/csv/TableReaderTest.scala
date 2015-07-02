@@ -106,36 +106,55 @@ class TableReaderTest {
     }
   }
 
-  val rowTypes: TableReader.RowTypeDefinition[TestRowType, TestColType] = {
-    case (cell: Cell, types) if cell.colKey.index == 0 => {
-        TestRowType.namesToValuesMap.get(cell.serializedString) match {
-          case Some(x) => Right(x)
-          case _ => Left(TableReadingError("Unknown row type."))
-        }
+  val rowTypes: TableReader.RowTyper[TestRowType, TestColType] = {
+    case (cell, _) if cell.colKey.index == 0 => {
+      TestRowType.namesToValuesMap.get(cell.serializedString) match {
+        case Some(x) => Right(x)
+        case _ => Left(TableReadingError("Unknown row type."))
       }
+    }
+  }
+
+  val colTypes: TableReader.ColTyper[TestRowType, TestColType] = {
+    case (cell, _) if cell.colKey.index == 0 => Right(TestColType.RowType)
+    case (cell, types) if cell.rowKey == types.getSingleRowByType(TestRowType.ColumnHeader) => {
+      TestColType.namesToValuesMap.get(cell.serializedString) match {
+        case Some(x) => Right(x)
+        case _ => Left(TableReadingError("Unknown row type."))
+      }
+    }
   }
 
   @Test
-  def testDetectCellTypes: Unit = {
+  def testBuildCellTypesRow: Unit = {
     assertEquals(CellTypes(
-      rowTypes = SortedMap(RowKey(0) -> TestRowType.CommentRow),
+      rowTypes = BiMap(SortedMap(RowKey(0) -> TestRowType.CommentRow)),
       cellTypesLocale = Locale.ROOT),
-      TableReader.detectCellTypes(List(StringCell(CellKey(0, 0), "CommentRow")), Locale.ROOT, rowTypes, PartialFunction.empty))
+      TableReader.buildCellTypes(List(StringCell(CellKey(0, 0), "CommentRow")), Locale.ROOT, rowTypes, PartialFunction.empty))
   }
 
   @Test
-  def testDetectCellTypesError: Unit = {
+  def testBuildCellTypesCol: Unit = {
+    assertEquals(CellTypes(
+      rowTypes = BiMap(SortedMap(RowKey(0) -> TestRowType.ColumnHeader)),
+      colTypes = BiMap(SortedMap(ColKey(0) -> TestColType.RowType)),
+      cellTypesLocale = Locale.ROOT),
+      TableReader.buildCellTypes(List(StringCell(CellKey(0, 0), "ColumnHeader")), Locale.ROOT, rowTypes, colTypes))
+  }
+
+  @Test
+  def testBuildCellTypesError: Unit = {
     val cell = StringCell(CellKey(0, 0), "Bogus")
     assertEquals(CellTypes(
       errors = IndexedSeq(TableReadingError("Unknown row type.", Some(cell))),
       cellTypesLocale = Locale.ROOT),
-      TableReader.detectCellTypes(List(cell), Locale.ROOT, rowTypes, PartialFunction.empty))
+      TableReader.buildCellTypes(List(cell), Locale.ROOT, rowTypes, PartialFunction.empty))
   }
 
   @Test
   def testGetRowAndColTypes: Unit = {
     val table = new TableReader[TestRowType, TestColType](rowAndColTypesFiDataEn).read()
-    assertEquals(List(RowHeader, Qualifications, WorkerId, IntParam1, Salary), table.colTypes.values.toList)
+    assertEquals(List(RowType, Qualifications, WorkerId, IntParam1, Salary), table.colTypes.values.toList)
     assertEquals(List(TestRowType.CommentRow, ColumnHeader, Worker), table.rowTypes.values.toList)
   }
 
@@ -145,7 +164,7 @@ class TableReaderTest {
 
     val table = new TableReader[TestRowType, TestColType](file).read()
 
-    assertEquals(List(RowHeader, Qualifications, WorkerId, IntParam1, CommentCol, Salary,
+    assertEquals(List(RowType, Qualifications, WorkerId, IntParam1, CommentCol, Salary,
       BoolParam1, IntParam2, PrevWeek, PrevWeek, PrevWeek), table.colTypes.values.toList.slice(0, 11))
 
     assertEquals(List(CommentRow, CommentRow, ColumnHeader, Day, Worker, Worker), table.rowTypes.values.toList.slice(0, 6))

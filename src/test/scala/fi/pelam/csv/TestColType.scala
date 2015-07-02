@@ -1,14 +1,18 @@
 package fi.pelam.csv
 
-sealed abstract class TestColType
+import enumeratum.{Enum, EnumEntry}
 
-object TestColType {
+sealed abstract class TestColType extends EnumEntry
+
+object TestColType extends Enum[TestColType] {
+
+  val values = findValues
 
   case object CommentCol extends TestColType
 
   case object Qualifications extends TestColType
 
-  case object RowHeader extends TestColType
+  case object RowType extends TestColType
 
   case object PrevWeek extends TestColType
 
