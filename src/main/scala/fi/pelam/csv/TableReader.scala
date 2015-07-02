@@ -5,12 +5,11 @@ import java.nio.charset.StandardCharsets
 import java.util.Locale
 
 import scala.collection.SortedMap
-import scala.collection.immutable.TreeMap
 
 class TableReader[RT, CT](openInputStream: () => java.io.InputStream,
   rowTypeDefinition: TableReader.RowTypeDefinition[RT, CT] = PartialFunction.empty,
   colTypeDefinition: TableReader.ColTypeDefinition[RT, CT] = PartialFunction.empty,
-  cellTypes: TableReader.CellFactories[RT, CT] = PartialFunction.empty
+  cellTypes: TableReader.CellUpgrades[RT, CT] = PartialFunction.empty
   ) {
 
   import TableReader._
@@ -20,7 +19,7 @@ class TableReader[RT, CT](openInputStream: () => java.io.InputStream,
   var cells: IndexedSeq[Cell] = IndexedSeq()
 
   // TODO: Naming
-  var detectedCellTypes: Option[TypesFoo[RT, CT]] = None
+  var detectedCellTypes: Option[CellTypes[RT, CT]] = None
 
   def read(): Table[RT, CT] = {
 
@@ -90,7 +89,8 @@ class TableReader[RT, CT](openInputStream: () => java.io.InputStream,
   }
 
   def upgradeCell(cell: Cell, locale: Locale): Either[TableReadingError, Cell] = {
-    val upgraded = for (cellType: CellType[RT, CT] <- getCellType(cell);
+    val upgraded = for (detectedCellTypes <- detectedCellTypes;
+                        cellType: CellType[RT, CT] <- detectedCellTypes.getCellType(cell);
          factory <- cellTypes.lift(cellType)) yield {
 
       val result = factory.fromString(cell.cellKey, locale, cell.serializedString)
@@ -142,44 +142,21 @@ class TableReader[RT, CT](openInputStream: () => java.io.InputStream,
 
   }
 
-  def getCellType(cell: Cell): Option[CellType[RT, CT]] = {
-    for(rowType <- getRowType(cell);
-        colType <- getColType(cell)) yield {
-      CellType(rowType, colType)
-    }
-  }
-
-  def getColType(cell: Cell): Option[CT] = {
-    for (cellTypes <- detectedCellTypes;
-         colType <- cellTypes.colTypes.get(cell.colKey)) yield colType
-  }
-
-  def getRowType(cell: Cell): Option[RT] = {
-    for (cellTypes <- detectedCellTypes;
-         rowType <- cellTypes.rowTypes.get(cell.rowKey)) yield rowType
-  }
 }
 
 object TableReader {
-  case class TypesFoo[RT, CT](
-    rowTypes: SortedMap[RowKey, RT] = SortedMap[RowKey, RT](),
-    colTypes: SortedMap[ColKey, CT] = SortedMap[ColKey, CT](),
-    errors: Seq[TableReadingError] = IndexedSeq(),
-    cellTypesLocale: Locale
-    )
-
   // TODO: Name
   type TypeDefinitionOutput[T] = Either[TableReadingError, T]
 
-  type RowTypeDefinition[RT, CT] = PartialFunction[(Cell, TypesFoo[RT, CT]), TypeDefinitionOutput[RT]]
+  type RowTypeDefinition[RT, CT] = PartialFunction[(Cell, CellTypes[RT, CT]), TypeDefinitionOutput[RT]]
 
-  type ColTypeDefinition[RT, CT] = PartialFunction[(Cell, TypesFoo[RT, CT]), TypeDefinitionOutput[CT]]
+  type ColTypeDefinition[RT, CT] = PartialFunction[(Cell, CellTypes[RT, CT]), TypeDefinitionOutput[CT]]
 
   // TODO: Move elsewhere
   val localeEn: Locale = Locale.forLanguageTag("EN")
 
   // TODO: Names of these things, CellFactories, cellTypes, CellFactory
-  type CellFactories[RT, CT] = PartialFunction[CellType[RT, CT], CellFactory]
+  type CellUpgrades[RT, CT] = PartialFunction[CellType[RT, CT], CellFactory]
 
   // TODO: Make locale candidate list a parameter
   val locales = List(localeEn)
@@ -192,22 +169,22 @@ object TableReader {
 
   def detectCellTypes[RT, CT](cells: TraversableOnce[Cell], locale: Locale,
     rowTypeDefinition: TableReader.RowTypeDefinition[RT, CT],
-    colTypeDefinition: TableReader.ColTypeDefinition[RT, CT]): TypesFoo[RT, CT] = {
+    colTypeDefinition: TableReader.ColTypeDefinition[RT, CT]): CellTypes[RT, CT] = {
 
-    val initial = TypesFoo[RT, CT](cellTypesLocale = locale)
+    val initial = CellTypes[RT, CT](cellTypesLocale = locale)
 
     // For each cell try to use xTypeDefinition functions to identify column and row types
     // unless they are already identified.
     //
     // Also collect errors detected by those functions to support CSV format detection heuristic.
-    cells.foldLeft[TypesFoo[RT, CT]](initial) { (t: TypesFoo[RT, CT], cell: Cell) =>
+    cells.foldLeft[CellTypes[RT, CT]](initial) { (t: CellTypes[RT, CT], cell: Cell) =>
 
       val rowTypeDefinitionLifted = rowTypeDefinition.lift
 
       val definition = for (definition <- rowTypeDefinitionLifted(cell, t);
                             if (!t.rowTypes.isDefinedAt(cell.rowKey))) yield definition
 
-      val updatedT: TypesFoo[RT, CT] = definition match {
+      val updatedT: CellTypes[RT, CT] = definition match {
         case Some(Left(e)) => t.copy[RT, CT](errors = t.errors :+ e.addedDetails(cell))
         case Some(Right(rowType)) => t.copy[RT, CT](rowTypes = t.rowTypes.updated(cell.rowKey, rowType))
         case None => t
@@ -218,7 +195,7 @@ object TableReader {
       val definition2 = for (definition2 <- colTypeDefinitionLifted(cell, updatedT);
                              if (!t.colTypes.isDefinedAt(cell.colKey))) yield definition2
 
-      val updatedT2: TypesFoo[RT, CT] = definition2 match {
+      val updatedT2: CellTypes[RT, CT] = definition2 match {
         case Some(Left(e)) => t.copy[RT, CT](errors = t.errors :+ e.addedDetails(cell))
         case Some(Right(colType)) => t.copy[RT, CT](colTypes = t.colTypes.updated(cell.colKey, colType))
         case None => updatedT

@@ -117,7 +117,7 @@ class TableReaderTest {
 
   @Test
   def testDetectCellTypes: Unit = {
-    assertEquals(TableReader.TypesFoo(
+    assertEquals(CellTypes(
       rowTypes = SortedMap(RowKey(0) -> TestRowType.CommentRow),
       cellTypesLocale = Locale.ROOT),
       TableReader.detectCellTypes(List(StringCell(CellKey(0, 0), "CommentRow")), Locale.ROOT, rowTypes, PartialFunction.empty))
@@ -126,7 +126,7 @@ class TableReaderTest {
   @Test
   def testDetectCellTypesError: Unit = {
     val cell = StringCell(CellKey(0, 0), "Bogus")
-    assertEquals(TableReader.TypesFoo(
+    assertEquals(CellTypes(
       errors = IndexedSeq(TableReadingError("Unknown row type.", Some(cell))),
       cellTypesLocale = Locale.ROOT),
       TableReader.detectCellTypes(List(cell), Locale.ROOT, rowTypes, PartialFunction.empty))
