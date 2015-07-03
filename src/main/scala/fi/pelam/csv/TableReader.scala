@@ -81,7 +81,7 @@ class TableReader[RT, CT](openInputStream: () => java.io.InputStream,
     for (types <- this.detectedCellTypes;
          if types.errors.size > 0) {
 
-      val message = "Failed to identify language and/or some row names in the first column.\n" +
+      val message = "Failed to identify language and/or some row and column types.\n" +
         types.errors.foldLeft("")(_ + _ + "\n")
 
       sys.error(message)

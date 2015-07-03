@@ -12,7 +12,10 @@ import TestColType._
 import scala.collection.immutable.SortedMap
 
 class TableReaderTest {
-  val headerAndCommentsOnly = ByteSource.wrap("Header,Comment,Comment,Comment,Comment\nCommentRow,1,2,3,4\nCommentRow\nCommentRow,\n".getBytes(UTF_8))
+  val headerAndCommentsOnly = ByteSource.wrap(("ColumnHeader,Comment,Comment,Comment,Comment\n" +
+    "CommentRow,1,2,3,4\n" +
+    "CommentRow\n" +
+    "CommentRow,\n").getBytes(UTF_8))
 
   val rowAndColTypesFiDataEn = ByteSource.wrap(("CommentRow,1,2,3,4\n" +
     "ColumnHeader,Qualifications,WorkerId,IntParam1,Salary\n" +
@@ -29,7 +32,7 @@ class TableReaderTest {
   @Test(expected = classOf[RuntimeException])
   def testReadFailNoRowId: Unit = {
     // no row types so error
-    new TableReader(noRowTypes).read()
+    new TableReader(noRowTypes, rowTypes, colTypes).read()
   }
 
   @Test
@@ -60,7 +63,7 @@ class TableReaderTest {
 
   @Test
   def testRowType: Unit = {
-    val table = new TableReader(headerAndCommentsOnly).read()
+    val table = new TableReader(headerAndCommentsOnly, rowTypes, colTypes).read()
     assertEquals(ColumnHeader, table.rowTypes(RowKey(0)))
     assertEquals(CommentRow, table.rowTypes(RowKey(1)))
     assertEquals(CommentRow, table.rowTypes(RowKey(2)))
@@ -162,7 +165,7 @@ class TableReaderTest {
   def readCompletefileFiUtf8Csv: Unit = {
     val file = Resources.asByteSource(Resources.getResource("csv–file-for-loading"))
 
-    val table = new TableReader[TestRowType, TestColType](file, rowTypes, colTypes).read()
+    val table = new TableReader(file, rowTypes, colTypes).read()
 
     assertEquals(List(RowType, Qualifications, WorkerId, IntParam1, Salary,
       BoolParam1, PrevWeek, PrevWeek, PrevWeek), table.colTypes.values.toList.slice(0, 9))

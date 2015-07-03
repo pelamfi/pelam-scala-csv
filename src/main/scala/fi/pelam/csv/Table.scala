@@ -17,8 +17,13 @@ object Table {
   def reverseMapSorted[A, B <: Ordered[B]](map: Map[A, B]): SortedMap[B, IndexedSeq[A]] =
     TreeMap[B, IndexedSeq[A]]() ++ reverseMap(map)
 
-  def buildCells(initialCells: TraversableOnce[Cell], rowCount: Int, colCount: Int): IndexedSeq[IndexedSeq[Cell]] = {
+  def buildCells(initialCells: TraversableOnce[Cell]): IndexedSeq[IndexedSeq[Cell]] = {
+
     val initialCellMap = initialCells.map(cell => cell.cellKey -> cell).toMap
+
+    val rowCount = initialCellMap.keys.foldLeft(0)((a, b) => scala.math.max(a, b.rowKey.index + 1))
+
+    val colCount = initialCellMap.keys.foldLeft(0)((a, b) => scala.math.max(a, b.colKey.index + 1))
 
     val rowArray = new Array[Array[Cell]](rowCount)
 
@@ -41,16 +46,13 @@ object Table {
     rowArray.map(_.toIndexedSeq).toIndexedSeq
   }
 
-  // TODO: Move to CellTypes
-  def tableSize(keys: TraversableOnce[AxisKey[_]]) = keys.foldLeft(0)((max, key) => Math.max(max, key.index + 1))
-
   def apply[RT, CT](charset: Charset,
     csvSeparator: Char,
     dataLocale: Locale,
     cellTypes: CellTypes[RT, CT],
     cells: TraversableOnce[Cell]): Table[RT, CT] = {
 
-    val builtCells = buildCells(cells, tableSize(cellTypes.rowTypes.keys), tableSize(cellTypes.colTypes.keys))
+    val builtCells = buildCells(cells)
 
     Table(charset, csvSeparator, dataLocale, cellTypes, builtCells)
   }
@@ -70,6 +72,14 @@ case class Table[RT, CT](charset: Charset,
   cellTypes: CellTypes[RT, CT],
   cells: IndexedSeq[IndexedSeq[Cell]]) {
 
+  val rowCount: Int = cells.size
+
+  val colCount: Int = cells.lift(0).map(_.size).getOrElse(0)
+
+  for (row <- cells) {
+    require(row.size == colCount, s"Same number of columns required for reach row. ${row.size} vs ${colCount}")
+  }
+
   import Table._
 
   def rowTypes = cellTypes.rowTypes
@@ -81,12 +91,6 @@ case class Table[RT, CT](charset: Charset,
   def rowsByType: Map[RT, IndexedSeq[RowKey]] = cellTypes.rowsByType
 
   def colsByType: Map[CT, IndexedSeq[ColKey]] = cellTypes.colsByType
-
-  // TODO: Move to CellTypes
-  val rowCount: Int = rowTypes.keys.foldLeft(0)((max, key) => Math.max(max, key.index + 1))
-
-  // TODO: Move to CellTypes
-  val colCount: Int = colTypes.keys.foldLeft(0)((max, key) => Math.max(max, key.index + 1))
 
   def updatedCells(cells: TraversableOnce[Cell]): Table[RT, CT] = {
     var table = this
