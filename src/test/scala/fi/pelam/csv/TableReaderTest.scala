@@ -1,8 +1,10 @@
 package fi.pelam.csv
 
+import java.io.ByteArrayInputStream
 import java.nio.charset.StandardCharsets._
 import java.util.Locale
 
+import com.google.common.base.Charsets
 import com.google.common.io.{ByteSource, Resources}
 import org.junit.Assert._
 import org.junit.Test
@@ -12,18 +14,22 @@ import TestColType._
 import scala.collection.immutable.SortedMap
 
 class TableReaderTest {
-  val headerAndCommentsOnly = ByteSource.wrap(("ColumnHeader,Comment,Comment,Comment,Comment\n" +
+  val headerAndCommentsOnly = "ColumnHeader,CommentCol,CommentCol,CommentCol,CommentCol\n" +
     "CommentRow,1,2,3,4\n" +
     "CommentRow\n" +
-    "CommentRow,\n").getBytes(UTF_8))
+    "CommentRow,\n"
 
-  val rowAndColTypesFiDataEn = ByteSource.wrap(("CommentRow,1,2,3,4\n" +
+  val rowAndColTypesFiDataEn = "CommentRow,1,2,3,4\n" +
     "ColumnHeader,Qualifications,WorkerId,IntParam1,Salary\n" +
-    "Worker,ValueCC,4001,8,\"12,000.00\"\n").getBytes(UTF_8))
+    "Worker,ValueCC,4001,8,\"12,000.00\"\n"
 
-  val commentsOnlyFi = ByteSource.wrap("CommentRow,1,2,3,4\nCommentRow\nCommentRow,\n".getBytes(UTF_8))
+  val commentsOnlyFi = "CommentRow,1,2,3,4\nCommentRow\nCommentRow,\n"
 
-  val noRowTypes = ByteSource.wrap("1,2,3,4,\nCommentRow\n\n".getBytes(UTF_8))
+  val noRowTypes = "1,2,3,4,\nCommentRow\n\n"
+
+  implicit def opener(string: String): () => java.io.InputStream = {
+    () => new ByteArrayInputStream(string.getBytes(Charsets.UTF_8))
+  }
 
   implicit def opener(byteSource: ByteSource): () => java.io.InputStream = {
     () => byteSource.openStream()
@@ -55,7 +61,7 @@ class TableReaderTest {
 
   @Test
   def testRowTypeFi: Unit = {
-    val table = new TableReader(headerAndCommentsOnly).read()
+    val table = new TableReader(headerAndCommentsOnly, rowTypes, colTypes).read()
     assertEquals(ColumnHeader, table.rowTypes(RowKey(0)))
     assertEquals(CommentRow, table.rowTypes(RowKey(1)))
     assertEquals(CommentRow, table.rowTypes(RowKey(2)))
@@ -71,7 +77,7 @@ class TableReaderTest {
 
   @Test
   def testParseLocalizedNumbersAndQuotes: Unit = {
-    val input = ByteSource.wrap("Title,Salary,BoolParam1\nWorker,\"12,000.00\",TRUE\n".getBytes(UTF_8))
+    val input = "Title,Salary,BoolParam1\nWorker,\"12,000.00\",TRUE\n"
     val table = new TableReader(input).read()
     val cells = table.getCells(RowKey(1))
     assertEquals("Worker\n12,000.00\nTRUE\n", cells.foldLeft("")(_ + _.serializedString + "\n"))
@@ -79,8 +85,8 @@ class TableReaderTest {
 
   @Test
   def testUpgradeCellType: Unit = {
-    val table = new TableReader[TestRowType, TestColType](rowAndColTypesFiDataEn,
-      cellTypes = Map(CellType(TestRowType.Worker, TestColType.Salary) -> IntegerCell)).read()
+    val table = new TableReader[TestRowType, TestColType](rowAndColTypesFiDataEn, rowTypes, colTypes,
+      Map(CellType(TestRowType.Worker, TestColType.Salary) -> IntegerCell), List(Locales.localeEn, Locales.localeFi)).read()
 
     val cells = table.getSingleCol(TestColType.Salary, TestRowType.Worker)
 
@@ -93,13 +99,11 @@ class TableReaderTest {
 
   @Test
   def testUpgradeCellTypeParsingFailed: Unit = {
-    val rowAndColTypesFiDataEn = ByteSource.wrap(
-      ("Title,Tyypit,WorkerId,IntParam1,Salary\n" +
-        "Worker,ValueCC,4001,8,injected-error-should-be-number\n").getBytes(UTF_8))
+    val brokenData = rowAndColTypesFiDataEn.replace("\"12,000.00\"", "injected-error-should-be-number")
 
     try {
-      new TableReader(rowAndColTypesFiDataEn,
-        cellTypes = Map(CellType(TestRowType.Worker, TestColType.Salary) -> IntegerCell)).read()
+      new TableReader[TestRowType, TestColType](brokenData, rowTypes, colTypes,
+        Map(CellType(TestRowType.Worker, TestColType.Salary) -> IntegerCell)).read()
       fail()
     } catch {
       case e: Exception => {

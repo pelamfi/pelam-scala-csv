@@ -10,8 +10,8 @@ case class TableReadingError(msg: String, cell: Option[Cell] = None) {
     }
   }
 
-  def addedDetails(specifiedCell: Cell, msgAppend: Any = ""): TableReadingError = {
-    copy(cell = Some(cell.getOrElse(specifiedCell)), msg = msg + msgAppend.toString)
+  def addedDetails(specifiedCell: Cell, msgAppend: String = ""): TableReadingError = {
+    copy(cell = Some(cell.getOrElse(specifiedCell)), msg = msg + msgAppend)
   }
 
 }

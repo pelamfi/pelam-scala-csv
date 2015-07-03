@@ -1,20 +1,31 @@
 package fi.pelam.csv
 
 import java.io.BufferedReader
-import java.nio.charset.StandardCharsets
+import java.nio.charset.{Charset, StandardCharsets}
 import java.util.Locale
 
 import scala.collection.SortedMap
 
+/**
+ * TODO: Docs, better names
+ * @param openInputStream
+ * @param rowTypeDefinition
+ * @param colTypeDefinition
+ * @param cellTypes
+ * @param locales
+ * @tparam RT
+ * @tparam CT
+ */
 class TableReader[RT, CT](openInputStream: () => java.io.InputStream,
   rowTypeDefinition: TableReader.RowTyper[RT, CT] = PartialFunction.empty,
   colTypeDefinition: TableReader.ColTyper[RT, CT] = PartialFunction.empty,
-  cellTypes: TableReader.CellUpgrades[RT, CT] = PartialFunction.empty
+  cellTypes: TableReader.CellUpgrades[RT, CT] = PartialFunction.empty,
+  locales: Seq[Locale] = Seq(Locale.ROOT)
   ) {
 
   import TableReader._
 
-  var dataLocale: Locale = Locale.ROOT
+  var dataLocale: Locale = locales(0)
 
   var cells: IndexedSeq[Cell] = IndexedSeq()
 
@@ -97,7 +108,7 @@ class TableReader[RT, CT](openInputStream: () => java.io.InputStream,
 
       result match {
         // Add cell and cell type to possible error message
-        case Left(error: TableReadingError) => Left(error.addedDetails(cell, cellType))
+        case Left(error: TableReadingError) => Left(error.addedDetails(cell, s" $cellType"))
         case cell => cell
       }
     }
