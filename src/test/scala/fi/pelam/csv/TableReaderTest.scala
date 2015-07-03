@@ -12,15 +12,15 @@ import TestColType._
 import scala.collection.immutable.SortedMap
 
 class TableReaderTest {
-  val headerAndCommentsOnly = ByteSource.wrap("Header,Comment,Comment,Comment,Comment\nComment,1,2,3,4\nComment\nComment,\n".getBytes(UTF_8))
+  val headerAndCommentsOnly = ByteSource.wrap("Header,Comment,Comment,Comment,Comment\nCommentRow,1,2,3,4\nCommentRow\nCommentRow,\n".getBytes(UTF_8))
 
-  val rowAndColTypesFiDataEn = ByteSource.wrap(("Comment,1,2,3,4\n" +
-    "Title,Tyypit,WorkerId,IntParam1,Salary\n" +
+  val rowAndColTypesFiDataEn = ByteSource.wrap(("CommentRow,1,2,3,4\n" +
+    "ColumnHeader,Qualifications,WorkerId,IntParam1,Salary\n" +
     "Worker,ValueCC,4001,8,\"12,000.00\"\n").getBytes(UTF_8))
 
-  val commentsOnlyFi = ByteSource.wrap("Comment,1,2,3,4\nComment\nComment,\n".getBytes(UTF_8))
+  val commentsOnlyFi = ByteSource.wrap("CommentRow,1,2,3,4\nCommentRow\nCommentRow,\n".getBytes(UTF_8))
 
-  val noRowTypes = ByteSource.wrap("1,2,3,4,\nComment\n\n".getBytes(UTF_8))
+  val noRowTypes = ByteSource.wrap("1,2,3,4,\nCommentRow\n\n".getBytes(UTF_8))
 
   implicit def opener(byteSource: ByteSource): () => java.io.InputStream = {
     () => byteSource.openStream()
@@ -120,7 +120,7 @@ class TableReaderTest {
     case (cell, types) if types.rowTypes.get(cell.rowKey) == Some(TestRowType.ColumnHeader) => {
       TestColType.namesToValuesMap.get(cell.serializedString) match {
         case Some(x) => Right(x)
-        case _ => Left(TableReadingError("Unknown row type."))
+        case _ => Left(TableReadingError("Unknown column type."))
       }
     }
   }
@@ -153,7 +153,7 @@ class TableReaderTest {
 
   @Test
   def testGetRowAndColTypes: Unit = {
-    val table = new TableReader[TestRowType, TestColType](rowAndColTypesFiDataEn).read()
+    val table = new TableReader(rowAndColTypesFiDataEn, rowTypes, colTypes).read()
     assertEquals(List(RowType, Qualifications, WorkerId, IntParam1, Salary), table.colTypes.values.toList)
     assertEquals(List(TestRowType.CommentRow, ColumnHeader, Worker), table.rowTypes.values.toList)
   }
