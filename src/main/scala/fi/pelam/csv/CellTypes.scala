@@ -16,6 +16,12 @@ case class CellTypes[RT, CT](
   locale: Locale
   ) {
 
+  import CellTypes._
+
+  val rowCount = tableDimension(rowTypes.keys)
+
+  val colCount = tableDimension(colTypes.keys)
+
   def getCellType(cell: Cell): Option[CellType[RT, CT]] = {
     for(rowType <- getRowType(cell);
         colType <- getColType(cell)) yield {
@@ -69,6 +75,9 @@ case class CellTypes[RT, CT](
     }
   }
 
+}
 
+object CellTypes {
+  def tableDimension(keys: TraversableOnce[AxisKey[_]]) = keys.foldLeft(0)((max, key) => Math.max(max, key.index + 1))
 }
 

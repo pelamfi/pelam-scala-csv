@@ -17,24 +17,24 @@ object Table {
   def reverseMapSorted[A, B <: Ordered[B]](map: Map[A, B]): SortedMap[B, IndexedSeq[A]] =
     TreeMap[B, IndexedSeq[A]]() ++ reverseMap(map)
 
-  def buildCells(initialCells: TraversableOnce[Cell]): IndexedSeq[IndexedSeq[Cell]] = {
+  def buildCells(initialCells: TraversableOnce[Cell], rowCount: Int = 0, colCount: Int = 0): IndexedSeq[IndexedSeq[Cell]] = {
 
     val initialCellMap = initialCells.map(cell => cell.cellKey -> cell).toMap
 
-    val rowCount = initialCellMap.keys.foldLeft(0)((a, b) => scala.math.max(a, b.rowKey.index + 1))
+    val finalRowCount = initialCellMap.keys.foldLeft(rowCount)((a, b) => scala.math.max(a, b.rowKey.index + 1))
 
-    val colCount = initialCellMap.keys.foldLeft(0)((a, b) => scala.math.max(a, b.colKey.index + 1))
+    val finalColCount = initialCellMap.keys.foldLeft(colCount)((a, b) => scala.math.max(a, b.colKey.index + 1))
 
-    val rowArray = new Array[Array[Cell]](rowCount)
+    val rowArray = new Array[Array[Cell]](finalRowCount)
 
-    for (rowIndex <- 0 until rowCount) {
+    for (rowIndex <- 0 until finalRowCount) {
 
       val rowKey = RowKey(rowIndex)
-      val colArray = new Array[Cell](colCount)
+      val colArray = new Array[Cell](finalColCount)
 
       rowArray(rowIndex) = colArray
 
-      for (colIndex <- 0 until colCount) {
+      for (colIndex <- 0 until finalColCount) {
 
         val cellKey = CellKey(rowKey, colIndex)
         val cell = initialCellMap.get(cellKey).getOrElse(new StringCell(cellKey, ""))
@@ -52,7 +52,7 @@ object Table {
     cellTypes: CellTypes[RT, CT],
     cells: TraversableOnce[Cell]): Table[RT, CT] = {
 
-    val builtCells = buildCells(cells)
+    val builtCells = buildCells(cells, cellTypes.rowCount, cellTypes.colCount)
 
     Table(charset, csvSeparator, dataLocale, cellTypes, builtCells)
   }
