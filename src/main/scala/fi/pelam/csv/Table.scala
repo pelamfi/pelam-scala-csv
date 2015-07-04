@@ -9,20 +9,14 @@ import scala.collection.immutable.TreeMap
 object Table {
   val rowTypeCol = ColKey(0)
 
-
-  // http://stackoverflow.com/a/24222250/1148030
-  // TODO: refactor reverseMap
-  def reverseMap[A, B](map: scala.collection.Map[A, B]): Map[B, IndexedSeq[A]] = map.groupBy(_._2).mapValues(_.map(_._1).toIndexedSeq)
-
-  def reverseMapSorted[A, B <: Ordered[B]](map: Map[A, B]): SortedMap[B, IndexedSeq[A]] =
-    TreeMap[B, IndexedSeq[A]]() ++ reverseMap(map)
-
   def buildCells(initialCells: TraversableOnce[Cell], rowCount: Int = 0, colCount: Int = 0): IndexedSeq[IndexedSeq[Cell]] = {
 
     val initialCellMap = initialCells.map(cell => cell.cellKey -> cell).toMap
 
+    // Row count is maximum from argument and largest row number seen in cells
     val finalRowCount = initialCellMap.keys.foldLeft(rowCount)((a, b) => scala.math.max(a, b.rowKey.index + 1))
 
+    // Column count is maximum from argument and largest column number seen in cells
     val finalColCount = initialCellMap.keys.foldLeft(colCount)((a, b) => scala.math.max(a, b.colKey.index + 1))
 
     val rowArray = new Array[Array[Cell]](finalRowCount)
