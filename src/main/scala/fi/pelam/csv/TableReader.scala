@@ -25,12 +25,7 @@ class TableReader[RT, CT](openInputStream: () => java.io.InputStream,
 
   import TableReader._
 
-  var dataLocale: Locale = locales(0)
-
   var cells: IndexedSeq[Cell] = IndexedSeq()
-
-  // TODO: Naming
-  var detectedCellTypes: Option[CellTypes[RT, CT]] = None
 
   def read(): Table[RT, CT] = {
 
@@ -50,37 +45,33 @@ class TableReader[RT, CT](openInputStream: () => java.io.InputStream,
 
       this.cells = csvParser.raiseOnError.toIndexedSeq
 
-      detectCellTypeLocaleAndRowTypes()
+      val detectedCellTypes: CellTypes[RT, CT] = detectCellTypeLocaleAndRowTypes()
 
-      detectDataLocaleAndUpgradeCells()
-
-      val detected = detectedCellTypes.get
+      val dataLocale = detectDataLocaleAndUpgradeCells(detectedCellTypes)
 
       // Return final product
-      Table(charset, csvSeparator, dataLocale, detected, cells)
+      Table(charset, csvSeparator, dataLocale, detectedCellTypes, cells)
 
     } finally {
       inputStream.close()
     }
   }
 
-  def detectCellTypeLocaleAndRowTypes(): Unit = {
+  def detectCellTypeLocaleAndRowTypes(): CellTypes[RT, CT] = {
 
-    for (cellTypeLocale <- locales) {
+    val bestTypes = locales.foldLeft[Option[CellTypes[RT, CT]]](None)
+    { (prev: Option[CellTypes[RT, CT]], locale) =>
+      if (prev.map(_.errors == 0).getOrElse(false)) {
+        // TODO: Naming of everything here...
 
-      // TODO: Naming of everything here...
-
-      val types = buildCellTypes(cells, cellTypeLocale, rowTypeDefinition, colTypeDefinition)
-
-      if (types.errors.size == 0) {
         // All row types are now identified. Consider cellTypeLocale to be properly detected.
-        this.detectedCellTypes = Some(types)
-
         // Detection heuristic ends on first zero errors solution as an optimization
-        return
+        prev
       } else {
+        val types = buildCellTypes(cells, locale, rowTypeDefinition, colTypeDefinition)
+
         // Prefer to report the shortest list of errors
-        this.detectedCellTypes = this.detectedCellTypes match {
+        prev match {
           case None => Some(types)
           case Some(prevBest) if prevBest.errors.size > types.errors.size => Some(types)
           case Some(prevBest) => Some(prevBest)
@@ -89,20 +80,21 @@ class TableReader[RT, CT](openInputStream: () => java.io.InputStream,
     }
 
     // Throw if errors
-    for (types <- this.detectedCellTypes;
-         if types.errors.size > 0) {
+    bestTypes.fold(sys.error("Could not detect locale. No loclaes defined?"))( types =>
+      if (types.errors.size > 0) {
+        val message = "Failed to identify language and/or some row and column types.\n" +
+          types.errors.foldLeft("")(_ + _ + "\n")
 
-      val message = "Failed to identify language and/or some row and column types.\n" +
-        types.errors.foldLeft("")(_ + _ + "\n")
-
-      sys.error(message)
-    }
+        sys.error(message)
+      } else {
+        types
+      }
+    )
   }
 
-  def upgradeCell(cell: Cell, locale: Locale): Either[TableReadingError, Cell] = {
-    val upgraded = for (detectedCellTypes <- detectedCellTypes;
-                        cellType: CellType[RT, CT] <- detectedCellTypes.getCellType(cell);
-         factory <- cellTypes.lift(cellType)) yield {
+  def upgradeCell(detectedCellTypes: CellTypes[RT, CT], cell: Cell, locale: Locale): Either[TableReadingError, Cell] = {
+    val upgraded = for (cellType: CellType[RT, CT] <- detectedCellTypes.getCellType(cell);
+                        factory <- cellTypes.lift(cellType)) yield {
 
       val result = factory.fromString(cell.cellKey, locale, cell.serializedString)
 
@@ -117,17 +109,16 @@ class TableReader[RT, CT](openInputStream: () => java.io.InputStream,
     upgraded.getOrElse(Right(cell))
   }
 
-  def detectDataLocaleAndUpgradeCells(): Unit = {
+  def detectDataLocaleAndUpgradeCells(cellTypes: CellTypes[RT, CT]): Locale = {
 
-    // TODO: Make locale candidate list a parameter
     // Guess first the already detected cellTypeLocale, if that fails try english.
     // This is a way to limit combinations.
-    val dataLocaleCandidates = List(localeEn)
+    val reorderedLocales = Seq(cellTypes.locale) ++ locales.diff(Seq(cellTypes.locale))
 
-    val perLocaleResults = for (locale <- dataLocaleCandidates) yield {
+    val perLocaleResults = for (locale <- reorderedLocales) yield {
 
       val cellsUpgradedOrErrors = for (cell <- cells) yield {
-        upgradeCell(cell, locale)
+        upgradeCell(cellTypes, cell, locale)
       }
 
       // http://stackoverflow.com/a/26579082/1148030
@@ -142,8 +133,8 @@ class TableReader[RT, CT](openInputStream: () => java.io.InputStream,
     val bestResult = perLocaleResults.sortWith((a, b) => a.errors.size - b.errors.size < 0).head
 
     if (bestResult.errors.isEmpty) {
-      this.dataLocale = bestResult.locale
       cells = bestResult.cells
+      bestResult.locale
     } else {
       val message = "Failed to parse data in some cells and or identify language/locale.\n" +
         bestResult.errors.foldLeft("")(_ + _ + "\n")
@@ -162,13 +153,7 @@ object TableReader {
 
   type ColTyper[RT, CT] = PartialFunction[(Cell, CellTypes[RT, CT]), TyperOutput[CT]]
 
-  // TODO: Move elsewhere
-  val localeEn: Locale = Locale.forLanguageTag("EN")
-
   type CellUpgrades[RT, CT] = PartialFunction[CellType[RT, CT], CellUpgrade]
-
-  // TODO: Make locale candidate list a parameter
-  val locales = List(localeEn)
 
   case class CellUpgradeAndLocaleResults(locale: Locale,
     errors: IndexedSeq[TableReadingError] = IndexedSeq(),
@@ -208,7 +193,7 @@ object TableReader {
     rowTypeDefinition: TableReader.RowTyper[RT, CT],
     colTypeDefinition: TableReader.ColTyper[RT, CT]): CellTypes[RT, CT] = {
 
-    val initial = CellTypes[RT, CT](cellTypesLocale = locale)
+    val initial = CellTypes[RT, CT](locale = locale)
 
     val rowTypeDefinitionLifted = rowTypeDefinition.lift
     val colTypeDefinitionLifted = colTypeDefinition.lift
@@ -218,7 +203,11 @@ object TableReader {
     //
     // Also collect errors detected by those functions to support CSV format detection heuristic.
     cells.foldLeft[CellTypes[RT, CT]](initial) { (cellTypes: CellTypes[RT, CT], cell: Cell) =>
-      detectColTypes(colTypeDefinitionLifted, cell, detectRowTypes(rowTypeDefinitionLifted, cell, cellTypes))
+      try {
+        detectColTypes(colTypeDefinitionLifted, cell, detectRowTypes(rowTypeDefinitionLifted, cell, cellTypes))
+      } catch {
+        case e: Exception => throw new RuntimeException("Error processing cell " + cell, e)
+      }
     }
   }
 

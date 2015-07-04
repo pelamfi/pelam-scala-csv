@@ -11,9 +11,9 @@ case class CellTypes[RT, CT](
   colTypes: BiMap[ColKey, CT] = BiMap[ColKey, CT](SortedMap[ColKey, CT]()),
   errors: Seq[TableReadingError] = IndexedSeq(),
   /**
-   * Locale used in names in CSV data identifying types of each column and row
+   * Cell type locale. Locale used in names in CSV data identifying types of each column and row
    */
-  cellTypesLocale: Locale
+  locale: Locale
   ) {
 
   def getCellType(cell: Cell): Option[CellType[RT, CT]] = {

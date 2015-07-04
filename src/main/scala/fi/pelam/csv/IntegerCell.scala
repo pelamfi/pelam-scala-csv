@@ -29,7 +29,7 @@ object IntegerCell extends CellUpgrade {
       val number = numberFormat.parse(trimmedInput, position)
 
       if (position.getIndex() != trimmedInput.size) {
-        Left(TableReadingError(s"Expected integer, but input '$input' could not be fully parsed with locale $locale."))
+        Left(TableReadingError(s"Expected integer, but input '$input' could not be fully parsed with locale '$locale'."))
       } else {
 
         val intValue = number.intValue()
@@ -44,7 +44,7 @@ object IntegerCell extends CellUpgrade {
 
     } catch {
       case e: ParseException =>
-        Left(TableReadingError(s"Expected integer, but input '$input' could not be parsed with locale $locale"))
+        Left(TableReadingError(s"Expected integer, but input '$input' could not be parsed with locale '$locale'"))
     }
   }
 }

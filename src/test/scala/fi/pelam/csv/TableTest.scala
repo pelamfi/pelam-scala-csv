@@ -1,5 +1,7 @@
 package fi.pelam.csv
 
+import java.util.Locale
+
 import com.google.common.base.Charsets
 import org.junit.Assert._
 import org.junit.Test
@@ -9,7 +11,7 @@ import scala.collection.immutable.TreeMap
 object TableTest {
   def makeTable() = Table[TestRowType, TestColType](Charsets.UTF_8,
     CsvConstants.defaultSeparatorChar,
-    Locales.localeEn,
+    Locale.ROOT,
   CellTypes[TestRowType, TestColType](
     BiMap(TreeMap(RowKey(0) -> TestRowType.CommentRow,
       RowKey(1) -> TestRowType.Worker,
@@ -22,7 +24,7 @@ object TableTest {
       ColKey(3) -> TestColType.PrevWeek,
       ColKey(4) -> TestColType.ThisWeek,
       ColKey(5) -> TestColType.CommentCol)),
-    cellTypesLocale = Locales.localeEn), List[Cell]())
+    locale = Locale.ROOT), List[Cell]())
 
   val foo = StringCell(CellKey(1, 1), "foo")
   val bar = StringCell(CellKey(2, 1), "bar")
