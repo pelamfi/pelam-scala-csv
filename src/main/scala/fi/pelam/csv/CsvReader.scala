@@ -1,6 +1,65 @@
 package fi.pelam.csv
 
-import java.io.StringReader
+import java.io.{Reader, StringReader}
+
+/**
+ * CSV parser that implements Scala iterator interface.
+ *
+ * Does parsing in streaming fashion ie. you could even handle files
+ * larger that what would fit in memory.
+ *
+ * Actual parsing is delegated to [[CsvReaderInternal]]. This class
+ * just implements the Scala iterator interface on top of it.
+ *
+ * @see TableReader for a friendlier non streaming API.
+ *
+ * @param input  Input can be string or [[java.io.Reader]]. Be mindful of the character set.
+ * @param separator Optional separator character
+ */
+// TODO: Code example for CsvReader
+final class CsvReader(input: Reader, val separator: Char) extends Iterator[CsvReader.CellOrError] {
+
+  import CsvReader._
+
+  /**
+   * Alternate constructor for CsvReader providing string input.
+   * This exists mainly to make tests and code examples shorter.
+   */
+  def this(inputString: String, separator: Char = CsvConstants.defaultSeparatorChar) = this(new StringReader(inputString), separator)
+
+  /**
+   * Alternate constructor using default separator which is comma.
+   */
+  def this(input: Reader) = this(input, CsvConstants.defaultSeparatorChar)
+
+  private[this] val internal = new CsvReaderInternal(input, separator)
+
+  private[this] var cell: Option[CellOrError] = None
+
+  // Start internal reader so that hasNext works
+  cell = internal.read()
+
+  override def next(): CellOrError = nextOption.get
+
+  override def hasNext: Boolean = cell.isDefined
+
+  def nextOption(): Option[CellOrError] = {
+    val prereadCell = cell
+    // Read next cell, so hasNext can work
+    cell = internal.read()
+    prereadCell
+  }
+
+  /**
+   * Convert this CscReader into a form which throws upon encountering an
+   * error instead of returning [[fi.pelam.csv.CsvReader#Error]]
+   * @return
+   */
+  def raiseOnError: Iterator[StringCell] = this.map {
+    case Left(e: Error) => sys.error(e.toString)
+    case Right(stringCell) => stringCell
+  }
+}
 
 final object CsvReader {
 
@@ -67,42 +126,3 @@ final object CsvReader {
 
   type CellOrError = Either[Error, StringCell]
 }
-
-/**
- * CSV parser that implements Scala iterator interface.
- *
- * Actual parsing is delegated to [[CsvReaderInternal]]
- */
-final class CsvReader(input: java.io.Reader, val separator: Char) extends Iterator[CsvReader.CellOrError] {
-
-  import CsvReader._
-
-  def this(inputString: String, separator: Char = CsvConstants.defaultSeparatorChar) = this(new StringReader(inputString), separator)
-
-  def this(input: java.io.Reader) = this(input, CsvConstants.defaultSeparatorChar)
-
-  private[this] val internal = new CsvReaderInternal(input, separator)
-
-  private[this] var cell: Option[CellOrError] = None
-
-  // Start internal reader so that hasNext works
-  cell = internal.read()
-
-  override def next(): CellOrError = nextOption.get
-
-  override def hasNext: Boolean = cell.isDefined
-
-  def nextOption(): Option[CellOrError] = {
-    val prereadCell = cell
-    // Read next cell, so hasNext can work
-    cell = internal.read()
-    prereadCell
-  }
-
-  def raiseOnError: Iterator[StringCell] = this.map {
-    case Left(e: Error) => sys.error(e.toString)
-    case Right(stringCell) => stringCell
-  }
-}
-
-
