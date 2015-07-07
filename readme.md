@@ -43,6 +43,14 @@ Demo application
 ================
 TBD
 
+TODO list
+=========
+
+  * TODO: The locale detection in TableReader is a forced on feature. 
+  The interface should allow either providing other similar algorithms or just remove the thing.
+  * TODO: Scaladocs all around
+  * TODO: Some simple demo project
+
 History of this project
 =======================
 This CSV code was originally developed as an IO solution for a custom project called Ahma.
