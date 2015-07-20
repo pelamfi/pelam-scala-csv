@@ -17,7 +17,7 @@ import scala.collection.SortedMap
  * @tparam RT
  * @tparam CT
  */
-// TODO: Refactor erros and locale somewhere else
+// TODO: Refactor errors and locale somewhere else
 case class CellTypes[RT, CT](
   rowTypes: SortedBiMap[RowKey, RT] = SortedBiMap[RowKey, RT](),
   colTypes: SortedBiMap[ColKey, CT] = SortedBiMap[ColKey, CT](),
