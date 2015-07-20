@@ -7,20 +7,27 @@ import java.util.Locale
 import scala.collection.SortedMap
 
 /**
- * TODO: Docs, better names
+ * This class is part of the the higher level api for reading, writing and processing CSV data.
+ *
+ * [[Table]] is an immutable data structure for holding and processing
+ * the parsed data in a spreadsheet program like format.
+ *
+ * [[TableWriter]] is the counterpart of this class for writing [[Table]] out to disk.
+ *
  * @param openInputStream
  * @param rowTypeDefinition
  * @param colTypeDefinition
- * @param cellTypes
+ * @param cellTypes map from [[CellType]] to [[CellUpgrade]] instances. Use this to get more specialied [[Cell]] instances than the simple [[StringCell]].
  * @param locales
  * @tparam RT
  * @tparam CT
  */
-class TableReader[RT, CT](openInputStream: () => java.io.InputStream,
-  rowTypeDefinition: TableReader.RowTyper[RT, CT] = PartialFunction.empty,
-  colTypeDefinition: TableReader.ColTyper[RT, CT] = PartialFunction.empty,
-  cellTypes: TableReader.CellUpgrades[RT, CT] = PartialFunction.empty,
-  locales: Seq[Locale] = Seq(Locale.ROOT)
+// TODO: Docs, better names
+class TableReader[RT, CT](val openInputStream: () => java.io.InputStream,
+  val rowTypeDefinition: TableReader.RowTyper[RT, CT] = PartialFunction.empty,
+  val colTypeDefinition: TableReader.ColTyper[RT, CT] = PartialFunction.empty,
+  val cellTypes: TableReader.CellUpgrades[RT, CT] = PartialFunction.empty,
+  val locales: Seq[Locale] = Seq(Locale.ROOT)
   ) {
 
   import TableReader._

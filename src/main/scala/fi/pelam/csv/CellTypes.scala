@@ -6,13 +6,22 @@ import java.util.Locale
 
 import scala.collection.SortedMap
 
+/**
+ * This class is used internally by this CSV package to track mapping of rows and columns to their
+ * user defined type objects. Also includes some other things that maybe should be elsewhere.
+ *
+ * @param rowTypes
+ * @param colTypes
+ * @param errors
+ * @param locale is the cell type locale ie. the locale used in names in CSV data identifying types of each column and row
+ * @tparam RT
+ * @tparam CT
+ */
+// TODO: Refactor erros and locale somewhere else
 case class CellTypes[RT, CT](
   rowTypes: BiMap[RowKey, RT] = BiMap[RowKey, RT](SortedMap[RowKey, RT]()),
   colTypes: BiMap[ColKey, CT] = BiMap[ColKey, CT](SortedMap[ColKey, CT]()),
   errors: Seq[TableReadingError] = IndexedSeq(),
-  /**
-   * Cell type locale. Locale used in names in CSV data identifying types of each column and row
-   */
   locale: Locale
   ) {
 

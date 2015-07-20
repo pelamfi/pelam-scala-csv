@@ -6,7 +6,7 @@ import java.io.StringReader
  * State machine based CSV parser which has single method interface which returns
  * an option of eiher cell or error.
  *
- * See [[CsvReader]] for friendlier Scala collections API like interface (Iterator).
+ * See [[CsvReader]] for friendlier Scala like interface (specifically Iterator).
  *
  * @param input stream to read CSV from. Input is read on as needed basis and closed if stream end is encountered.
  * @param separator separator char to use.
@@ -40,7 +40,7 @@ final class CsvReaderInternal(input: java.io.Reader, val separator: Char) {
   private[this] var charConsumed = true
 
   /**
-   * [[java.io.Reader#read()]] returns -1 at stream end.
+   * [[http://docs.oracle.com/javase/8/docs/api/java/io/Reader.html#read-- java.io.Reader.read]] returns -1 at stream end.
    */
   private[this] def inputExhausted = char < 0
 

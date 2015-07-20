@@ -7,9 +7,8 @@ import scala.collection.SortedMap
 import scala.collection.immutable.TreeMap
 
 object Table {
-  val rowTypeCol = ColKey(0)
 
-  def buildCells(initialCells: TraversableOnce[Cell], rowCount: Int = 0, colCount: Int = 0): IndexedSeq[IndexedSeq[Cell]] = {
+  private[csv] def buildCells(initialCells: TraversableOnce[Cell], rowCount: Int = 0, colCount: Int = 0): IndexedSeq[IndexedSeq[Cell]] = {
 
     val initialCellMap = initialCells.map(cell => cell.cellKey -> cell).toMap
 
@@ -40,6 +39,19 @@ object Table {
     rowArray.map(_.toIndexedSeq).toIndexedSeq
   }
 
+  /**
+   * Main constructor for table. Typically this not used directly, but through [[TableReader]].
+   *
+   * @param charset Java charset used when the CSV data is serialized.
+   * @param csvSeparator Separator character used when the CSV data is serialized.
+   * @param dataLocale Locale used when encoding things like integers to the CSV file.
+   * @param cellTypes Object that describes type of each column, row and cell using the client code defined objects.
+   * @param cells The cells to be used in the table in any order.
+   * @tparam RT Client specified object type used for typing rows in CSV data.
+   * @tparam CT Client specified object type used for typing columns in CSV data.
+   * @return constructed Table object
+   */
+  // TODO: Automatically fill in empty cells and never leave nulls in internal arrays
   def apply[RT, CT](charset: Charset,
     csvSeparator: Char,
     dataLocale: Locale,
@@ -53,7 +65,17 @@ object Table {
 
 }
 
-case class Table[RT, CT](charset: Charset,
+/**
+ *
+ * @param charset Java charset used when the CSV data is serialized.
+ * @param csvSeparator Separator character used when the CSV data is serialized.
+ * @param dataLocale Locale used when encoding things like integers to the CSV file.
+ * @param cellTypes Object that describes type of each column, row and cell using the client code defined objects.
+ * @param cells Fully populated 2D array of [[Cell]] objects with matching dimensions to the ones specified in [[CellTypes]] instance.
+ * @tparam RT Client specified object type used for typing rows in CSV data.
+ * @tparam CT Client specified object type used for typing columns in CSV data.
+ */
+case class Table[RT, CT] private (charset: Charset,
   csvSeparator: Char,
 
   /**

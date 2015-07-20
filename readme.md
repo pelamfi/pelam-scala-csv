@@ -50,6 +50,9 @@ TODO list
   The interface should allow either providing other similar algorithms or just remove the thing.
   * TODO: Scaladocs all around
   * TODO: Some simple demo project
+  * TODO: Mark classes not intended to be extended final.
+  * TODO: Companion objects should be after the class. 
+  * TODO: Add @constructor scaladoc tags where needed in class scaladocs
 
 History of this project
 =======================

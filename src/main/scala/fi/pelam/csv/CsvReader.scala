@@ -3,7 +3,12 @@ package fi.pelam.csv
 import java.io.{Reader, StringReader}
 
 /**
- * CSV parser that implements Scala iterator interface.
+ * This class is part of the lower level API for processing CSV data.
+ * This is a CSV parser that produces the data through the
+ * [[http://www.scala-lang.org/api/current/index.html#scala.collection.Iterator scala.collection.Iterator]] traut.
+ * The data is read into a sequence of [[StringCell]] instances.
+ * [[StringCell]]s can be written back to disk with [[CsvWriter]].
+ *
  *
  * Does parsing in streaming fashion ie. you could even handle files
  * larger that what would fit in memory.
@@ -13,7 +18,8 @@ import java.io.{Reader, StringReader}
  *
  * @see TableReader for a friendlier non streaming API.
  *
- * @param input  Input can be string or [[java.io.Reader]]. Be mindful of the character set.
+ * @param input  Input can be string or [[http://docs.oracle.com/javase/8/docs/api/java/io/Reader.html java.io.Reader]].
+ *               Be mindful of the character set.
  * @param separator Optional separator character
  */
 // TODO: Code example for CsvReader
@@ -120,6 +126,7 @@ final object CsvReader {
    */
   case object ErrorState extends State
 
+  // TODO: Move to separate file and document
   case class Error(message: String, at: CellKey) {
     override def toString = s"Error parsing CSV at $at: $message"
   }

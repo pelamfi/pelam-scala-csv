@@ -2,6 +2,24 @@ package fi.pelam.csv
 
 import fi.pelam.csv.CsvConstants._
 
+/**
+ * Opposite of [[CsvReaderInternal]]. The API is simple. There
+ * are just 2 public methods. One to write a single cell and another
+ * to write a [[http://www.scala-lang.org/api/current/index.html#scala.collection.TraversableOnce TraversableOnce]] of cells.
+ *
+ * The cells are expected to be in top to bottom left to right order.
+ * The sequence of cells can contain holes. Empty cells in CSV data will
+ * be emitted for those.
+ *
+ * This class handles quoting, but all other special processing
+ * is handled by [[Cell.serializedString]] implementations.
+ *
+ * Note that this class does not flush or close the [[output]] stream.
+ * Client must take care of that.
+ *
+ * @param output Java writer to write the CSV data to.
+ * @param separator Optionally specify CSV separator to use.
+ */
 class CsvWriter(val output: java.io.Writer, val separator: Char = defaultSeparatorChar) {
 
   import CsvWriter._
@@ -9,20 +27,36 @@ class CsvWriter(val output: java.io.Writer, val separator: Char = defaultSeparat
   private[this] var _lastWriteKey: Option[CellKey] = None
   private[this] var _position = CellKey(0, 0)
 
-  def positionKey: CellKey = _position
+  private[this] def positionKey: CellKey = _position
 
-  def lastWriteKey: Option[CellKey] = _lastWriteKey
+  private[this] def lastWriteKey: Option[CellKey] = _lastWriteKey
 
+  /**
+   * This method can be used to force final line feed to CSV file that some programs
+   * might expect.
+   *
+   * If emitted between cells keyed to successive rows, this has no effect.
+   *
+   */
   def goToNextRow() = {
     output.append("\n")
     _position = positionKey.nextRow
   }
 
-  def goToNextCol() = {
+  private[this] def goToNextCol() = {
     output.append(separator)
     _position = positionKey.nextCol
   }
 
+  /**
+   * Write a single cell to output stream.
+   *
+   * Will raise an error if cell with succeeding [[CellKey]]
+   * has already been written. This is because cells are expected
+   * to be written in natural order of [[CellKey]]s (rows top down, columns right to left).
+   *
+   * @param cell to write.
+   */
   def write(cell: Cell): Unit = {
     val key = cell.cellKey
 
@@ -44,13 +78,23 @@ class CsvWriter(val output: java.io.Writer, val separator: Char = defaultSeparat
     output.append(serialize(cell, separator))
   }
 
-  def write(cells: Traversable[Cell]): Unit = cells.foreach(write)
+  /**
+   * Shortcut to call write for each cell in a traversable.
+   *
+   * The cells are expected to be in [[CellKey]] order.
+   *
+   * @param cells sequence of cells to be written.
+   */
+  def write(cells: TraversableOnce[Cell]): Unit = cells.foreach(write)
 
 }
 
 object CsvWriter {
 
-  def serialize(cell: Cell, separator: Char): String = {
+  /**
+   * Handle quoting for a string to be written to CSV data.
+   */
+  private[csv] def serialize(cell: Cell, separator: Char): String = {
     val cellSerialized = cell.serializedString
 
     val quotingNeeded = cellSerialized.contains(separator) || cellSerialized.contains(quoteChar)
