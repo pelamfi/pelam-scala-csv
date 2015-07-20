@@ -3,6 +3,8 @@ package fi.pelam.csv
 import org.junit.Assert._
 import org.junit._
 
+import scala.collection.SortedMap
+
 class SortedBiMapTest {
 
   @Test
@@ -44,17 +46,35 @@ class SortedBiMapTest {
 
   @Test
   def testReverseGet() = {
-    assertEquals(Some("1"), SortedBiMap(1 -> "foo", 2 -> "bar").reverse.get("foo").map(_.map(_.toString).reduce(_ + "," + _)))
+    assertOptionSeqContent(Some("1"), SortedBiMap(1 -> "foo", 2 -> "bar").reverse.get("foo"))
   }
 
   @Test
   def testReverseGet2() = {
-    assertEquals(Some("1,2"), SortedBiMap(1 -> "foo", 2 -> "foo").reverse.get("foo").map(_.map(_.toString).reduce(_ + "," + _)))
+    assertOptionSeqContent(Some("1,2"), SortedBiMap(1 -> "foo", 2 -> "foo").reverse.get("foo"))
   }
 
   @Test
   def testReverseGetNone() = {
     assertEquals(None, SortedBiMap(1 -> "foo", 2 -> "bar").reverse.get("baz"))
+  }
+
+  @Test
+  def testSortedMapDelegation() = {
+    assertKeys("2,3", SortedBiMap(1 -> "foo", 2 -> "bar", 3 -> "baz").range(2, 4))
+  }
+
+  @Test
+  def testReverseSortedMapDelegation() = {
+    assertKeys("bar,baz", SortedBiMap(1 -> "foo", 2 -> "bar", 3 -> "baz").reverse.range("bar", "zzz"))
+  }
+
+  def assertOptionSeqContent(expected: Option[String], s: Option[Seq[_]]) = {
+    assertEquals(expected, s.map(_.map(_.toString).reduce(_ + "," + _)))
+  }
+
+  def assertKeys(expected: String, map: SortedMap[_, _]) = {
+    assertEquals(expected, map.keys.map(_.toString).reduce(_ + "," + _))
   }
 
   def assertReverseMapContents[K, V](expected: String, actual: SortedBiMap[K, V]): Unit = {
@@ -65,6 +85,4 @@ class SortedBiMapTest {
 
     assertEquals(expected, reverseMapElements.reduce(_ + "\n" + _))
   }
-
-
 }

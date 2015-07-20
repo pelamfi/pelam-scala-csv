@@ -12,12 +12,11 @@ import scala.collection.mutable
  *
  * The ordering of values should be the original insertion order.
  */
-// TODO: Could this inherit from SortedMap
-case class SortedBiMap[K, V](map: SortedMap[K, V])(implicit keyOrdering: Ordering[K]) extends Map[K, V] {
+case class SortedBiMap[K, V](map: SortedMap[K, V])(implicit keyOrdering: Ordering[K]) extends SortedMap[K, V] {
 
   import SortedBiMap._
   
-  lazy val reverse = reverseMap(map)
+  lazy val reverse: SortedMap[V, IndexedSeq[K]] = reverseMap(map)
 
   override def updated[B1 >: V](key: K, value: B1): SortedBiMap[K, B1] = SortedBiMap(map.updated(key, value))
 
@@ -28,6 +27,16 @@ case class SortedBiMap[K, V](map: SortedMap[K, V])(implicit keyOrdering: Orderin
   override def iterator: Iterator[(K, V)] = map.iterator
 
   override def -(key: K): SortedBiMap[K, V] = SortedBiMap[K, V](map - key)
+
+  override def ordering: Ordering[K] = keyOrdering
+
+  override def valuesIteratorFrom(start: K): Iterator[V] = map.valuesIteratorFrom(start)
+
+  override def rangeImpl(from: Option[K], until: Option[K]): SortedMap[K, V] = map.rangeImpl(from, until)
+
+  override def iteratorFrom(start: K): Iterator[(K, V)] = map.iteratorFrom(start)
+
+  override def keysIteratorFrom(start: K): Iterator[K] = map.keysIteratorFrom(start)
 }
 
 object SortedBiMap {
@@ -54,9 +63,9 @@ object SortedBiMap {
    * this [[http://stackoverflow.com/questions/14882642/scala-why-mapvalues-produces-a-view-and-is-there-any-stable-alternatives
    * issue discussed on StackOverflow]].
    *
-   * The implementation is further complicated and probably slower than necessary because Scala
+   * The implementation is complicated and probably not very efficent efficient because Scala
    * does not provide [[https://lauris.github.io/map-order-scala/ immutable map with insertion order as iteration order]].
-   * Because of this the code is a bit clunky and produces a SortedMap with a custom Ordering.
+   * Also due to this the result is a SortedMap with a custom Ordering.
    */
   private[csv] def reverseMap[K, V](map: SortedMap[K, V])(implicit keyOrdering: Ordering[K]): SortedMap[V, IndexedSeq[K]] = {
 
@@ -74,8 +83,8 @@ object SortedBiMap {
       def compare(a: V, b: V): Int = {
         (valueToFirstKey.get(a), valueToFirstKey.get(b)) match {
           case (Some(a), Some(b)) => keyOrdering.compare(a, b)
-          case (None, Some(b)) => -1
-          case (Some(a), None) => 1
+          case (None, Some(b)) => 1
+          case (Some(a), None) => -1
           case (None, None) => 0
         }
       }
