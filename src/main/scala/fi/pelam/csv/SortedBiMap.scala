@@ -1,16 +1,19 @@
 package fi.pelam.csv
 
 import scala.collection.SortedMap
+import scala.collection.mutable
 
 /**
  * Bidirectional map supporting multiple values for same key.
  *
  * This class is used in [[CellTypes]] to map between rows and columns and their types.
+ * Being sorted on the key is useful there
+ * because then the columns and rows will be ordered naturally in the reverse map.
  *
- * The reverse map is computed lazily as a performance optimization.
+ * The ordering of values should be the original insertion order.
  */
 // TODO: Could this inherit from SortedMap
-case class SortedBiMap[K, V](map: SortedMap[K, V]) extends Map[K, V] {
+case class SortedBiMap[K, V](map: SortedMap[K, V])(implicit keyOrdering: Ordering[K]) extends Map[K, V] {
 
   import SortedBiMap._
   
@@ -30,7 +33,7 @@ case class SortedBiMap[K, V](map: SortedMap[K, V]) extends Map[K, V] {
 object SortedBiMap {
 
   /**
-   * Constructor modeled after the one in
+   * Constructor signature modeled after the one in
    * [[http://www.scala-lang.org/api/current/index.html#scala.collection.generic.SortedMapFactory SortedMapFactory]].
    */
   def apply[K, V](elements: (K, V)*)(implicit ordering: Ordering[K]): SortedBiMap[K, V] =
@@ -40,8 +43,57 @@ object SortedBiMap {
    * Utility method for reversing a map. Multiple equal values with different keys
    * are handled by having IndexedSeq with values as the value in the resulting map.
    *
-   * Based on idea found on [[http://stackoverflow.com/a/24222250/1148030 StackOverflow]].
+   * Almost the same as the code suggested in StackOverflow post
+   * [[http://stackoverflow.com/a/24222250/1148030 StackOverflow]] which would be:
+   * {{{
+   *   map.groupBy(_._2).mapValues(_.map(_._1).toIndexedSeq
+   * }}}
+   *
+   * However this is a hand rolled implementation. GroupBy uses uses HashMap internally for values, but I
+   * want to keep the order provided by the keys. Also I'm a bit wary of the implications of
+   * this [[http://stackoverflow.com/questions/14882642/scala-why-mapvalues-produces-a-view-and-is-there-any-stable-alternatives
+   * issue discussed on StackOverflow]].
+   *
+   * The implementation is further complicated and probably slower than necessary because Scala
+   * does not provide [[https://lauris.github.io/map-order-scala/ immutable map with insertion order as iteration order]].
+   * Because of this the code is a bit clunky and produces a SortedMap with a custom Ordering.
    */
-  private[csv] def reverseMap[A, B](map: scala.collection.Map[A, B]): Map[B, IndexedSeq[A]] =
-    map.groupBy(_._2).mapValues(_.map(_._1).toIndexedSeq)
+  private[csv] def reverseMap[K, V](map: SortedMap[K, V])(implicit keyOrdering: Ordering[K]): SortedMap[V, IndexedSeq[K]] = {
+
+    val valueMap = mutable.HashMap.empty[V, mutable.Builder[K, IndexedSeq[K]]]
+
+    val valueToFirstKey = mutable.HashMap.empty[V, K]
+
+    // Order of values in result is determined by the order of first occurences of each value
+    // TODO: Is there some efficient implementation of immutable map with insertion order as iteration somewhere
+    for ((key, value) <- map; if !valueToFirstKey.contains(value)) {
+      valueToFirstKey.put(value, key)
+    }
+
+    object ValueOrder extends Ordering[V] {
+      def compare(a: V, b: V): Int = {
+        (valueToFirstKey.get(a), valueToFirstKey.get(b)) match {
+          case (Some(a), Some(b)) => keyOrdering.compare(a, b)
+          case (None, Some(b)) => -1
+          case (Some(a), None) => 1
+          case (None, None) => 0
+        }
+      }
+    }
+
+    for ((key, value) <- map) {
+      val keysBuilder = valueMap.getOrElseUpdate(value, IndexedSeq.newBuilder)
+      keysBuilder += key
+    }
+
+    val resultBuilder = SortedMap.newBuilder[V, IndexedSeq[K]](ValueOrder)
+
+    for ((value, keysBuilder) <- valueMap) {
+      val pair = (value, keysBuilder.result)
+      resultBuilder += pair
+    }
+
+    resultBuilder.result()
+  }
+
 }

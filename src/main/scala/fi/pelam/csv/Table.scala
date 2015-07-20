@@ -104,9 +104,9 @@ case class Table[RT, CT] private (charset: Charset,
 
   // Refactor to use ones in CellTypes
 
-  def rowsByType: Map[RT, IndexedSeq[RowKey]] = cellTypes.rowsByType
+  def rowsByType: SortedMap[RT, IndexedSeq[RowKey]] = cellTypes.rowsByType
 
-  def colsByType: Map[CT, IndexedSeq[ColKey]] = cellTypes.colsByType
+  def colsByType: SortedMap[CT, IndexedSeq[ColKey]] = cellTypes.colsByType
 
   def updatedCells(cells: TraversableOnce[Cell]): Table[RT, CT] = {
     var table = this
