@@ -13,13 +13,13 @@ object TableTest {
     CsvConstants.defaultSeparatorChar,
     Locale.ROOT,
   CellTypes[TestRowType, TestColType](
-    BiMap(TreeMap(RowKey(0) -> TestRowType.CommentRow,
+    SortedBiMap(TreeMap(RowKey(0) -> TestRowType.CommentRow,
       RowKey(1) -> TestRowType.Worker,
       RowKey(2) -> TestRowType.Worker,
       RowKey(3) -> TestRowType.Day,
       RowKey(4) -> TestRowType.CommentRow)),
 
-    BiMap(TreeMap(ColKey(1) -> TestColType.Qualifications,
+    SortedBiMap(TreeMap(ColKey(1) -> TestColType.Qualifications,
       ColKey(2) -> TestColType.PrevWeek,
       ColKey(3) -> TestColType.PrevWeek,
       ColKey(4) -> TestColType.ThisWeek,

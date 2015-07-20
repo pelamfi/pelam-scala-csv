@@ -19,8 +19,8 @@ import scala.collection.SortedMap
  */
 // TODO: Refactor erros and locale somewhere else
 case class CellTypes[RT, CT](
-  rowTypes: BiMap[RowKey, RT] = BiMap[RowKey, RT](SortedMap[RowKey, RT]()),
-  colTypes: BiMap[ColKey, CT] = BiMap[ColKey, CT](SortedMap[ColKey, CT]()),
+  rowTypes: SortedBiMap[RowKey, RT] = SortedBiMap[RowKey, RT](),
+  colTypes: SortedBiMap[ColKey, CT] = SortedBiMap[ColKey, CT](),
   errors: Seq[TableReadingError] = IndexedSeq(),
   locale: Locale
   ) {

@@ -138,7 +138,7 @@ class TableReaderTest {
   @Test
   def testBuildCellTypesRow: Unit = {
     assertEquals(CellTypes(
-      rowTypes = BiMap(SortedMap(RowKey(0) -> TestRowType.CommentRow)),
+      rowTypes = SortedBiMap(RowKey(0) -> TestRowType.CommentRow),
       locale = Locale.ROOT),
       TableReader.buildCellTypes(List(StringCell(CellKey(0, 0), "CommentRow")), Locale.ROOT, rowTyper, PartialFunction.empty))
   }
@@ -146,8 +146,8 @@ class TableReaderTest {
   @Test
   def testBuildCellTypesCol: Unit = {
     assertEquals(CellTypes(
-      rowTypes = BiMap(SortedMap(RowKey(0) -> TestRowType.ColumnHeader)),
-      colTypes = BiMap(SortedMap(ColKey(0) -> TestColType.RowType)),
+      rowTypes = SortedBiMap(RowKey(0) -> TestRowType.ColumnHeader),
+      colTypes = SortedBiMap(ColKey(0) -> TestColType.RowType),
       locale = Locale.ROOT),
       TableReader.buildCellTypes(List(StringCell(CellKey(0, 0), "ColumnHeader")), Locale.ROOT, rowTyper, colTyper))
   }

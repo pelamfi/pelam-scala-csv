@@ -1,5 +1,7 @@
 package fi.pelam.csv
 
+import scala.collection.SortedMap
+
 /**
  * Bidirectional map supporting multiple values for same key.
  *
@@ -7,25 +9,32 @@ package fi.pelam.csv
  *
  * The reverse map is computed lazily as a performance optimization.
  */
-// TODO: Rename SortedBiMap, consider better factory methods (empty instance)
-case class BiMap[K, V](map: scala.collection.SortedMap[K, V]) extends Map[K, V] {
+// TODO: Could this inherit from SortedMap
+case class SortedBiMap[K, V](map: SortedMap[K, V]) extends Map[K, V] {
 
-  import BiMap._
+  import SortedBiMap._
   
   lazy val reverse = reverseMap(map)
 
-  override def updated[B1 >: V](key: K, value: B1): BiMap[K, B1] = BiMap(map.updated(key, value))
+  override def updated[B1 >: V](key: K, value: B1): SortedBiMap[K, B1] = SortedBiMap(map.updated(key, value))
 
-  override def +[B1 >: V](kv: (K, B1)): Map[K, B1] = BiMap[K, B1](map + kv)
+  override def +[B1 >: V](kv: (K, B1)): SortedBiMap[K, B1] = SortedBiMap[K, B1](map + kv)
 
   override def get(key: K): Option[V] = map.get(key)
 
   override def iterator: Iterator[(K, V)] = map.iterator
 
-  override def -(key: K): Map[K, V] = BiMap[K, V](map - key)
+  override def -(key: K): SortedBiMap[K, V] = SortedBiMap[K, V](map - key)
 }
 
-object BiMap {
+object SortedBiMap {
+
+  /**
+   * Constructor modeled after the one in
+   * [[http://www.scala-lang.org/api/current/index.html#scala.collection.generic.SortedMapFactory SortedMapFactory]].
+   */
+  def apply[K, V](elements: (K, V)*)(implicit ordering: Ordering[K]): SortedBiMap[K, V] =
+    SortedBiMap(SortedMap[K, V]() ++ elements)
 
   /**
    * Utility method for reversing a map. Multiple equal values with different keys
