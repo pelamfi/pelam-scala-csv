@@ -74,7 +74,7 @@ object SortedBiMap {
     val valueToFirstKey = mutable.HashMap.empty[V, K]
 
     // Order of values in result is determined by the order of first occurences of each value
-    // TODO: Is there some efficient implementation of immutable map with insertion order as iteration somewhere
+    // TODO: Is there some efficient implementation of immutable map with insertion order as iteration order somewhere
     for ((key, value) <- map; if !valueToFirstKey.contains(value)) {
       valueToFirstKey.put(value, key)
     }
