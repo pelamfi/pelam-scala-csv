@@ -20,7 +20,7 @@ import java.io.{Reader, StringReader}
  *
  * @param input  Input can be string or [[http://docs.oracle.com/javase/8/docs/api/java/io/Reader.html java.io.Reader]].
  *               Be mindful of the character set.
- * @param separator Optional separator character
+ * @param separator Optional non-default separator character
  */
 // TODO: Code example for CsvReader
 final class CsvReader(input: Reader, val separator: Char) extends Iterator[CsvReader.CellOrError] {
@@ -57,12 +57,12 @@ final class CsvReader(input: Reader, val separator: Char) extends Iterator[CsvRe
   }
 
   /**
-   * Convert this CscReader into a form which throws upon encountering an
-   * error instead of returning [[fi.pelam.csv.CsvReader#Error]]
+   * Convert this instance into a form which throws upon encountering an
+   * error instead of returning [[CsvReaderError]]
    * @return
    */
   def raiseOnError: Iterator[StringCell] = this.map {
-    case Left(e: Error) => sys.error(e.toString)
+    case Left(e: CsvReaderError) => sys.error(e.toString)
     case Right(stringCell) => stringCell
   }
 }
@@ -126,10 +126,5 @@ final object CsvReader {
    */
   case object ErrorState extends State
 
-  // TODO: Move to separate file and document
-  case class Error(message: String, at: CellKey) {
-    override def toString = s"Error parsing CSV at $at: $message"
-  }
-
-  type CellOrError = Either[Error, StringCell]
+  type CellOrError = Either[CsvReaderError, StringCell]
 }

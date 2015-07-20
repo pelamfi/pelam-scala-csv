@@ -1,5 +1,8 @@
 package fi.pelam.csv
 
+/**
+ * - [[CellUpgrade]] subtypes produce these when they can't upgrade the cell.
+ */
 case class TableReadingError(msg: String, cell: Option[Cell] = None) {
 
   override def toString() = {

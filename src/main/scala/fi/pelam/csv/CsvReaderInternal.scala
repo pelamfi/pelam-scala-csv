@@ -89,7 +89,7 @@ final class CsvReaderInternal(input: java.io.Reader, val separator: Char) {
     }
     case '\r' | '\n' | ';' => {
       state = ErrorState
-      Some(Left(Error(s"Unclosed quote on line $line", cellKey)))
+      Some(Left(CsvReaderError(s"Unclosed quote on line $line", cellKey)))
     }
     case _ => {
       cellContentBuffer.append(char.asInstanceOf[Char])
@@ -135,20 +135,20 @@ final class CsvReaderInternal(input: java.io.Reader, val separator: Char) {
         }
         case QuotedCellContent => if (inputExhausted) {
           state = ErrorState
-          Some(Left(Error("Input stream ended while processing quoted characters.", cellKey)))
+          Some(Left(CsvReaderError("Input stream ended while processing quoted characters.", cellKey)))
         } else {
           charConsumed = true
           handleQuotedChar(char.toChar)
         }
         case CarriageReturn => if (inputExhausted) {
-          Some(Left(Error("Broken linefeed. Expected LF after CR, but stream ended.", cellKey)))
+          Some(Left(CsvReaderError("Broken linefeed. Expected LF after CR, but stream ended.", cellKey)))
         } else {
           if (char == '\n') {
             charConsumed = true
             state = LineEnd
             None
           } else {
-            Some(Left(Error("Broken linefeed. Expected LF after CR, but got '$char'.", cellKey)))
+            Some(Left(CsvReaderError("Broken linefeed. Expected LF after CR, but got '$char'.", cellKey)))
           }
         }
         case PossibleEndQuote => if (inputExhausted) {
@@ -210,7 +210,7 @@ final class CsvReaderInternal(input: java.io.Reader, val separator: Char) {
       } else if (state == StreamEnd) {
         return None
       } else if (state == ErrorState) {
-        return Some(Left(Error("CsvReader has encountered error.", cellKey)))
+        return Some(Left(CsvReaderError("CsvReader has encountered error.", cellKey)))
       }
 
       // Loop until we can emit cell, input stream exhausted or error has been encountered
