@@ -30,8 +30,9 @@ object BiMap {
   /**
    * Utility method for reversing a map. Multiple equal values with different keys
    * are handled by having IndexedSeq with values as the value in the resulting map.
+   *
+   * Based on idea found on [[http://stackoverflow.com/a/24222250/1148030 StackOverflow]].
    */
-  http://stackoverflow.com/a/24222250/1148030
   private[csv] def reverseMap[A, B](map: scala.collection.Map[A, B]): Map[B, IndexedSeq[A]] =
     map.groupBy(_._2).mapValues(_.map(_._1).toIndexedSeq)
 }
