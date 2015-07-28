@@ -9,17 +9,17 @@ import java.io.{Reader, StringReader}
  * The data is read into a sequence of [[StringCell]] instances.
  * [[StringCell]]s can be written back to disk with [[CsvWriter]].
  *
- *
  * Does parsing in streaming fashion ie. you could even handle files
  * larger that what would fit in memory.
  *
  * Actual parsing is delegated to [[CsvReaderInternal]]. This class
  * just implements the Scala iterator interface on top of it.
  *
- * @see TableReader for a friendlier non streaming API.
+ * @see [[TableReader for a friendlier non streaming API.]]
  *
  * @param input  Input can be string or [[http://docs.oracle.com/javase/8/docs/api/java/io/Reader.html java.io.Reader]].
  *               Be mindful of the character set.
+ *
  * @param separator Optional non-default separator character
  */
 // TODO: Code example for CsvReader
