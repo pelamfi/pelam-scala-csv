@@ -9,7 +9,7 @@ import org.junit.Test
 import scala.collection.immutable.TreeMap
 
 object TableTest {
-  def makeTable() = Table[TestRowType, TestColType](Charsets.UTF_8,
+  def makeTable() = Table[TestRowType, TestColType, SimpleTableMetadata](Charsets.UTF_8,
     CsvConstants.defaultSeparatorChar,
     Locale.ROOT,
   CellTypes[TestRowType, TestColType](

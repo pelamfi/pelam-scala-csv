@@ -52,11 +52,11 @@ object Table {
    * @return constructed Table object
    */
   // TODO: Automatically fill in empty cells and never leave nulls in internal arrays
-  def apply[RT, CT](charset: Charset,
+  def apply[RT, CT, M <: TableMetadata](charset: Charset,
     csvSeparator: Char,
     dataLocale: Locale,
     cellTypes: CellTypes[RT, CT],
-    cells: TraversableOnce[Cell]): Table[RT, CT] = {
+    cells: TraversableOnce[Cell]): Table[RT, CT, M] = {
 
     val builtCells = buildCells(cells, cellTypes.rowCount, cellTypes.colCount)
 
@@ -75,7 +75,7 @@ object Table {
  * @tparam RT Client specified object type used for typing rows in CSV data.
  * @tparam CT Client specified object type used for typing columns in CSV data.
  */
-case class Table[RT, CT] private (charset: Charset,
+case class Table[RT, CT, M <: TableMetadata] private (charset: Charset,
   csvSeparator: Char,
 
   /**
@@ -108,7 +108,7 @@ case class Table[RT, CT] private (charset: Charset,
 
   def colsByType: SortedMap[CT, IndexedSeq[ColKey]] = cellTypes.colsByType
 
-  def updatedCells(cells: TraversableOnce[Cell]): Table[RT, CT] = {
+  def updatedCells(cells: TraversableOnce[Cell]): Table[RT, CT, M] = {
     var table = this
     for (cell <- cells) {
       table = table.updatedCell(cell)
@@ -116,9 +116,9 @@ case class Table[RT, CT] private (charset: Charset,
     table
   }
 
-  def updatedCells(cells: Cell*): Table[RT, CT] = updatedCells(cells)
+  def updatedCells(cells: Cell*): Table[RT, CT, M] = updatedCells(cells)
 
-  def updatedCell(cell: Cell): Table[RT, CT] = {
+  def updatedCell(cell: Cell): Table[RT, CT, M] = {
     val key = cell.cellKey
 
     if (key.rowIndex >= rowCount) {

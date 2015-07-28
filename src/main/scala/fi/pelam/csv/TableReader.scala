@@ -6,6 +6,113 @@ import java.util.Locale
 
 import scala.collection.SortedMap
 
+object TableReader2 {
+
+  type RowTyperResult[RT] = Either[TableReadingError, RT]
+
+  type RowTyper[RT] = PartialFunction[(Cell), RowTyperResult[RT]]
+
+  type ColTyperResult[CT] = Either[TableReadingError, CT]
+
+  type RowTypes[RT] = SortedBiMap[RowKey, RT]
+
+  type ColTyper[RT, CT] = PartialFunction[(Cell, RowTypes[RT]), ColTyperResult[CT]]
+
+  type ColTypes[CT] = SortedBiMap[RowKey, CT]
+
+  type CellUpgraderResult = Either[TableReadingError, Cell]
+
+  type CellUpgrader[RT, CT, M <: TableMetadata] = PartialFunction[(Cell, M, CellType[RT, CT]), CellUpgraderResult]
+}
+
+case class TableReadingErrors(phase: Int = 0, errors: IndexedSeq[TableReadingError] = IndexedSeq()) {
+  def noErrors = errors.isEmpty 
+}
+
+// TODO: Sketching and hacking replacement for TableReader...
+class TableReader2[RT, CT, M <: TableMetadata](
+  val openInputStream: () => java.io.InputStream,
+  val metadata: M = SimpleTableMetadata(),
+  val rowTyper: TableReader2.RowTyper[RT] = PartialFunction.empty,
+  val colTyper: TableReader2.ColTyper[RT, CT] = PartialFunction.empty,
+  val cellUpgrader: TableReader2.CellUpgrader[RT, CT, M] = PartialFunction.empty
+  ) {
+
+  import TableReader2._
+
+  type ResultTable = Table[RT, CT, M]
+
+  case class TableReadingState(cells: IndexedSeq[Cell] = IndexedSeq(),
+    rowTypes: RowTypes[RT] = SortedBiMap(),
+    colTypes: ColTypes[CT] = SortedBiMap(),
+    errors: TableReadingErrors = TableReadingErrors()) {
+  }
+
+  sealed trait TableReadingPhase {
+    def map(f: TableReadingState => TableReadingState): TableReadingPhase
+    def flatMap(inner: TableReadingState => TableReadingPhase): TableReadingPhase
+    def run(inputState: TableReadingState): TableReadingState
+  }
+
+  case class Phase(phaseFunc: TableReadingState => TableReadingState) extends TableReadingPhase {
+    def map(mapFunc: TableReadingState => TableReadingState) = Phase{ state: TableReadingState => mapFunc(phaseFunc(state)) }
+
+    def flatMap(inner: TableReadingState => TableReadingPhase): TableReadingPhase = PhaseFlatmapped { state: TableReadingState =>
+      val result = phaseFunc(state)
+      if (result.errors.noErrors) {
+        inner(result) // to call the inner func, we need state and we get the wrapper,
+      } else {
+        // Don't run further phases if one had error
+        FailedPhase(state)
+      }
+    }
+
+    def run(inputState: TableReadingState) = phaseFunc(inputState)
+  }
+
+  case class PhaseFlatmapped(phaseFunc: TableReadingState => TableReadingPhase) extends TableReadingPhase {
+    def map(mapFunc: TableReadingState => TableReadingState) = ???
+
+    def flatMap(inner: TableReadingState => TableReadingPhase): TableReadingPhase = ???
+
+    def run(inputState: TableReadingState) = inputState
+  }
+
+  case class FailedPhase(lastState: TableReadingState) extends TableReadingPhase {
+    def map(f2: TableReadingState => TableReadingState) = this
+
+    def flatMap(inner: TableReadingState => TableReadingPhase): TableReadingPhase = this
+
+    override def run(inputState: TableReadingState): TableReadingState = ???
+  }
+
+  def phase1(process: TableReadingState): TableReadingState = {
+    process
+  }
+
+  def phase2(process: TableReadingState): TableReadingState = {
+    process
+  }
+
+  def phase3(process: TableReadingState): TableReadingState = {
+    process
+  }
+
+  def read(): (ResultTable, TableReadingErrors) = {
+
+    val phases = for (_ <- Phase(phase1);
+                      _ <- Phase(phase2);
+                      x <- Phase(phase3)) yield x
+
+    val initial = TableReadingState()
+
+    val result = phases.run(initial)
+
+    // TODO: Redesign Table class...
+    (null /* Table(metadata, result.cells, result.rowTypes, result.colTypes) */ , result.errors)
+  }
+}
+
 /**
  * This class is part of the the higher level api for reading, writing and processing CSV data.
  *
@@ -13,6 +120,20 @@ import scala.collection.SortedMap
  * the parsed data in a spreadsheet program like format.
  *
  * [[TableWriter]] is the counterpart of this class for writing [[Table]] out to disk.
+ *
+ * == Stages ==
+ * The table reading process may fail and terminate at each phase. Then an incomplete Table object
+ * will be returned containing the errors detected so far.
+ *
+ * The table reading is split to phases to allow implementing format detection heuristics in that
+ * lock some variables during the earlier phases and then proceeding to later phases.
+ *
+ * Locking some variables and then proceeding results in more efficient algorithm
+ * than exhaustive search of the full set of combinations (character set, locale, separator etc).
+ *
+ *   - Parse to cells
+ *   - Detect cell types
+ *   - Upgrade cells
  *
  * @param openInputStream
  * @param rowTypeDefinition
@@ -23,6 +144,7 @@ import scala.collection.SortedMap
  * @tparam CT
  */
 // TODO: Docs, better names
+// TODO: Finish documenting the phases and the detection idea after it is implemented
 class TableReader[RT, CT](val openInputStream: () => java.io.InputStream,
   val rowTypeDefinition: TableReader.RowTyper[RT, CT] = PartialFunction.empty,
   val colTypeDefinition: TableReader.ColTyper[RT, CT] = PartialFunction.empty,
@@ -34,7 +156,7 @@ class TableReader[RT, CT](val openInputStream: () => java.io.InputStream,
 
   var cells: IndexedSeq[Cell] = IndexedSeq()
 
-  def read(): Table[RT, CT] = {
+  def read(): Table[RT, CT, SimpleTableMetadata] = {
 
     // TODO: Charset detection (try UTF16 and iso8859)
     val charset = StandardCharsets.UTF_8
