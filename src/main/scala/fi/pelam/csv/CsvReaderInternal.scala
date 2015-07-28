@@ -1,6 +1,6 @@
 package fi.pelam.csv
 
-import java.io.StringReader
+import java.io.{Reader, StringReader}
 
 /**
  * State machine based CSV parser which has single method interface which returns
@@ -10,19 +10,13 @@ import java.io.StringReader
  *
  * @param input stream to read CSV from. Input is read on as needed basis and closed if stream end is encountered.
  * @param separator separator char to use.
+ *
+ * @constructor create a parser from [[http://docs.oracle.com/javase/8/docs/api/java/io/Reader.html java.io.Reader]]
+ *             and a separator character.
  */
-final class CsvReaderInternal(input: java.io.Reader, val separator: Char) {
+final class CsvReaderInternal(input: Reader, val separator: Char) {
 
   import CsvReaderInternal._
-
-  def this(input: String, separator: Char = CsvConstants.defaultSeparatorChar) = {
-    this(new StringReader(input), separator)
-  }
-
-  def this(reader: java.io.Reader) = {
-    this(reader, CsvConstants.defaultSeparatorChar)
-  }
-
 
   private[this] var line: Int = 0
 
@@ -89,7 +83,7 @@ final class CsvReaderInternal(input: java.io.Reader, val separator: Char) {
     }
     case '\r' | '\n' | ';' => {
       state = ErrorState
-      Some(Left(CsvReaderError(s"Unclosed quote on line $line", cellKey)))
+      Some(Left(CsvReaderError("Unclosed quote", cellKey)))
     }
     case _ => {
       cellContentBuffer.append(char.asInstanceOf[Char])
@@ -223,12 +217,16 @@ final class CsvReaderInternal(input: java.io.Reader, val separator: Char) {
 
 final object CsvReaderInternal {
 
+  /**
+   * Base class for the finite state machine states
+   * used in the parser.
+   */
   sealed abstract class State
 
   /**
    * A "Zero width" initial state of the state machine.
    *
-   * If input ends while in this state, zero cells will be emitted
+   * If input ends while in this state, zero cells will be emitted.
    */
   case object StreamStart extends State
 
@@ -279,12 +277,12 @@ final object CsvReaderInternal {
   case object CellEnd extends State
 
   /**
-   * This is a state for handling CR LF style line termination
+   * This is a state for handling CR LF style line termination.
    */
   case object CarriageReturn extends State
 
   /**
-   * A signaling that current line has ended.
+   * A state signaling that current line has ended.
    */
   case object LineEnd extends State
 
