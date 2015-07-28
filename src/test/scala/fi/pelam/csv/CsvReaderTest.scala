@@ -27,6 +27,28 @@ class CsvReaderTest {
     assertEquals("(0,0)\n(0,1)\n(1,0)\n", parsed.foldLeft("")(_ + _.cellKey.indices + "\n"))
   }
 
+  def testIteratorEnd: Unit = {
+    val reader = new CsvReader(csv3Cells)
+
+    reader.next()
+    reader.next()
+    reader.next()
+
+    assertFalse(reader.hasNext)
+  }
+
+  @Test(expected = classOf[NoSuchElementException])
+  def testNoSuchElementException: Unit = {
+    val reader = new CsvReader(csv3Cells)
+
+    reader.next()
+    reader.next()
+    reader.next()
+
+    // This should throw
+    reader.next()
+  }
+
   @Test
   def testParseCrLf: Unit = {
     val parsed = new CsvReader("foo,bar\r\nbaz\n").raiseOnError.toIndexedSeq
@@ -124,6 +146,27 @@ class CsvReaderTest {
         throw e
       }
     }
+  }
+
+  @Test
+  def testErrorState: Unit = {
+    val reader = new CsvReader("\"foo")
+
+    assertTrue(reader.hasNext)
+
+    assertEquals(Left(CsvReaderError("Input stream ended while processing quoted characters.", CellKey(0,0))),
+      reader.next())
+
+    assertFalse(reader.hasNext)
+  }
+
+  @Test(expected = classOf[NoSuchElementException])
+  def testNoSuchElementExceptionAfterError: Unit = {
+    val reader = new CsvReader("\"foo")
+
+    reader.next()
+
+    reader.next() // This should throw
   }
 
   @Test

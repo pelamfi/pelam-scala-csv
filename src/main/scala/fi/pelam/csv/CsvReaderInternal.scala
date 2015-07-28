@@ -13,7 +13,7 @@ import java.io.StringReader
  */
 final class CsvReaderInternal(input: java.io.Reader, val separator: Char) {
 
-  import CsvReader._
+  import CsvReaderInternal._
 
   def this(input: String, separator: Char = CsvConstants.defaultSeparatorChar) = {
     this(new StringReader(input), separator)
@@ -210,7 +210,8 @@ final class CsvReaderInternal(input: java.io.Reader, val separator: Char) {
       } else if (state == StreamEnd) {
         return None
       } else if (state == ErrorState) {
-        return Some(Left(CsvReaderError("CsvReader has encountered error.", cellKey)))
+        // Error state behaves like StreamEnd
+        return None
       }
 
       // Loop until we can emit cell, input stream exhausted or error has been encountered
@@ -218,4 +219,96 @@ final class CsvReaderInternal(input: java.io.Reader, val separator: Char) {
 
     sys.error("Will never get here")
   }
+}
+
+final object CsvReaderInternal {
+
+  sealed abstract class State
+
+  /**
+   * A "Zero width" initial state of the state machine.
+   *
+   * If input ends while in this state, zero cells will be emitted
+   */
+  case object StreamStart extends State
+
+  /**
+   * Zero width initial state for each cell from where we go to [[CellContent]]
+   *
+   * Used to handle case where final line ends without termination.
+   */
+  case object CellStart extends State
+
+  /**
+   * Parsing a position inside a cell and collecting data to emit
+   * the corresponding [[StringCell]] object.
+   *
+   * From this state the state machine transitions to
+   * [[QuotedCellContent]], [[LineEnd]] or [[CellEnd]].
+   */
+  case object CellContent extends State
+
+  /**
+   * Parsing a position inside a cell and collecting data to emit
+   * the corresponding [[StringCell]] object.
+   *
+   * The difference to ordinary [[CellContent]] state is that
+   * a quote has been encountered.
+   *
+   * A cell may contain multiple quoted sections, although usually
+   * the whole cell content is quoted or none.
+   */
+  case object QuotedCellContent extends State
+
+  /**
+   * State machine transitions to this state from state
+   * [[QuotedCellContent]] when the quote character is encountered.
+   * If it is just a lone quote, the quoted section ends.
+   *
+   * However, two quote characters together are interpreted as an escaped
+   * quote character. At least Excel and Google Docs seem to adhere
+   * to this convention.
+   *
+   * This state exists to allow separating these two cases.
+   */
+  case object PossibleEndQuote extends State
+
+  /**
+   * Cell content is ready. Emit the [[StringCell]] object.
+   */
+  case object CellEnd extends State
+
+  /**
+   * This is a state for handling CR LF style line termination
+   */
+  case object CarriageReturn extends State
+
+  /**
+   * A signaling that current line has ended.
+   */
+  case object LineEnd extends State
+
+  /**
+   * Final state that signals that input stream has been exhausted and no more
+   * cells will be emitted.
+   *
+   * Subsequent calls to read will produce None.
+   */
+  case object StreamEnd extends State
+
+  /**
+   * Parser won't continue after encountering first error.
+   *
+   * Subsequent calls to read will produce None.
+   *
+   * Parser will then remain in this state.
+   */
+  case object ErrorState extends State
+
+  /**
+   * The type of of output of this class.
+   *
+   * Errors are separated by using Scala's Either type.
+   */
+  type CellOrError = Either[CsvReaderError, StringCell]
 }
