@@ -1,8 +1,7 @@
-package fi.pelam.csv
+package fi.pelam.csv.cell
 
 import java.util.Locale
 
-import fi.pelam.csv.cell.{CellKey, IntegerCell}
 import fi.pelam.csv.table.TableReadingError
 import org.junit.Assert._
 import org.junit.Test

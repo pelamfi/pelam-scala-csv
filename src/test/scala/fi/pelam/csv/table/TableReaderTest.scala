@@ -1,20 +1,16 @@
-package fi.pelam.csv
+package fi.pelam.csv.table
 
 import java.io.ByteArrayInputStream
-import java.nio.charset.StandardCharsets._
 import java.util.Locale
 
 import com.google.common.base.Charsets
 import com.google.common.io.{ByteSource, Resources}
 import fi.pelam.csv.cell._
-import fi.pelam.csv.table.{TableReadingError, TableReader, CellTypes, CellType}
+import fi.pelam.csv.table.TestColType._
+import fi.pelam.csv.table.TestRowType._
 import fi.pelam.csv.util.SortedBiMap
 import org.junit.Assert._
 import org.junit.Test
-import TestRowType._
-import TestColType._
-
-import scala.collection.immutable.SortedMap
 
 class TableReaderTest {
   val headerAndCommentsOnly = "ColumnHeader,CommentCol,CommentCol,CommentCol,CommentCol\n" +

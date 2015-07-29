@@ -1,4 +1,4 @@
-package fi.pelam.csv
+package fi.pelam.csv.table
 
 import java.util.Locale
 
@@ -6,6 +6,10 @@ import enumeratum.{Enum, EnumEntry}
 
 sealed abstract class TestRowType extends EnumEntry
 
+/**
+ * Sample row type enumeration for use in tests of [[fi.pelam.csv.table.Table]]
+ * related classes.
+ */
 object TestRowType extends Enum[TestRowType] {
 
   val values = findValues

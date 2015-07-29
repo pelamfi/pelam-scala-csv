@@ -1,10 +1,10 @@
-package fi.pelam.csv
+package fi.pelam.csv.table
 
 import java.util.Locale
 
 import com.google.common.base.Charsets
+import fi.pelam.csv.CsvConstants
 import fi.pelam.csv.cell._
-import fi.pelam.csv.table.{Table, CellTypes}
 import fi.pelam.csv.util.SortedBiMap
 import org.junit.Assert._
 import org.junit.Test

@@ -1,15 +1,16 @@
-package fi.pelam.csv
+package fi.pelam.csv.stream
 
 import java.io.StringReader
 
 import fi.pelam.csv.cell.{CellKey, StringCell}
-import fi.pelam.csv.stream.{CsvReaderInternal, CsvReaderError}
-import org.junit.Test
 import org.junit.Assert._
+import org.junit.Test
 
 
 /**
- * @note [[fi.pelam.csv.stream.CsvReaderInternal]] is mostly tested indirectly through its wrapper's tests in [[fi.pelam.csv.stream.CsvReaderTest]].
+ * @note [[fi.pelam.csv.stream.CsvReaderInternal CsvReaderInternal]]
+ *      is mostly tested indirectly through its wrapper's
+ *      tests in [[fi.pelam.csv.stream.CsvReaderTest CsvReaderTest]].
  */
 class CsvReaderInternalTest {
 
