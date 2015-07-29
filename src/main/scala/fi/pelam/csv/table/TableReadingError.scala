@@ -4,7 +4,7 @@ import fi.pelam.csv.cell.{CellParsingError, CellParser, Cell}
 
 /**
  * - Various phases in [[TableReader]] produce these when building a Table object from input fails.
- * - [[CellParser]] errors are converted to these errors in [[TableReader]].
+ * - [[fi.pelam.csv.cell.CellParsingError CellParsingErrors]] errors are converted to these errors in [[TableReader]].
  */
 case class TableReadingError(msg: String, cell: Option[Cell] = None) {
 

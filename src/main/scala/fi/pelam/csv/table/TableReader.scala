@@ -19,7 +19,7 @@ import fi.pelam.csv.stream.CsvReader
  * @param openInputStream
  * @param rowTypeDefinition
  * @param colTypeDefinition
- * @param cellTypes map from [[CellType]] to [[CellParser]] instances. Use this to get more
+ * @param cellTypes map from [[CellType]] to [[fi.pelam.csv.cell.CellParser CellParser]] instances. Use this to get more
  *                  specialized [[fi.pelam.csv.cell.Cell Cell]] instances than the simple
  *                  [[fi.pelam.csv.cell.StringCell StringCell]].
  * @param locales
