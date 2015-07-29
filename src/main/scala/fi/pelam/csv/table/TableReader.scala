@@ -105,9 +105,9 @@ class TableReader[RT, CT](val openInputStream: () => java.io.InputStream,
 
   def upgradeCell(detectedCellTypes: CellTypes[RT, CT], cell: Cell, locale: Locale): Either[TableReadingError, Cell] = {
     val upgraded = for (cellType: CellType[RT, CT] <- detectedCellTypes.getCellType(cell);
-                        factory <- cellTypes.lift(cellType)) yield {
+                        cellParser <- cellTypes.lift(cellType)) yield {
 
-      val result = factory.parse(cell.cellKey, locale, cell.serializedString)
+      val result = cellParser.parse(cell.cellKey, locale, cell.serializedString)
 
       result match {
         // Add cell and cell type to possible error message
