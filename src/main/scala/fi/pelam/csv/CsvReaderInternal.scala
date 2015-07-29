@@ -2,6 +2,8 @@ package fi.pelam.csv
 
 import java.io.{Reader, StringReader}
 
+import fi.pelam.csv.cell.{CellKey, StringCell}
+
 /**
  * State machine based CSV parser which has single method interface which returns
  * an option of eiher cell or error.
@@ -239,7 +241,7 @@ final object CsvReaderInternal {
 
   /**
    * Parsing a position inside a cell and collecting data to emit
-   * the corresponding [[StringCell]] object.
+   * the corresponding [[fi.pelam.csv.cell.StringCell]] object.
    *
    * From this state the state machine transitions to
    * [[QuotedCellContent]], [[LineEnd]] or [[CellEnd]].
@@ -248,7 +250,7 @@ final object CsvReaderInternal {
 
   /**
    * Parsing a position inside a cell and collecting data to emit
-   * the corresponding [[StringCell]] object.
+   * the corresponding [[fi.pelam.csv.cell.StringCell]] object.
    *
    * The difference to ordinary [[CellContent]] state is that
    * a quote has been encountered.
@@ -272,7 +274,7 @@ final object CsvReaderInternal {
   case object PossibleEndQuote extends State
 
   /**
-   * Cell content is ready. Emit the [[StringCell]] object.
+   * Cell content is ready. Emit the [[fi.pelam.csv.cell.StringCell]] object.
    */
   case object CellEnd extends State
 

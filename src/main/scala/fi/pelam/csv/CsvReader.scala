@@ -2,12 +2,14 @@ package fi.pelam.csv
 
 import java.io.{Reader, StringReader}
 
+import fi.pelam.csv.cell.StringCell
+
 /**
  * This class is part of the lower level API for processing CSV data.
  * This is a CSV parser that produces the data through the
  * [[http://www.scala-lang.org/api/current/index.html#scala.collection.Iterator scala.collection.Iterator]] trait.
- * The data is read into a sequence of [[StringCell]] instances.
- * [[StringCell]]s can be written back to disk with [[CsvWriter]].
+ * The data is read into a sequence of [[fi.pelam.csv.cell.StringCell]] instances.
+ * [[fi.pelam.csv.cell.StringCell]]s can be written back to disk with [[CsvWriter]].
  *
  * This class does parsing in streaming fashion ie. you should be able to
  * handle files larger than what can fit in RAM, though this has

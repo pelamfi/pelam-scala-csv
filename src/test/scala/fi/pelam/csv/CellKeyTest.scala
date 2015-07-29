@@ -1,5 +1,6 @@
 package fi.pelam.csv
 
+import fi.pelam.csv.cell.CellKey
 import org.junit.Assert._
 import org.junit.Test
 

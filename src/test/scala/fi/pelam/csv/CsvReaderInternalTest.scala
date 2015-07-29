@@ -2,12 +2,13 @@ package fi.pelam.csv
 
 import java.io.StringReader
 
+import fi.pelam.csv.cell.{CellKey, StringCell}
 import org.junit.Test
 import org.junit.Assert._
 
 
 /**
- * NOTE: [[CsvReaderInternal]] is mostly tested indirectly through its wrapper's tests in [[CsvReaderTest]].
+ * @note [[CsvReaderInternal]] is mostly tested indirectly through its wrapper's tests in [[CsvReaderTest]].
  */
 class CsvReaderInternalTest {
 

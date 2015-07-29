@@ -1,7 +1,8 @@
-package fi.pelam.csv
+package fi.pelam.csv.cell
 
 /**
- * Base type for [[RowKey]] and [[ColKey]]. Provides index and ordering.
+ * Base type for [[fi.pelam.csv.cell.RowKey RowKey]] and [[fi.pelam.csv.cell.ColKey ColKey]].
+ * Provides index and ordering.
  *
  * Ordering is simply the natural order of the index values.
  */

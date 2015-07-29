@@ -3,6 +3,8 @@ package fi.pelam.csv
 import java.nio.charset.Charset
 import java.util.Locale
 
+import fi.pelam.csv.cell._
+
 import scala.collection.SortedMap
 import scala.collection.immutable.TreeMap
 
@@ -71,7 +73,7 @@ object Table {
  * @param csvSeparator Separator character used when the CSV data is serialized.
  * @param dataLocale Locale used when encoding things like integers to the CSV file.
  * @param cellTypes Object that describes type of each column, row and cell using the client code defined objects.
- * @param cells Fully populated 2D array of [[Cell]] objects with matching dimensions to the ones specified in [[CellTypes]] instance.
+ * @param cells Fully populated 2D array of [[fi.pelam.csv.cell.Cell]] objects with matching dimensions to the ones specified in [[CellTypes]] instance.
  * @tparam RT Client specified object type used for typing rows in CSV data.
  * @tparam CT Client specified object type used for typing columns in CSV data.
  */
@@ -81,7 +83,7 @@ case class Table[RT, CT] private (charset: Charset,
   /**
    * Locale used in encoding eg. integer values into cells.
    *
-   * This locale is mostly used via individual Cell types like [[IntegerCell]]
+   * This locale is mostly used via individual Cell types like [[fi.pelam.csv.cell.IntegerCell]]
    * which contain individual reference to the same Locale.
    */
   dataLocale: Locale,

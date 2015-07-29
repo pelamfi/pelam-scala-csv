@@ -2,6 +2,7 @@ package fi.pelam.csv
 
 import com.google.common.base.Charsets
 import com.google.common.io.{CharStreams, Resources}
+import fi.pelam.csv.cell.{StringCell, CellKey}
 import org.junit.Assert._
 import org.junit.Test
 

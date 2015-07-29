@@ -1,5 +1,7 @@
 package fi.pelam.csv
 
+import fi.pelam.csv.cell.Cell
+
 /**
  * - [[CellUpgrade]] subtypes produce these when they can't upgrade the cell.
  */

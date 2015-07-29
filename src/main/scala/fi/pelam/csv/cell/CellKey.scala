@@ -1,19 +1,19 @@
-package fi.pelam.csv
+package fi.pelam.csv.cell
 
 /**
- * Coordinates of a [[Cell]] in a [[Table]].
+ * Coordinates of a [[fi.pelam.csv.cell.Cell]] in a [[Table]].
  *
- * Basically a composition of [[RowKey]] and [[ColKey]] or alternatively
+ * Basically a composition of [[fi.pelam.csv.cell.RowKey]] and [[fi.pelam.csv.cell.ColKey]] or alternatively
  * two zero based integers [[rowIndex]] and [[colIndex]].
  *
- * [[Cell]] has a CellKey as a member.
+ * [[fi.pelam.csv.cell.Cell]] has a CellKey as a member.
  *
  * == Cell coordinates ==
  *
  * Columns and rows are thought to start from top left corner.
  *
  * Typically in spreadsheet programs columns are numbered with an alphabetical
- * scheme and rows number is a one based integer.
+ * scheme and row number is a one based integer.
  *
  * == Ordering ==
  *
@@ -51,7 +51,7 @@ case class CellKey(rowIndex: Int, colIndex: Int) extends Ordered[CellKey] {
   /**
    * Example: {{{
    *   scala> CellKey(26, 26)
-   *   cellKey: fi.pelam.csv.CellKey = Row 26, Column AA (26)
+   *   cellKey: fi.pelam.csv.cell.CellKey = Row 26, Column AA (26)
    * }}}
    */
   override def toString(): String = s"$rowKey, $colKey"
