@@ -1,7 +1,5 @@
 package fi.pelam.csv
 
-import fi.pelam.csv.stream.CsvReader
-
 /**
  * This package contains the streaming oriented API for processing CSV data.
  *

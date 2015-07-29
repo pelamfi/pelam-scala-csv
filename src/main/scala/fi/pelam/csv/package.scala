@@ -1,6 +1,5 @@
 package fi.pelam
 
-import fi.pelam.csv.stream.CsvReader
 import fi.pelam.csv.table.TableReader
 
 /**

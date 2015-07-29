@@ -3,8 +3,7 @@ package fi.pelam.csv.cell
 import java.text.{NumberFormat, ParseException, ParsePosition}
 import java.util.Locale
 
-import fi.pelam.csv.table.{TableReadingError, CellUpgrade, TableReader}
-import fi.pelam.csv.TableReadingError
+import fi.pelam.csv.table.{CellUpgrade, TableReader, TableReadingError}
 
 /**
  * Basically a sample implementation of a more specialised subtype of [[fi.pelam.csv.cell.Cell]].

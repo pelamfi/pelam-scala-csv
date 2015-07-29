@@ -1,7 +1,5 @@
 package fi.pelam.csv.table
 
-import fi.pelam.csv.table.Table
-
 /**
  * The "type" of a cell in a [[Table Table]] is considered a pair of objects each
  * identifying the row type and the column type respectively.

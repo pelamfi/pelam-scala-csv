@@ -2,9 +2,8 @@ package fi.pelam.csv.cell
 
 import java.util.Locale
 
-import fi.pelam.csv.stream.CsvReader
-import fi.pelam.csv.TableReadingError
-import fi.pelam.csv.table.{TableReadingError, CellUpgrade}
+// TODO: Fix this circular reference between packages
+import fi.pelam.csv.table.{CellUpgrade, TableReadingError}
 
 /**
  * The most basic subtype of [[fi.pelam.csv.cell.Cell Cell]].
