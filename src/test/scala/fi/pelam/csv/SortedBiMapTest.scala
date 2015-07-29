@@ -1,5 +1,6 @@
 package fi.pelam.csv
 
+import fi.pelam.csv.util.SortedBiMap
 import org.junit.Assert._
 import org.junit._
 

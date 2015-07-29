@@ -1,7 +1,6 @@
-package fi.pelam.csv
+package fi.pelam.csv.util
 
-import scala.collection.SortedMap
-import scala.collection.mutable
+import scala.collection.{SortedMap, mutable}
 
 /**
  * Bidirectional map supporting multiple values for same key.

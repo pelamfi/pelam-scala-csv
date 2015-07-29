@@ -5,6 +5,7 @@ import java.nio.charset.StandardCharsets
 import java.util.Locale
 
 import fi.pelam.csv.cell.{AxisKey, Cell, RowKey, ColKey}
+import fi.pelam.csv.util.SortedBiMap
 
 import scala.collection.SortedMap
 
