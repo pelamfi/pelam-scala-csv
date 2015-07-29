@@ -1,6 +1,4 @@
-package fi.pelam.csv.table
-
-import fi.pelam.csv.cell.{Cell, CellKey}
+package fi.pelam.csv.cell
 
 /**
  * A base class for client defined [[fi.pelam.csv.cell.Cell Cell]] factories
@@ -19,6 +17,6 @@ import fi.pelam.csv.cell.{Cell, CellKey}
  * Another function that can be performed at the same time is validating that the contents of the cells against
  * client specified requirements.
  */
-abstract class CellUpgrade {
-  def fromString(cellKey: CellKey, locale: java.util.Locale, input: String): Either[TableReadingError, Cell]
+abstract class CellDeserializer {
+  def deserialize(cellKey: CellKey, locale: java.util.Locale, input: String): Either[CellParsingError, Cell]
 }

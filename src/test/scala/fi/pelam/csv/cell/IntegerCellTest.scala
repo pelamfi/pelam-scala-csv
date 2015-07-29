@@ -12,8 +12,8 @@ class IntegerCellTest {
 
   @Test
   def testFromString: Unit = {
-    assertEquals(Left(TableReadingError(s"Expected integer, but input '12,000.0' " +
+    assertEquals(Left(CellParsingError(s"Expected integer, but input '12,000.0' " +
       s"could not be fully parsed with locale 'fi'.")),
-      IntegerCell.fromString(CellKey(0, 0), localeFi, "12,000.0"));
+      IntegerCell.deserialize(CellKey(0, 0), localeFi, "12,000.0"));
   }
 }
