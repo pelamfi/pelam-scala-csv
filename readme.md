@@ -1,5 +1,6 @@
 Pelam's Scala CSV Library
 =========================
+[![Build Status](https://travis-ci.org/pelamfi/pelam-scala-csv.svg?branch=master)](https://travis-ci.org/pelamfi/pelam-scala-csv)
 
 NOTE: THIS PROJECT IS NOT YET FUNCTIONAL.
 See History section below...
