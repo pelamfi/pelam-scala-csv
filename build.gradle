@@ -16,7 +16,7 @@ tasks.withType(ScalaDoc) {
     scalaDocOptions.additionalParameters = [
             // TODO: convert readme.md to html and feed to scaladoc here? "-doc-root-content", "readme.???",
             "-sourcepath", "${projectDir}/src/main/scala",
-            "-doc-source-url", "https://github.com/pelamfi/pelam-scala-csv/tree/master/src/main/scala€{FILE_PATH}.scala"]
+            "-doc-source-url", "https://github.com/pelamfi/pelam-scala-csv/blob/master/src/main/scala€{FILE_PATH}.scala"]
 }
 
 dependencies {
