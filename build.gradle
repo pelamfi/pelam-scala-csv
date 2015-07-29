@@ -10,7 +10,17 @@ repositories {
     mavenCentral()
 }
 
+tasks.withType(ScalaDoc) {
+    title = "Pelam's Scala CSV library"
+
+    scalaDocOptions.additionalParameters = [
+            // TODO: convert readme.md to html and feed to scaladoc here? "-doc-root-content", "readme.???",
+            "-sourcepath", "${projectDir}/src/main/scala",
+            "-doc-source-url", "https://github.com/pelamfi/pelam-scala-csv/tree/master/src/main/scala€{FILE_PATH}.scala"]
+}
+
 dependencies {
+
     compile 'org.scala-lang:scala-library:2.11.4'
 
     testCompile 'junit:junit:4.12'
@@ -22,8 +32,6 @@ dependencies {
 
     // Used for reading resource in tests.
     testCompile 'com.google.guava:guava:16.0'
-
-
 }
 
 idea {

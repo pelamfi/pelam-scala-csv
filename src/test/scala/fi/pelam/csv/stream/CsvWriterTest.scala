@@ -1,8 +1,8 @@
-package fi.pelam.csv
+package fi.pelam.csv.stream
 
 import com.google.common.base.Charsets
 import com.google.common.io.{CharStreams, Resources}
-import fi.pelam.csv.cell.{StringCell, CellKey}
+import fi.pelam.csv.cell.{CellKey, StringCell}
 import org.junit.Assert._
 import org.junit.Test
 

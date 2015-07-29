@@ -1,14 +1,18 @@
 package fi.pelam.csv.cell
 
 /**
- * Base class for cell objects used in this CSV library.
+ * Base class for cells used in this CSV library.
  *
  * The two main APIs of this library
- * [[fi.pelam.csv.TableReader the table oriented]] and the [[fi.pelam.csv.CsvReader stream oriented]]
+ * [[fi.pelam.csv.table.TableReader the table oriented]] and the [[fi.pelam.csv.stream.CsvReader stream oriented]]
  * use subclasses of this class to represent the data.
  *
- * [[fi.pelam.csv.CsvReader CsvReader]] outputs instances of
- * [[fi.pelam.csv.cell.StringCell StringCell]] which is subclass of this class.
+ * One important use for this class is in [[fi.pelam.csv.stream.CsvReader CsvReader]].
+ * CsvReader outputs instances of [[fi.pelam.csv.cell.StringCell StringCell]] which is
+ * a subclass of this class.
+
+ * @see See the documentation of cellKey member below for design rationale
+ *     on having coordinates in each cell.
  */
 abstract class Cell {
 

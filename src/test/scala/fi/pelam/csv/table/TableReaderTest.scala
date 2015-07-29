@@ -1,18 +1,16 @@
-package fi.pelam.csv
+package fi.pelam.csv.table
 
 import java.io.ByteArrayInputStream
-import java.nio.charset.StandardCharsets._
 import java.util.Locale
 
 import com.google.common.base.Charsets
 import com.google.common.io.{ByteSource, Resources}
 import fi.pelam.csv.cell._
+import fi.pelam.csv.table.TestColType._
+import fi.pelam.csv.table.TestRowType._
+import fi.pelam.csv.util.SortedBiMap
 import org.junit.Assert._
 import org.junit.Test
-import TestRowType._
-import TestColType._
-
-import scala.collection.immutable.SortedMap
 
 class TableReaderTest {
   val headerAndCommentsOnly = "ColumnHeader,CommentCol,CommentCol,CommentCol,CommentCol\n" +
@@ -112,7 +110,7 @@ class TableReaderTest {
 
     assertEquals(Locale.ROOT, table.dataLocale)
 
-    val expectedIntegerCell = IntegerCell.fromString(CellKey(2, 4), Locale.ROOT, "12000").right.get
+    val expectedIntegerCell = IntegerCell.parse(CellKey(2, 4), Locale.ROOT, "12000").right.get
 
     assertEquals(IndexedSeq(expectedIntegerCell), cells)
   }
@@ -129,7 +127,7 @@ class TableReaderTest {
     } catch {
       case e: Exception => {
         assertEquals("Failed to parse data in some cells and or identify language/locale.\n" +
-          "Expected integer, but input 'injected-error-should-be-number' could not be " +
+          "Error parsing cell content: Expected integer, but input 'injected-error-should-be-number' could not be " +
           "fully parsed with locale 'fi'. CellType(Worker,Salary) Cell containing " +
           "'injected-error-should-be-number' at Row 3, Column E (4)\n", e.getMessage())
       }

@@ -1,9 +1,10 @@
-package fi.pelam.csv
+package fi.pelam.csv.stream
 
 import fi.pelam.csv.cell.CellKey
 
 /**
- * [[CsvReader]] produces these in various situations when it can't understand the input CSV data.
+ * [[fi.pelam.csv.stream.CsvReader CsvReader]] produces these in various situations
+ * when it can't understand the input CSV data.
  *
  * @param message is a descriptive message.
  * @param at last known coordinates in CSV data (or corresponding spreadsheet).

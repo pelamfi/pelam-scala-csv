@@ -1,12 +1,12 @@
-package fi.pelam.csv
+package fi.pelam.csv.table
 
 import java.io.BufferedReader
-import java.nio.charset.{Charset, StandardCharsets}
+import java.nio.charset.StandardCharsets
 import java.util.Locale
 
-import fi.pelam.csv.cell.{StringCell, Cell}
-
-import scala.collection.SortedMap
+import fi.pelam.csv.CsvConstants
+import fi.pelam.csv.cell.{CellParsingError, CellParser, Cell}
+import fi.pelam.csv.stream.CsvReader
 
 /**
  * This class is part of the the higher level api for reading, writing and processing CSV data.
@@ -19,7 +19,9 @@ import scala.collection.SortedMap
  * @param openInputStream
  * @param rowTypeDefinition
  * @param colTypeDefinition
- * @param cellTypes map from [[CellType]] to [[CellUpgrade]] instances. Use this to get more specialied [[fi.pelam.csv.cell.Cell]] instances than the simple [[fi.pelam.csv.cell.StringCell]].
+ * @param cellTypes map from [[CellType]] to [[fi.pelam.csv.cell.CellParser CellParser]] instances. Use this to get more
+ *                  specialized [[fi.pelam.csv.cell.Cell Cell]] instances than the simple
+ *                  [[fi.pelam.csv.cell.StringCell StringCell]].
  * @param locales
  * @tparam RT
  * @tparam CT
@@ -105,12 +107,12 @@ class TableReader[RT, CT](val openInputStream: () => java.io.InputStream,
     val upgraded = for (cellType: CellType[RT, CT] <- detectedCellTypes.getCellType(cell);
                         factory <- cellTypes.lift(cellType)) yield {
 
-      val result = factory.fromString(cell.cellKey, locale, cell.serializedString)
+      val result = factory.parse(cell.cellKey, locale, cell.serializedString)
 
       result match {
         // Add cell and cell type to possible error message
-        case Left(error: TableReadingError) => Left(error.addedDetails(cell, s" $cellType"))
-        case cell => cell
+        case Left(error: CellParsingError) => Left(TableReadingError(error, cell, cellType))
+        case Right(cell) => Right(cell)
       }
     }
 
@@ -162,7 +164,7 @@ object TableReader {
 
   type ColTyper[RT, CT] = PartialFunction[(Cell, CellTypes[RT, CT]), TyperOutput[CT]]
 
-  type CellUpgrades[RT, CT] = PartialFunction[CellType[RT, CT], CellUpgrade]
+  type CellUpgrades[RT, CT] = PartialFunction[CellType[RT, CT], CellParser]
 
   case class CellUpgradeAndLocaleResults(locale: Locale,
     errors: IndexedSeq[TableReadingError] = IndexedSeq(),

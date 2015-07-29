@@ -1,15 +1,13 @@
-package fi.pelam.csv
-
-import fi.pelam.csv.cell.Cell
+package fi.pelam.csv.table
 
 /**
- * The "type" of a cell in a [[Table]] is considered a pair of objects each
- * identifying the row type and column type respectively.
+ * The "type" of a cell in a [[Table Table]] is considered a pair of objects each
+ * identifying the row type and the column type respectively.
  * <p>
- * This type concept should not be confused with general scala types. Cell, row and column
+ * This type concept should not be confused with general scala types. Row and column
  * types typically just some suitable (case) objects defined by the client code.
  * <p>
- * Cell types are used in [[TableReader]] to map which actual subtypes of [[fi.pelam.csv.cell.Cell]] should
+ * Cell types are used in [[TableReader]] to map which actual subtypes of [[fi.pelam.csv.cell.Cell Cell]] should
  * be used for each position in table.
  *
  * @param rowType instance of row type defined by client code.

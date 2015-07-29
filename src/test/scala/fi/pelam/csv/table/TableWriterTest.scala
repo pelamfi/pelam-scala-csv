@@ -1,4 +1,4 @@
-package fi.pelam.csv
+package fi.pelam.csv.table
 
 import java.io.ByteArrayOutputStream
 

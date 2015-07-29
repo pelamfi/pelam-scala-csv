@@ -1,4 +1,4 @@
-package fi.pelam.csv
+package fi.pelam.csv.table
 
 import java.nio.charset.Charset
 import java.util.Locale
@@ -6,7 +6,6 @@ import java.util.Locale
 import fi.pelam.csv.cell._
 
 import scala.collection.SortedMap
-import scala.collection.immutable.TreeMap
 
 object Table {
 
@@ -83,7 +82,7 @@ case class Table[RT, CT] private (charset: Charset,
   /**
    * Locale used in encoding eg. integer values into cells.
    *
-   * This locale is mostly used via individual Cell types like [[fi.pelam.csv.cell.IntegerCell]]
+   * This locale is mostly used via individual Cell types like [[fi.pelam.csv.cell.IntegerCell IntegerCell]]
    * which contain individual reference to the same Locale.
    */
   dataLocale: Locale,
@@ -97,8 +96,6 @@ case class Table[RT, CT] private (charset: Charset,
   for (row <- cells) {
     require(row.size == colCount, s"Same number of columns required for reach row. ${row.size} vs ${colCount}")
   }
-
-  import Table._
 
   def rowTypes = cellTypes.rowTypes
 

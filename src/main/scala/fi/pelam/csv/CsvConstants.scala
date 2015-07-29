@@ -2,6 +2,9 @@ package fi.pelam.csv
 
 import java.nio.charset.StandardCharsets
 
+/**
+ * This object contains some common CSV data related constants.
+ */
 object CsvConstants {
 
   /**

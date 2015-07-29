@@ -1,10 +1,10 @@
 package fi.pelam.csv.cell
 
 /**
- * Coordinates of a [[fi.pelam.csv.cell.Cell]] in a [[Table]].
+ * Coordinates of a [[fi.pelam.csv.cell.Cell Cell]] in a CSV "table".
  *
- * Basically a composition of [[fi.pelam.csv.cell.RowKey]] and [[fi.pelam.csv.cell.ColKey]] or alternatively
- * two zero based integers [[rowIndex]] and [[colIndex]].
+ * Basically a composition of [[fi.pelam.csv.cell.RowKey RowKey]] and [[fi.pelam.csv.cell.ColKey ColKey]]
+ * or alternatively just two zero based integers [[rowIndex]] and [[colIndex]].
  *
  * [[fi.pelam.csv.cell.Cell]] has a CellKey as a member.
  *

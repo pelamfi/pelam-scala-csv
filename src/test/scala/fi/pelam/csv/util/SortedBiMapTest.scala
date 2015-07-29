@@ -1,4 +1,4 @@
-package fi.pelam.csv
+package fi.pelam.csv.util
 
 import org.junit.Assert._
 import org.junit._

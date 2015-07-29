@@ -1,4 +1,4 @@
-package fi.pelam.csv
+package fi.pelam.csv.stream
 
 import com.google.common.base.Charsets
 import com.google.common.io.Resources
