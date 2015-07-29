@@ -110,7 +110,7 @@ class TableReaderTest {
 
     assertEquals(Locale.ROOT, table.dataLocale)
 
-    val expectedIntegerCell = IntegerCell.deserialize(CellKey(2, 4), Locale.ROOT, "12000").right.get
+    val expectedIntegerCell = IntegerCell.parse(CellKey(2, 4), Locale.ROOT, "12000").right.get
 
     assertEquals(IndexedSeq(expectedIntegerCell), cells)
   }

@@ -1,10 +1,10 @@
 package fi.pelam.csv.table
 
-import fi.pelam.csv.cell.{CellParsingError, CellDeserializer, Cell}
+import fi.pelam.csv.cell.{CellParsingError, CellParser, Cell}
 
 /**
  * - Various phases in [[TableReader]] produce these when building a Table object from input fails.
- * - [[CellDeserializer]] errors are converted to these errors in [[TableReader]].
+ * - [[CellParser]] errors are converted to these errors in [[TableReader]].
  */
 case class TableReadingError(msg: String, cell: Option[Cell] = None) {
 

@@ -22,9 +22,9 @@ case class StringCell(override val cellKey: CellKey,
   override def toString() = s"Cell containing '$serializedString' at $cellKey"
 }
 
-object StringCell extends CellDeserializer {
+object StringCell extends CellParser {
 
-  override def deserialize(cellKey: CellKey, locale: Locale, input: String): Either[CellParsingError, StringCell] = {
+  override def parse(cellKey: CellKey, locale: Locale, input: String): Either[CellParsingError, StringCell] = {
     Right(StringCell(cellKey, input))
   }
 }

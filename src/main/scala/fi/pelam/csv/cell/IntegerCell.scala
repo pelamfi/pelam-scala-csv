@@ -10,7 +10,7 @@ import java.util.Locale
  * of [[fi.pelam.csv.cell.Cell]].
  *
  * The IntegerCell class it self is quite simple, but the companion object is more
- * interesting as it implements the [[CellDeserializer]] trait and acts as a factory
+ * interesting as it implements the [[CellParser]] trait and acts as a factory
  * which produces IntegerCell instances (or errors if parsing fails) from String data.
  *
  * @constructor Create a new instance of CSV cell holding an integer. Also see companion object.
@@ -32,16 +32,16 @@ case class IntegerCell(override val cellKey: CellKey,
 
 /**
  * The IntegerCell class it self is quite simple, but this companion object is more
- * interesting as it implements the [[CellDeserializer]] trait and acts as a factory
+ * interesting as it implements the [[CellParser]] trait and acts as a factory
  * which produces IntegerCell instances (or errors if parsing fails) from String data.
  *
  * This companion object can be used as an argument to [[fi.pelam.csv.table.TableReader.cellTypes TableReader]]
  * to specify which cells should be interpreted as containing integers.
  */
 // TODO: Is there a scaladoc way to refer to cellTypes in TableReader?
-object IntegerCell extends CellDeserializer {
+object IntegerCell extends CellParser {
 
-  override def deserialize(cellKey: CellKey, locale: Locale, input: String): Either[CellParsingError, IntegerCell] = {
+  override def parse(cellKey: CellKey, locale: Locale, input: String): Either[CellParsingError, IntegerCell] = {
 
     // TODO: Refactor, make the numberFormat somehow client code configurable.
     val numberFormat: java.text.NumberFormat = NumberFormat.getInstance(locale)

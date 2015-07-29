@@ -1,7 +1,7 @@
 package fi.pelam.csv.cell
 
 /**
- * A base class for client defined [[fi.pelam.csv.cell.Cell Cell]] factories
+ * A base class for client defined [[fi.pelam.csv.cell.Cell Cell]] parsers
  * which construct cells from strings.
  *
  * == Use of this class in [[fi.pelam.csv.table.TableReader TableReader]] ==
@@ -17,6 +17,6 @@ package fi.pelam.csv.cell
  * Another function that can be performed at the same time is validating that the contents of the cells against
  * client specified requirements.
  */
-abstract class CellDeserializer {
-  def deserialize(cellKey: CellKey, locale: java.util.Locale, input: String): Either[CellParsingError, Cell]
+abstract class CellParser {
+  def parse(cellKey: CellKey, locale: java.util.Locale, input: String): Either[CellParsingError, Cell]
 }

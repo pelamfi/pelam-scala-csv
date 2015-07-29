@@ -5,7 +5,7 @@ import java.nio.charset.StandardCharsets
 import java.util.Locale
 
 import fi.pelam.csv.CsvConstants
-import fi.pelam.csv.cell.{CellParsingError, CellDeserializer, Cell}
+import fi.pelam.csv.cell.{CellParsingError, CellParser, Cell}
 import fi.pelam.csv.stream.CsvReader
 
 /**
@@ -19,7 +19,7 @@ import fi.pelam.csv.stream.CsvReader
  * @param openInputStream
  * @param rowTypeDefinition
  * @param colTypeDefinition
- * @param cellTypes map from [[CellType]] to [[CellDeserializer]] instances. Use this to get more
+ * @param cellTypes map from [[CellType]] to [[CellParser]] instances. Use this to get more
  *                  specialized [[fi.pelam.csv.cell.Cell Cell]] instances than the simple
  *                  [[fi.pelam.csv.cell.StringCell StringCell]].
  * @param locales
@@ -107,7 +107,7 @@ class TableReader[RT, CT](val openInputStream: () => java.io.InputStream,
     val upgraded = for (cellType: CellType[RT, CT] <- detectedCellTypes.getCellType(cell);
                         factory <- cellTypes.lift(cellType)) yield {
 
-      val result = factory.deserialize(cell.cellKey, locale, cell.serializedString)
+      val result = factory.parse(cell.cellKey, locale, cell.serializedString)
 
       result match {
         // Add cell and cell type to possible error message
@@ -164,7 +164,7 @@ object TableReader {
 
   type ColTyper[RT, CT] = PartialFunction[(Cell, CellTypes[RT, CT]), TyperOutput[CT]]
 
-  type CellUpgrades[RT, CT] = PartialFunction[CellType[RT, CT], CellDeserializer]
+  type CellUpgrades[RT, CT] = PartialFunction[CellType[RT, CT], CellParser]
 
   case class CellUpgradeAndLocaleResults(locale: Locale,
     errors: IndexedSeq[TableReadingError] = IndexedSeq(),
