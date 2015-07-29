@@ -4,7 +4,6 @@ import java.io.{Reader, StringReader}
 
 import fi.pelam.csv.CsvConstants
 import fi.pelam.csv.cell.StringCell
-import fi.pelam.csv.table.TableReader
 
 /**
  * This class is part of the lower level API for processing CSV data.
@@ -20,7 +19,7 @@ import fi.pelam.csv.table.TableReader
  * Actual parsing is delegated to [[CsvReaderInternal]]. This class
  * just implements the Scala iterator interface on top of [[CsvReaderInternal]].
  *
- * @see [[TableReader TableReader for a friendlier non streaming API.]]
+ * @see [[fi.pelam.csv.table.TableReader TableReader for a friendlier non streaming API.]]
  *
  * @param input  Input can be string or [[http://docs.oracle.com/javase/8/docs/api/java/io/Reader.html java.io.Reader]].
  *               Be mindful of the character set.
