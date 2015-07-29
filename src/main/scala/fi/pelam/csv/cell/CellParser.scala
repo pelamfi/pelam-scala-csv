@@ -6,10 +6,10 @@ package fi.pelam.csv.cell
  *
  * == Use of this class in [[fi.pelam.csv.table.TableReader TableReader]] ==
  *
- * These factories are used in [[fi.pelam.csv.table.TableReader TableReader]].
- * The factories are invoked based on [[fi.pelam.csv.table.CellType CellTypes]] of each cell.
+ * These parser are used in [[fi.pelam.csv.table.TableReader TableReader]].
+ * The parsers are invoked based on [[fi.pelam.csv.table.CellType CellTypes]] of each cell.
  *
- * The factory can then replace the cell with an instance of another subclass of [[fi.pelam.csv.cell.Cell Cell]].
+ * The parser can then replace the cell with an instance of another subclass of [[fi.pelam.csv.cell.Cell Cell]].
  * The purpose of the mechanism in [[fi.pelam.csv.table.TableReader TableReader]] is to upgrade the
  * cells from simple [[fi.pelam.csv.cell.StringCell StringCell]]s to more specialized subclasses of
  * [[fi.pelam.csv.cell.Cell Cell]] like the [[fi.pelam.csv.cell.IntegerCell IntegerCell]].
