@@ -11,7 +11,7 @@ import fi.pelam.csv.table.TableReader
  *
  *  - [[fi.pelam.csv.stream.CsvReader The first API]] is a simple streaming api for converting a CSV file to and from a stream of StringCell objects.
  *   - Reading a CSV file is done with a Scala Iterator interface
- *  - [[TableReader Second API]] is richer and is based on a more high level Table object.
+ *  - [[fi.pelam.csv.table.TableReader Second API]] is richer and is based on a more high level Table object.
  *   - Contains some type information on rows and columns
  *   - Allows having some regions represented with smarter and custom Cell types (like your own date cell)
  *   - Autodetection of CSV format details
