@@ -1,10 +1,12 @@
 package fi.pelam.csv.cell
 
+import fi.pelam.csv.table.TableReader
+
 /**
  * Base class for cells used in this CSV library.
  *
  * The two main APIs of this library
- * [[fi.pelam.csv.TableReader the table oriented]] and the [[fi.pelam.csv.stream.CsvReader stream oriented]]
+ * [[TableReader the table oriented]] and the [[fi.pelam.csv.stream.CsvReader stream oriented]]
  * use subclasses of this class to represent the data.
  *
  * One important use for this class is in [[fi.pelam.csv.stream.CsvReader CsvReader]].

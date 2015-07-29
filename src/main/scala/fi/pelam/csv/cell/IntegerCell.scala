@@ -3,7 +3,8 @@ package fi.pelam.csv.cell
 import java.text.{NumberFormat, ParseException, ParsePosition}
 import java.util.Locale
 
-import fi.pelam.csv.{CellUpgrade, TableReadingError}
+import fi.pelam.csv.table.{TableReadingError, CellUpgrade, TableReader}
+import fi.pelam.csv.TableReadingError
 
 /**
  * Basically a sample implementation of a more specialised subtype of [[fi.pelam.csv.cell.Cell]].
@@ -37,7 +38,7 @@ case class IntegerCell(override val cellKey: CellKey,
  * interesting as it implements the [[CellUpgrade]] trait and acts as a factory
  * which produces IntegerCell instances (or errors if parsing fails) from String data.
  *
- * This companion object can be used as an argument to [[fi.pelam.csv.TableReader.cellTypes]]
+ * This companion object can be used as an argument to [[TableReader.cellTypes]]
  * to specify which cells should be interpreted as containing integers.
  */
 // TODO: Is there a scaladoc way to refer to cellTypes in TableReader?

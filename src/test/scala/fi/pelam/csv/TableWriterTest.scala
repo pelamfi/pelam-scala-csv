@@ -4,6 +4,7 @@ import java.io.ByteArrayOutputStream
 
 import com.google.common.base.Charsets
 import com.google.common.io.{ByteSource, Resources}
+import fi.pelam.csv.table.{TableWriter, TableReader}
 import org.junit.Assert._
 import org.junit.Test
 

@@ -1,13 +1,12 @@
-package fi.pelam.csv
+package fi.pelam.csv.table
 
 import java.io.BufferedReader
-import java.nio.charset.{Charset, StandardCharsets}
+import java.nio.charset.StandardCharsets
 import java.util.Locale
 
-import fi.pelam.csv.cell.{StringCell, Cell}
+import fi.pelam.csv.CsvConstants
+import fi.pelam.csv.cell.Cell
 import fi.pelam.csv.stream.CsvReader
-
-import scala.collection.SortedMap
 
 /**
  * This class is part of the the higher level api for reading, writing and processing CSV data.
@@ -20,7 +19,9 @@ import scala.collection.SortedMap
  * @param openInputStream
  * @param rowTypeDefinition
  * @param colTypeDefinition
- * @param cellTypes map from [[CellType]] to [[CellUpgrade]] instances. Use this to get more specialied [[fi.pelam.csv.cell.Cell]] instances than the simple [[fi.pelam.csv.cell.StringCell]].
+ * @param cellTypes map from [[CellType]] to [[CellUpgrade]] instances. Use this to get more
+ *                  specialized [[fi.pelam.csv.cell.Cell Cell]] instances than the simple
+ *                  [[fi.pelam.csv.cell.StringCell StringCell]].
  * @param locales
  * @tparam RT
  * @tparam CT

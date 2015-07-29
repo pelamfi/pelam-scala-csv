@@ -1,13 +1,9 @@
-package fi.pelam.csv
+package fi.pelam.csv.table
 
-import java.io.BufferedReader
-import java.nio.charset.StandardCharsets
 import java.util.Locale
 
-import fi.pelam.csv.cell.{AxisKey, Cell, RowKey, ColKey}
+import fi.pelam.csv.cell.{AxisKey, Cell, ColKey, RowKey}
 import fi.pelam.csv.util.SortedBiMap
-
-import scala.collection.SortedMap
 
 /**
  * This class is used internally by this CSV package to track mapping of rows and columns to their

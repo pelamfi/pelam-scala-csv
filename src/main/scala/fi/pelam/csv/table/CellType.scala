@@ -1,9 +1,9 @@
-package fi.pelam.csv
+package fi.pelam.csv.table
 
-import fi.pelam.csv.cell.Cell
+import fi.pelam.csv.table.Table
 
 /**
- * The "type" of a cell in a [[fi.pelam.csv.Table Table]] is considered a pair of objects each
+ * The "type" of a cell in a [[Table Table]] is considered a pair of objects each
  * identifying the row type and the column type respectively.
  * <p>
  * This type concept should not be confused with general scala types. Row and column

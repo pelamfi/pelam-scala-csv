@@ -1,4 +1,4 @@
-package fi.pelam.csv
+package fi.pelam.csv.table
 
 import java.io.OutputStreamWriter
 
@@ -16,8 +16,10 @@ class TableWriter[RT, CT](table: Table[RT, CT]) {
 
     csvWriter.write(cells)
 
+    // Add the final line end
     csvWriter.goToNextRow()
 
+    // TODO: Make sure streams are closed if exception is thrown
     writer.close()
 
     output.close()
