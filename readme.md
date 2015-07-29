@@ -7,7 +7,7 @@ See History section below...
 Scala library for reading and writing CSV data. 
 
 Main points
------------
+===========
 
   * Two levels of APIs for both input and output
 
@@ -29,18 +29,22 @@ Main points
 
 License
 =======
+
 TODO, some permissive license
 
 Maven coordinates
 =================
+
 TBD
 
 Quick examples
 ==============
+
 TBD
 
 Demo application
 ================
+
 TBD
 
 TODO list
@@ -57,6 +61,7 @@ TODO list
 
 History of this project
 =======================
+
 This CSV code was originally developed as an IO solution for a custom project called Ahma.
 I broke it off from Ahma as I felt that this had a tiny chance of becoming a generally useful
 open source Scala library. The history up to around June 28th 2015 is pretty broken (won't compile etc.) due
