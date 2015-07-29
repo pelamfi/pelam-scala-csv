@@ -4,6 +4,8 @@ import java.io.BufferedReader
 import java.nio.charset.{Charset, StandardCharsets}
 import java.util.Locale
 
+import fi.pelam.csv.cell.{StringCell, Cell}
+
 import scala.collection.SortedMap
 
 object TableReader2 {
@@ -138,7 +140,7 @@ class TableReader2[RT, CT, M <: TableMetadata](
  * @param openInputStream
  * @param rowTypeDefinition
  * @param colTypeDefinition
- * @param cellTypes map from [[CellType]] to [[CellUpgrade]] instances. Use this to get more specialied [[Cell]] instances than the simple [[StringCell]].
+ * @param cellTypes map from [[CellType]] to [[CellUpgrade]] instances. Use this to get more specialied [[fi.pelam.csv.cell.Cell]] instances than the simple [[fi.pelam.csv.cell.StringCell]].
  * @param locales
  * @tparam RT
  * @tparam CT

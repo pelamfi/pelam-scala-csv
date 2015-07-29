@@ -1,6 +1,8 @@
 package fi.pelam.csv
 
-import java.io.StringReader
+import java.io.{Reader, StringReader}
+
+import fi.pelam.csv.cell.{CellKey, StringCell}
 
 /**
  * State machine based CSV parser which has single method interface which returns
@@ -10,19 +12,13 @@ import java.io.StringReader
  *
  * @param input stream to read CSV from. Input is read on as needed basis and closed if stream end is encountered.
  * @param separator separator char to use.
+ *
+ * @constructor create a parser from [[http://docs.oracle.com/javase/8/docs/api/java/io/Reader.html java.io.Reader]]
+ *             and a separator character.
  */
-final class CsvReaderInternal(input: java.io.Reader, val separator: Char) {
+final class CsvReaderInternal(input: Reader, val separator: Char) {
 
-  import CsvReader._
-
-  def this(input: String, separator: Char = CsvConstants.defaultSeparatorChar) = {
-    this(new StringReader(input), separator)
-  }
-
-  def this(reader: java.io.Reader) = {
-    this(reader, CsvConstants.defaultSeparatorChar)
-  }
-
+  import CsvReaderInternal._
 
   private[this] var line: Int = 0
 
@@ -89,7 +85,7 @@ final class CsvReaderInternal(input: java.io.Reader, val separator: Char) {
     }
     case '\r' | '\n' | ';' => {
       state = ErrorState
-      Some(Left(CsvReaderError(s"Unclosed quote on line $line", cellKey)))
+      Some(Left(CsvReaderError("Unclosed quote", cellKey)))
     }
     case _ => {
       cellContentBuffer.append(char.asInstanceOf[Char])
@@ -210,7 +206,8 @@ final class CsvReaderInternal(input: java.io.Reader, val separator: Char) {
       } else if (state == StreamEnd) {
         return None
       } else if (state == ErrorState) {
-        return Some(Left(CsvReaderError("CsvReader has encountered error.", cellKey)))
+        // Error state behaves like StreamEnd
+        return None
       }
 
       // Loop until we can emit cell, input stream exhausted or error has been encountered
@@ -218,4 +215,100 @@ final class CsvReaderInternal(input: java.io.Reader, val separator: Char) {
 
     sys.error("Will never get here")
   }
+}
+
+final object CsvReaderInternal {
+
+  /**
+   * Base class for the finite state machine states
+   * used in the parser.
+   */
+  sealed abstract class State
+
+  /**
+   * A "Zero width" initial state of the state machine.
+   *
+   * If input ends while in this state, zero cells will be emitted.
+   */
+  case object StreamStart extends State
+
+  /**
+   * Zero width initial state for each cell from where we go to [[CellContent]]
+   *
+   * Used to handle case where final line ends without termination.
+   */
+  case object CellStart extends State
+
+  /**
+   * Parsing a position inside a cell and collecting data to emit
+   * the corresponding [[fi.pelam.csv.cell.StringCell]] object.
+   *
+   * From this state the state machine transitions to
+   * [[QuotedCellContent]], [[LineEnd]] or [[CellEnd]].
+   */
+  case object CellContent extends State
+
+  /**
+   * Parsing a position inside a cell and collecting data to emit
+   * the corresponding [[fi.pelam.csv.cell.StringCell]] object.
+   *
+   * The difference to ordinary [[CellContent]] state is that
+   * a quote has been encountered.
+   *
+   * A cell may contain multiple quoted sections, although usually
+   * the whole cell content is quoted or none.
+   */
+  case object QuotedCellContent extends State
+
+  /**
+   * State machine transitions to this state from state
+   * [[QuotedCellContent]] when the quote character is encountered.
+   * If it is just a lone quote, the quoted section ends.
+   *
+   * However, two quote characters together are interpreted as an escaped
+   * quote character. At least Excel and Google Docs seem to adhere
+   * to this convention.
+   *
+   * This state exists to allow separating these two cases.
+   */
+  case object PossibleEndQuote extends State
+
+  /**
+   * Cell content is ready. Emit the [[fi.pelam.csv.cell.StringCell]] object.
+   */
+  case object CellEnd extends State
+
+  /**
+   * This is a state for handling CR LF style line termination.
+   */
+  case object CarriageReturn extends State
+
+  /**
+   * A state signaling that current line has ended.
+   */
+  case object LineEnd extends State
+
+  /**
+   * Final state that signals that input stream has been exhausted and no more
+   * cells will be emitted.
+   *
+   * Subsequent calls to read will produce None.
+   */
+  case object StreamEnd extends State
+
+  /**
+   * Parser won't continue after encountering first error.
+   *
+   * Subsequent calls to read will produce None.
+   *
+   * Parser will then remain in this state.
+   */
+  case object ErrorState extends State
+
+  /**
+   * The type of of output of this class.
+   *
+   * Errors are separated by using Scala's Either type.
+   */
+  type CellOrError = Either[CsvReaderError, StringCell]
 }

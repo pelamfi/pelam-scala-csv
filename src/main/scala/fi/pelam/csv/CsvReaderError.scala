@@ -1,5 +1,7 @@
 package fi.pelam.csv
 
+import fi.pelam.csv.cell.CellKey
+
 /**
  * [[CsvReader]] produces these in various situations when it can't understand the input CSV data.
  *

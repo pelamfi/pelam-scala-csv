@@ -6,6 +6,7 @@ import java.util.Locale
 
 import com.google.common.base.Charsets
 import com.google.common.io.{ByteSource, Resources}
+import fi.pelam.csv.cell._
 import org.junit.Assert._
 import org.junit.Test
 import TestRowType._

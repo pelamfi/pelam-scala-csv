@@ -4,6 +4,8 @@ import java.io.BufferedReader
 import java.nio.charset.StandardCharsets
 import java.util.Locale
 
+import fi.pelam.csv.cell.{AxisKey, Cell, RowKey, ColKey}
+
 import scala.collection.SortedMap
 
 /**

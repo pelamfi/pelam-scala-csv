@@ -1,13 +1,15 @@
-package fi.pelam.csv
+package fi.pelam.csv.cell
 
-import java.text.{ParseException, NumberFormat, ParsePosition}
+import java.text.{NumberFormat, ParseException, ParsePosition}
 import java.util.Locale
 
+import fi.pelam.csv.{CellUpgrade, TableReadingError}
+
 /**
- * Basically a sample implementation of a more specialised subtype of [[Cell]].
+ * Basically a sample implementation of a more specialised subtype of [[fi.pelam.csv.cell.Cell]].
  *
  * It is expected that any nontrivial client will want to specify its own subtypes
- * of [[Cell]].
+ * of [[fi.pelam.csv.cell.Cell]].
  *
  * The IntegerCell class it self is quite simple, but the companion object is more
  * interesting as it implements the [[CellUpgrade]] trait and acts as a factory

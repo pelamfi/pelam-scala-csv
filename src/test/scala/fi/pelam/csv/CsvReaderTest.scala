@@ -2,6 +2,7 @@ package fi.pelam.csv
 
 import com.google.common.base.Charsets
 import com.google.common.io.Resources
+import fi.pelam.csv.cell.{CellKey, StringCell}
 import org.junit.Assert._
 import org.junit.Test
 
@@ -25,6 +26,28 @@ class CsvReaderTest {
   def testParseIndices: Unit = {
     val parsed = new CsvReader(csv3Cells).raiseOnError.toIndexedSeq
     assertEquals("(0,0)\n(0,1)\n(1,0)\n", parsed.foldLeft("")(_ + _.cellKey.indices + "\n"))
+  }
+
+  def testIteratorEnd: Unit = {
+    val reader = new CsvReader(csv3Cells)
+
+    reader.next()
+    reader.next()
+    reader.next()
+
+    assertFalse(reader.hasNext)
+  }
+
+  @Test(expected = classOf[NoSuchElementException])
+  def testNoSuchElementException: Unit = {
+    val reader = new CsvReader(csv3Cells)
+
+    reader.next()
+    reader.next()
+    reader.next()
+
+    // This should throw
+    reader.next()
   }
 
   @Test
@@ -124,6 +147,27 @@ class CsvReaderTest {
         throw e
       }
     }
+  }
+
+  @Test
+  def testErrorState: Unit = {
+    val reader = new CsvReader("\"foo")
+
+    assertTrue(reader.hasNext)
+
+    assertEquals(Left(CsvReaderError("Input stream ended while processing quoted characters.", CellKey(0,0))),
+      reader.next())
+
+    assertFalse(reader.hasNext)
+  }
+
+  @Test(expected = classOf[NoSuchElementException])
+  def testNoSuchElementExceptionAfterError: Unit = {
+    val reader = new CsvReader("\"foo")
+
+    reader.next()
+
+    reader.next() // This should throw
   }
 
   @Test

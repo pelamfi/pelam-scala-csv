@@ -2,39 +2,47 @@ package fi.pelam.csv
 
 import java.io.{Reader, StringReader}
 
+import fi.pelam.csv.cell.StringCell
+
 /**
  * This class is part of the lower level API for processing CSV data.
  * This is a CSV parser that produces the data through the
- * [[http://www.scala-lang.org/api/current/index.html#scala.collection.Iterator scala.collection.Iterator]] traut.
- * The data is read into a sequence of [[StringCell]] instances.
- * [[StringCell]]s can be written back to disk with [[CsvWriter]].
+ * [[http://www.scala-lang.org/api/current/index.html#scala.collection.Iterator scala.collection.Iterator]] trait.
+ * The data is read into a sequence of [[fi.pelam.csv.cell.StringCell]] instances.
+ * [[fi.pelam.csv.cell.StringCell]]s can be written back to disk with [[CsvWriter]].
  *
- * Does parsing in streaming fashion ie. you could even handle files
- * larger that what would fit in memory.
+ * This class does parsing in streaming fashion ie. you should be able to
+ * handle files larger than what can fit in RAM, though this has
+ * not been tested yet.
  *
  * Actual parsing is delegated to [[CsvReaderInternal]]. This class
- * just implements the Scala iterator interface on top of it.
+ * just implements the Scala iterator interface on top of [[CsvReaderInternal]].
  *
- * @see [[TableReader for a friendlier non streaming API.]]
+ * @see [[TableReader TableReader for a friendlier non streaming API.]]
  *
  * @param input  Input can be string or [[http://docs.oracle.com/javase/8/docs/api/java/io/Reader.html java.io.Reader]].
  *               Be mindful of the character set.
  *
  * @param separator Optional non-default separator character
+ *
+ * @constructor Create a new reader while specifying the separator character.
  */
 // TODO: Code example for CsvReader
-final class CsvReader(input: Reader, val separator: Char) extends Iterator[CsvReader.CellOrError] {
+final class CsvReader (input: Reader, val separator: Char) extends Iterator[CsvReader.CellOrError] {
 
   import CsvReader._
 
   /**
-   * Alternate constructor for CsvReader providing string input.
-   * This exists mainly to make tests and code examples shorter.
+   * Alternate constructor for CsvReader providing string input and optionally specifying
+   * separator character.
+   *
+   * This alternate constructor exists mainly to make tests and code examples shorter.
    */
-  def this(inputString: String, separator: Char = CsvConstants.defaultSeparatorChar) = this(new StringReader(inputString), separator)
+  def this(inputString: String, separator: Char = CsvConstants.defaultSeparatorChar) =
+    this(new StringReader(inputString), separator)
 
   /**
-   * Alternate constructor using default separator which is comma.
+   * Alternate constructor for just using default separator which is comma.
    */
   def this(input: Reader) = this(input, CsvConstants.defaultSeparatorChar)
 
@@ -51,8 +59,10 @@ final class CsvReader(input: Reader, val separator: Char) extends Iterator[CsvRe
 
   def nextOption(): Option[CellOrError] = {
     val prereadCell = cell
+
     // Read next cell, so hasNext can work
     cell = internal.read()
+
     prereadCell
   }
 
@@ -69,62 +79,9 @@ final class CsvReader(input: Reader, val separator: Char) extends Iterator[CsvRe
 
 final object CsvReader {
 
-  sealed abstract class State
-
   /**
-   * "Zero width" initial state. If input ends here, zero cells will be emitted
+   * The type of output of this class. Matches the type [[CsvReaderInternal.CellOrError]].
    */
-  case object StreamStart extends State
+  type CellOrError = CsvReaderInternal.CellOrError
 
-  /**
-   * Zero width initial state for each cell from where we go to CellContent
-   *
-   * Used to handle case where final line ends without termination.
-   */
-  case object CellStart extends State
-
-  /**
-   * Within cell collecting data to emit cell. From this state we go to Quoted, Line or EndCell
-   */
-  case object CellContent extends State
-
-  /**
-   * Within cell collecting data to emit cell, but with quotes opened.
-   */
-  case object QuotedCellContent extends State
-
-  /**
-   * Double quotes is quote character, single quote ends quotes.
-   * This state checks which it is.
-   */
-  case object PossibleEndQuote extends State
-
-  /**
-   * Cell content ready. Emit cell.
-   */
-  case object CellEnd extends State
-
-  /**
-   * For handling CR LF style line termination
-   */
-  case object CarriageReturn extends State
-
-  /**
-   * Line end encountered
-   */
-  case object LineEnd extends State
-
-  /**
-   * Final state that signals that input stream has been exhausted and no more
-   * cells will be emitted.
-   */
-  case object StreamEnd extends State
-
-  /**
-   * Parser won't continue after encountering first error.
-   * Parser will then remain in this state.
-   */
-  case object ErrorState extends State
-
-  type CellOrError = Either[CsvReaderError, StringCell]
 }

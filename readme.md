@@ -52,7 +52,8 @@ TODO list
   * TODO: Some simple demo project
   * TODO: Mark classes not intended to be extended final.
   * TODO: Companion objects should be after the class. 
-  * TODO: Add @constructor scaladoc tags where needed in class scaladocs
+  * TODO: Add @constructor scaladoc tags where needed in class scaladocs.
+  * TODO: Try to reduce dependencies of the final artifact.
 
 History of this project
 =======================

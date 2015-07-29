@@ -1,6 +1,7 @@
 package fi.pelam.csv
 
 import fi.pelam.csv.CsvConstants._
+import fi.pelam.csv.cell.{Cell, CellKey}
 
 /**
  * Opposite of [[CsvReaderInternal]]. The API is simple. There
@@ -12,9 +13,9 @@ import fi.pelam.csv.CsvConstants._
  * be emitted for those.
  *
  * This class handles quoting, but all other special processing
- * is handled by [[Cell.serializedString]] implementations.
+ * is handled by [[fi.pelam.csv.cell.Cell.serializedString]] implementations.
  *
- * Note that this class does not flush or close the [[output]] stream.
+ * @note that this class does not flush or close the [[output]] stream.
  * Client must take care of that.
  *
  * @param output Java writer to write the CSV data to.
@@ -51,9 +52,9 @@ class CsvWriter(val output: java.io.Writer, val separator: Char = defaultSeparat
   /**
    * Write a single cell to output stream.
    *
-   * Will raise an error if cell with succeeding [[CellKey]]
+   * Will raise an error if cell with succeeding [[fi.pelam.csv.cell.CellKey]]
    * has already been written. This is because cells are expected
-   * to be written in natural order of [[CellKey]]s (rows top down, columns right to left).
+   * to be written in natural order of [[fi.pelam.csv.cell.CellKey]]s (rows top down, columns right to left).
    *
    * @param cell to write.
    */
@@ -81,7 +82,7 @@ class CsvWriter(val output: java.io.Writer, val separator: Char = defaultSeparat
   /**
    * Shortcut to call write for each cell in a traversable.
    *
-   * The cells are expected to be in [[CellKey]] order.
+   * The cells are expected to be in [[fi.pelam.csv.cell.CellKey]] order.
    *
    * @param cells sequence of cells to be written.
    */

@@ -1,4 +1,4 @@
-package fi.pelam.csv
+package fi.pelam.csv.cell
 
 /**
  * Type for columns numbers used in parsed CSV data.

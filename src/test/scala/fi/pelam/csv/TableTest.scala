@@ -3,6 +3,7 @@ package fi.pelam.csv
 import java.util.Locale
 
 import com.google.common.base.Charsets
+import fi.pelam.csv.cell._
 import org.junit.Assert._
 import org.junit.Test
 
