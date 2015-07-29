@@ -2,6 +2,7 @@ package fi.pelam.csv.cell
 
 import java.util.Locale
 
+import fi.pelam.csv.stream.CsvReader
 import fi.pelam.csv.{CellUpgrade, TableReadingError}
 
 /**
@@ -12,7 +13,7 @@ import fi.pelam.csv.{CellUpgrade, TableReadingError}
  * @note However note that any possible quoting is removed and no separator or CSV line ending
  * characters are included.
  *
- * The lower level CSV parser API [[fi.pelam.csv.CsvReader CsvReader]] only produces these.
+ * The lower level CSV parser API [[fi.pelam.csv.stream.CsvReader CsvReader]] only produces these.
  *
  * @param cellKey the location of the cell in the CSV file.
  * @param serializedString simply the string from the CSV file.

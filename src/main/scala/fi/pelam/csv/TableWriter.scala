@@ -2,6 +2,8 @@ package fi.pelam.csv
 
 import java.io.OutputStreamWriter
 
+import fi.pelam.csv.stream.CsvWriter
+
 class TableWriter[RT, CT](table: Table[RT, CT]) {
 
   def write(output: java.io.OutputStream) = {

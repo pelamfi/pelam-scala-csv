@@ -1,6 +1,6 @@
-package fi.pelam.csv
+package fi.pelam.csv.stream
 
-import java.io.{Reader, StringReader}
+import java.io.Reader
 
 import fi.pelam.csv.cell.{CellKey, StringCell}
 

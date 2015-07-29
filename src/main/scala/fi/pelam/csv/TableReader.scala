@@ -5,6 +5,7 @@ import java.nio.charset.{Charset, StandardCharsets}
 import java.util.Locale
 
 import fi.pelam.csv.cell.{StringCell, Cell}
+import fi.pelam.csv.stream.CsvReader
 
 import scala.collection.SortedMap
 

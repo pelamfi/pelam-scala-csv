@@ -1,7 +1,8 @@
-package fi.pelam.csv
+package fi.pelam.csv.stream
 
 import java.io.{Reader, StringReader}
 
+import fi.pelam.csv.CsvConstants
 import fi.pelam.csv.cell.StringCell
 
 /**
@@ -9,7 +10,7 @@ import fi.pelam.csv.cell.StringCell
  * This is a CSV parser that produces the data through the
  * [[http://www.scala-lang.org/api/current/index.html#scala.collection.Iterator scala.collection.Iterator]] trait.
  * The data is read into a sequence of [[fi.pelam.csv.cell.StringCell]] instances.
- * [[fi.pelam.csv.cell.StringCell]]s can be written back to disk with [[CsvWriter]].
+ * [[fi.pelam.csv.cell.StringCell StringCells]] can be written back to disk with [[CsvWriter]].
  *
  * This class does parsing in streaming fashion ie. you should be able to
  * handle files larger than what can fit in RAM, though this has
@@ -18,7 +19,7 @@ import fi.pelam.csv.cell.StringCell
  * Actual parsing is delegated to [[CsvReaderInternal]]. This class
  * just implements the Scala iterator interface on top of [[CsvReaderInternal]].
  *
- * @see [[TableReader TableReader for a friendlier non streaming API.]]
+ * @see [[fi.pelam.csv.TableReader TableReader for a friendlier non streaming API.]]
  *
  * @param input  Input can be string or [[http://docs.oracle.com/javase/8/docs/api/java/io/Reader.html java.io.Reader]].
  *               Be mindful of the character set.

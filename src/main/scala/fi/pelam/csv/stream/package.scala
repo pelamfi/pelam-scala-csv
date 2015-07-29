@@ -1,12 +1,14 @@
 package fi.pelam.csv
 
+import fi.pelam.csv.stream.CsvReader
+
 /**
  * This package contains the streaming oriented API for processing CSV data.
  *
  * See the reader and writer classes for more information.
  *
- * @see [[CsvReader CsvReader]]
- * @see [[CsvReader CsvWriter]]
+ * @see [[fi.pelam.csv.stream.CsvReader CsvReader]]
+ * @see [[fi.pelam.csv.stream.CsvWriter CsvWriter]]
  */
 package object stream {
 
