@@ -108,7 +108,7 @@ class TableReaderTest {
 
     val cells = table.getSingleCol(TestColType.Salary, TestRowType.Worker)
 
-    assertEquals(Locale.ROOT, table.dataLocale)
+    assertEquals(Locale.ROOT, table.metadata.dataLocale)
 
     val expectedIntegerCell = IntegerCell.parse(CellKey(2, 4), Locale.ROOT, "12000").right.get
 
@@ -136,17 +136,17 @@ class TableReaderTest {
 
   @Test
   def testBuildCellTypesRow: Unit = {
-    assertEquals(CellTypes(
-      rowTypes = SortedBiMap(RowKey(0) -> TestRowType.CommentRow),
+    assertEquals(CellTypesTemp[TestRowType, TestColType](
+      CellTypes(rowTypes = SortedBiMap(RowKey(0) -> TestRowType.CommentRow)),
       locale = Locale.ROOT),
       TableReader.buildCellTypes(List(StringCell(CellKey(0, 0), "CommentRow")), Locale.ROOT, rowTyper, PartialFunction.empty))
   }
 
   @Test
   def testBuildCellTypesCol: Unit = {
-    assertEquals(CellTypes(
-      rowTypes = SortedBiMap(RowKey(0) -> TestRowType.ColumnHeader),
-      colTypes = SortedBiMap(ColKey(0) -> TestColType.RowType),
+    assertEquals(CellTypesTemp[TestRowType, TestColType](
+      CellTypes(rowTypes = SortedBiMap(RowKey(0) -> TestRowType.ColumnHeader),
+      colTypes = SortedBiMap(ColKey(0) -> TestColType.RowType)),
       locale = Locale.ROOT),
       TableReader.buildCellTypes(List(StringCell(CellKey(0, 0), "ColumnHeader")), Locale.ROOT, rowTyper, colTyper))
   }
@@ -154,7 +154,7 @@ class TableReaderTest {
   @Test
   def testBuildCellTypesError: Unit = {
     val cell = StringCell(CellKey(0, 0), "Bogus")
-    assertEquals(CellTypes(
+    assertEquals(CellTypesTemp[TestRowType, TestColType](
       errors = IndexedSeq(TableReadingError("Unknown row type.", Some(cell))),
       locale = Locale.ROOT),
       TableReader.buildCellTypes(List(cell), Locale.ROOT, rowTyper, PartialFunction.empty))

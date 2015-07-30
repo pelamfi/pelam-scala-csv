@@ -30,7 +30,7 @@ trait TableMetadata {
 
   /**
    * The character set used to convert input bytes into a string
-   * when reading CSV data.
+   * when reading CSV data or vice versa when writing CSV.
    */
   val charset: Charset = CsvConstants.defaultCharset
 

@@ -44,9 +44,6 @@ object Table {
   /**
    * Main constructor for table. Typically this not used directly, but through [[TableReader]].
    *
-   * @param charset Java charset used when the CSV data is serialized.
-   * @param csvSeparator Separator character used when the CSV data is serialized.
-   * @param dataLocale Locale used when encoding things like integers to the CSV file.
    * @param cellTypes Object that describes type of each column, row and cell using the client code defined objects.
    * @param cells The cells to be used in the table in any order.
    * @tparam RT Client specified object type used for typing rows in CSV data.
@@ -54,39 +51,24 @@ object Table {
    * @return constructed Table object
    */
   // TODO: Automatically fill in empty cells and never leave nulls in internal arrays
-  def apply[RT, CT, M <: TableMetadata](charset: Charset,
-    csvSeparator: Char,
-    dataLocale: Locale,
+  def apply[RT, CT, M <: TableMetadata](metadata: M,
     cellTypes: CellTypes[RT, CT],
     cells: TraversableOnce[Cell]): Table[RT, CT, M] = {
 
     val builtCells = buildCells(cells, cellTypes.rowCount, cellTypes.colCount)
 
-    Table(charset, csvSeparator, dataLocale, cellTypes, builtCells)
+    Table(metadata, cellTypes, builtCells)
   }
 
 }
 
 /**
- *
- * @param charset Java charset used when the CSV data is serialized.
- * @param csvSeparator Separator character used when the CSV data is serialized.
- * @param dataLocale Locale used when encoding things like integers to the CSV file.
  * @param cellTypes Object that describes type of each column, row and cell using the client code defined objects.
  * @param cells Fully populated 2D array of [[fi.pelam.csv.cell.Cell]] objects with matching dimensions to the ones specified in [[CellTypes]] instance.
  * @tparam RT Client specified object type used for typing rows in CSV data.
  * @tparam CT Client specified object type used for typing columns in CSV data.
  */
-case class Table[RT, CT, M <: TableMetadata] private (charset: Charset,
-  csvSeparator: Char,
-
-  /**
-   * Locale used in encoding eg. integer values into cells.
-   *
-   * This locale is mostly used via individual Cell types like [[fi.pelam.csv.cell.IntegerCell IntegerCell]]
-   * which contain individual reference to the same Locale.
-   */
-  dataLocale: Locale,
+case class Table[RT, CT, M <: TableMetadata] private (metadata: M,
   cellTypes: CellTypes[RT, CT],
   cells: IndexedSeq[IndexedSeq[Cell]]) {
 

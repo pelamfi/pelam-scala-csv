@@ -5,7 +5,7 @@ import java.nio.charset.StandardCharsets
 import java.util.Locale
 
 import fi.pelam.csv.CsvConstants
-import fi.pelam.csv.cell.{RowKey, CellParsingError, CellParser, Cell}
+import fi.pelam.csv.cell._
 import fi.pelam.csv.stream.CsvReader
 import fi.pelam.csv.util.SortedBiMap
 
@@ -21,7 +21,7 @@ object TableReader2 {
 
   type ColTyper[RT, CT] = PartialFunction[(Cell, RowTypes[RT]), ColTyperResult[CT]]
 
-  type ColTypes[CT] = SortedBiMap[RowKey, CT]
+  type ColTypes[CT] = SortedBiMap[ColKey, CT]
 
   type CellUpgraderResult = Either[TableReadingError, Cell]
 
@@ -30,6 +30,47 @@ object TableReader2 {
 
 case class TableReadingErrors(phase: Int = 0, errors: IndexedSeq[TableReadingError] = IndexedSeq()) {
   def noErrors = errors.isEmpty 
+}
+
+case class TableReadingState[RT, CT](cells: IndexedSeq[Cell] = IndexedSeq(),
+  rowTypes: TableReader2.RowTypes[RT] = SortedBiMap[RowKey, RT](),
+  colTypes: TableReader2.ColTypes[CT] = SortedBiMap[ColKey, CT](),
+  errors: TableReadingErrors = TableReadingErrors()) {
+}
+
+sealed trait TableReadingPhase[RT, CT] {
+  def map(f: TableReadingState[RT, CT] => TableReadingState[RT, CT]): TableReadingPhase[RT, CT]
+  def flatMap(inner: TableReadingState[RT, CT] => TableReadingPhase[RT, CT]): TableReadingPhase[RT, CT]
+  def run(inputState: TableReadingState[RT, CT]): TableReadingState[RT, CT]
+}
+
+case class Phase[RT, CT](phaseFunc: TableReadingState[RT, CT] => TableReadingState[RT, CT]) extends TableReadingPhase[RT, CT] {
+
+  def map(mapFunc: TableReadingState[RT, CT] => TableReadingState[RT, CT]) = Phase[RT, CT](state => mapFunc(phaseFunc(state)))
+
+  def flatMap(inner: TableReadingState[RT, CT] => TableReadingPhase[RT, CT]): TableReadingPhase[RT, CT] = PhaseFlatmap(this, inner)
+
+  def run(inputState: TableReadingState[RT, CT]) = phaseFunc(inputState)
+}
+
+case class PhaseFlatmap[RT, CT](outer: TableReadingPhase[RT, CT],
+  inner: TableReadingState[RT, CT] => TableReadingPhase[RT, CT],
+  mapFunc: TableReadingState[RT, CT] => TableReadingState[RT, CT] = (state: TableReadingState[RT, CT]) => state) extends TableReadingPhase[RT, CT] {
+
+  def map(newMapFunc: TableReadingState[RT, CT] => TableReadingState[RT, CT]) = PhaseFlatmap(outer, inner,
+    (state: TableReadingState[RT, CT]) => mapFunc(newMapFunc(state)))
+
+  def flatMap(newInner: TableReadingState[RT, CT] => TableReadingPhase[RT, CT]): TableReadingPhase[RT, CT] = PhaseFlatmap(this, newInner)
+
+  def run(inputState: TableReadingState[RT, CT]) = {
+    val outerResult = outer.run(inputState)
+    if (outerResult.errors.noErrors) {
+      mapFunc(inner(outerResult).run(outerResult)) // to call the inner func, we need state and we get the wrapper,
+    } else {
+      // Don't run further phases if one had error
+      mapFunc(outerResult)
+    }
+  }
 }
 
 // TODO: Sketching and hacking replacement for TableReader...
@@ -45,60 +86,18 @@ class TableReader2[RT, CT, M <: TableMetadata](
 
   type ResultTable = Table[RT, CT, M]
 
-  case class TableReadingState(cells: IndexedSeq[Cell] = IndexedSeq(),
-    rowTypes: RowTypes[RT] = SortedBiMap(),
-    colTypes: ColTypes[CT] = SortedBiMap(),
-    errors: TableReadingErrors = TableReadingErrors()) {
+  type State = TableReadingState[RT, CT]
+
+  def phase1(state: State): State = {
+    state
   }
 
-  sealed trait TableReadingPhase {
-    def map(f: TableReadingState => TableReadingState): TableReadingPhase
-    def flatMap(inner: TableReadingState => TableReadingPhase): TableReadingPhase
-    def run(inputState: TableReadingState): TableReadingState
+  def phase2(state: State): State = {
+    state
   }
 
-  case class Phase(phaseFunc: TableReadingState => TableReadingState) extends TableReadingPhase {
-    def map(mapFunc: TableReadingState => TableReadingState) = Phase{ state: TableReadingState => mapFunc(phaseFunc(state)) }
-
-    def flatMap(inner: TableReadingState => TableReadingPhase): TableReadingPhase = PhaseFlatmapped { state: TableReadingState =>
-      val result = phaseFunc(state)
-      if (result.errors.noErrors) {
-        inner(result) // to call the inner func, we need state and we get the wrapper,
-      } else {
-        // Don't run further phases if one had error
-        FailedPhase(state)
-      }
-    }
-
-    def run(inputState: TableReadingState) = phaseFunc(inputState)
-  }
-
-  case class PhaseFlatmapped(phaseFunc: TableReadingState => TableReadingPhase) extends TableReadingPhase {
-    def map(mapFunc: TableReadingState => TableReadingState) = ???
-
-    def flatMap(inner: TableReadingState => TableReadingPhase): TableReadingPhase = ???
-
-    def run(inputState: TableReadingState) = inputState
-  }
-
-  case class FailedPhase(lastState: TableReadingState) extends TableReadingPhase {
-    def map(f2: TableReadingState => TableReadingState) = this
-
-    def flatMap(inner: TableReadingState => TableReadingPhase): TableReadingPhase = this
-
-    override def run(inputState: TableReadingState): TableReadingState = ???
-  }
-
-  def phase1(process: TableReadingState): TableReadingState = {
-    process
-  }
-
-  def phase2(process: TableReadingState): TableReadingState = {
-    process
-  }
-
-  def phase3(process: TableReadingState): TableReadingState = {
-    process
+  def phase3(state: State): State = {
+    state
   }
 
   def read(): (ResultTable, TableReadingErrors) = {
@@ -107,14 +106,25 @@ class TableReader2[RT, CT, M <: TableMetadata](
                       _ <- Phase(phase2);
                       x <- Phase(phase3)) yield x
 
-    val initial = TableReadingState()
+    val initial = TableReadingState[RT, CT]()
 
     val result = phases.run(initial)
 
-    // TODO: Redesign Table class...
-    (null /* Table(metadata, result.cells, result.rowTypes, result.colTypes) */ , result.errors)
+    val cellTypes = CellTypes[RT, CT](result.rowTypes, result.colTypes)
+
+    (Table(metadata, cellTypes, result.cells), result.errors)
   }
 }
+
+case class CellTypesTemp[RT, CT](cellTypes: CellTypes[RT, CT] = CellTypes[RT, CT](),
+  errors: Seq[TableReadingError] = IndexedSeq(),
+  locale: Locale) {
+
+  def rowTypes = cellTypes.rowTypes
+
+  def colTypes = cellTypes.colTypes
+}
+
 
 /**
  * This class is part of the the higher level api for reading, writing and processing CSV data.
@@ -161,7 +171,7 @@ class TableReader[RT, CT](val openInputStream: () => java.io.InputStream,
 
   var cells: IndexedSeq[Cell] = IndexedSeq()
 
-  def read(): Table[RT, CT, SimpleTableMetadata] = {
+  def read(): Table[RT, CT, LocaleTableMetadata] = {
 
     // TODO: Charset detection (try UTF16 and iso8859)
     val charset = StandardCharsets.UTF_8
@@ -179,21 +189,21 @@ class TableReader[RT, CT](val openInputStream: () => java.io.InputStream,
 
       this.cells = csvParser.throwOnError.toIndexedSeq
 
-      val detectedCellTypes: CellTypes[RT, CT] = detectCellTypeLocaleAndRowTypes()
+      val cellTypesTemp = detectCellTypeLocaleAndRowTypes()
 
-      val dataLocale = detectDataLocaleAndUpgradeCells(detectedCellTypes)
+      val dataLocale = detectDataLocaleAndUpgradeCells(cellTypesTemp)
 
       // Return final product
-      Table(charset, csvSeparator, dataLocale, detectedCellTypes, cells)
+      Table(LocaleTableMetadata(dataLocale, cellTypesTemp.locale, charset, csvSeparator), cellTypesTemp.cellTypes, cells)
 
     } finally {
       inputStream.close()
     }
   }
 
-  def detectCellTypeLocaleAndRowTypes(): CellTypes[RT, CT] = {
+  def detectCellTypeLocaleAndRowTypes(): CellTypesTemp[RT, CT] = {
 
-    val bestTypes = locales.foldLeft[Option[CellTypes[RT, CT]]](None) { (prev: Option[CellTypes[RT, CT]], locale) =>
+    val bestTypes = locales.foldLeft[Option[CellTypesTemp[RT, CT]]](None) { (prev: Option[CellTypesTemp[RT, CT]], locale) =>
       if (prev.map(_.errors == 0).getOrElse(false)) {
         // TODO: Naming of everything here...
 
@@ -225,8 +235,8 @@ class TableReader[RT, CT](val openInputStream: () => java.io.InputStream,
     )
   }
 
-  def upgradeCell(detectedCellTypes: CellTypes[RT, CT], cell: Cell, locale: Locale): Either[TableReadingError, Cell] = {
-    val upgraded = for (cellType: CellType[RT, CT] <- detectedCellTypes.getCellType(cell);
+  def upgradeCell(detectedCellTypes: CellTypesTemp[RT, CT], cell: Cell, locale: Locale): Either[TableReadingError, Cell] = {
+    val upgraded = for (cellType: CellType[RT, CT] <- detectedCellTypes.cellTypes.getCellType(cell);
                         cellParser <- cellTypes.lift(cellType)) yield {
 
       val result = cellParser.parse(cell.cellKey, locale, cell.serializedString)
@@ -242,7 +252,7 @@ class TableReader[RT, CT](val openInputStream: () => java.io.InputStream,
     upgraded.getOrElse(Right(cell))
   }
 
-  def detectDataLocaleAndUpgradeCells(cellTypes: CellTypes[RT, CT]): Locale = {
+  def detectDataLocaleAndUpgradeCells(cellTypes: CellTypesTemp[RT, CT]): Locale = {
 
     // Guess first the already detected cellTypeLocale, if that fails try english.
     // This is a way to limit combinations.
@@ -282,9 +292,9 @@ class TableReader[RT, CT](val openInputStream: () => java.io.InputStream,
 object TableReader {
   type TyperOutput[T] = Either[TableReadingError, T]
 
-  type RowTyper[RT, CT] = PartialFunction[(Cell, CellTypes[RT, CT]), TyperOutput[RT]]
+  type RowTyper[RT, CT] = PartialFunction[(Cell, CellTypesTemp[RT, CT]), TyperOutput[RT]]
 
-  type ColTyper[RT, CT] = PartialFunction[(Cell, CellTypes[RT, CT]), TyperOutput[CT]]
+  type ColTyper[RT, CT] = PartialFunction[(Cell, CellTypesTemp[RT, CT]), TyperOutput[CT]]
 
   type CellUpgrades[RT, CT] = PartialFunction[CellType[RT, CT], CellParser]
 
@@ -292,31 +302,33 @@ object TableReader {
     errors: IndexedSeq[TableReadingError] = IndexedSeq(),
     cells: IndexedSeq[Cell] = IndexedSeq())
 
-  def detectRowTypes[RT, CT](rowTypeDefinition: ((Cell, CellTypes[RT, CT])) => Option[TyperOutput[RT]],
+  def detectRowTypes[RT, CT](rowTypeDefinition: ((Cell, CellTypesTemp[RT, CT])) => Option[TyperOutput[RT]],
     cell: Cell,
-    cellTypes: CellTypes[RT, CT]): CellTypes[RT, CT] = {
+    cellTypes: CellTypesTemp[RT, CT]): CellTypesTemp[RT, CT] = {
 
     if (cellTypes.rowTypes.isDefinedAt(cell.rowKey)) {
       cellTypes
     } else {
       rowTypeDefinition(cell, cellTypes) match {
         case Some(Left(e)) => cellTypes.copy[RT, CT](errors = cellTypes.errors :+ e.addedDetails(cell))
-        case Some(Right(rowType)) => cellTypes.copy[RT, CT](rowTypes = cellTypes.rowTypes.updated(cell.rowKey, rowType))
+        case Some(Right(rowType)) => cellTypes.copy[RT, CT](cellTypes =
+          cellTypes.cellTypes.copy(rowTypes = cellTypes.rowTypes.updated(cell.rowKey, rowType)))
         case None => cellTypes
       }
     }
   }
 
-  def detectColTypes[RT, CT](colTypeDefinition: ((Cell, CellTypes[RT, CT])) => Option[TyperOutput[CT]],
+  def detectColTypes[RT, CT](colTypeDefinition: ((Cell, CellTypesTemp[RT, CT])) => Option[TyperOutput[CT]],
     cell: Cell,
-    cellTypes: CellTypes[RT, CT]): CellTypes[RT, CT] = {
+    cellTypes: CellTypesTemp[RT, CT]): CellTypesTemp[RT, CT] = {
 
     if (cellTypes.colTypes.isDefinedAt(cell.colKey)) {
       cellTypes
     } else {
       colTypeDefinition(cell, cellTypes) match {
         case Some(Left(e)) => cellTypes.copy[RT, CT](errors = cellTypes.errors :+ e.addedDetails(cell))
-        case Some(Right(colType)) => cellTypes.copy[RT, CT](colTypes = cellTypes.colTypes.updated(cell.colKey, colType))
+        case Some(Right(colType)) =>
+          cellTypes.copy[RT, CT](cellTypes = cellTypes.cellTypes.copy(colTypes = cellTypes.colTypes.updated(cell.colKey, colType)))
         case None => cellTypes
       }
     }
@@ -324,9 +336,9 @@ object TableReader {
 
   def buildCellTypes[RT, CT](cells: TraversableOnce[Cell], locale: Locale,
     rowTypeDefinition: TableReader.RowTyper[RT, CT],
-    colTypeDefinition: TableReader.ColTyper[RT, CT]): CellTypes[RT, CT] = {
+    colTypeDefinition: TableReader.ColTyper[RT, CT]): CellTypesTemp[RT, CT] = {
 
-    val initial = CellTypes[RT, CT](locale = locale)
+    val initial = CellTypesTemp[RT, CT](locale = locale)
 
     val rowTypeDefinitionLifted = rowTypeDefinition.lift
     val colTypeDefinitionLifted = colTypeDefinition.lift
@@ -335,7 +347,7 @@ object TableReader {
     // unless they are already identified.
     //
     // Also collect errors detected by those functions to support CSV format detection heuristic.
-    cells.foldLeft[CellTypes[RT, CT]](initial) { (cellTypes: CellTypes[RT, CT], cell: Cell) =>
+    cells.foldLeft[CellTypesTemp[RT, CT]](initial) { (cellTypes: CellTypesTemp[RT, CT], cell: Cell) =>
       try {
         detectColTypes(colTypeDefinitionLifted, cell, detectRowTypes(rowTypeDefinitionLifted, cell, cellTypes))
       } catch {

@@ -11,17 +11,12 @@ import fi.pelam.csv.util.SortedBiMap
  *
  * @param rowTypes
  * @param colTypes
- * @param errors
- * @param locale is the cell type locale ie. the locale used in names in CSV data identifying types of each column and row
  * @tparam RT
  * @tparam CT
  */
-// TODO: Refactor errors and locale somewhere else
 case class CellTypes[RT, CT](
   rowTypes: SortedBiMap[RowKey, RT] = SortedBiMap[RowKey, RT](),
-  colTypes: SortedBiMap[ColKey, CT] = SortedBiMap[ColKey, CT](),
-  errors: Seq[TableReadingError] = IndexedSeq(),
-  locale: Locale
+  colTypes: SortedBiMap[ColKey, CT] = SortedBiMap[ColKey, CT]()
   ) {
 
   import CellTypes._

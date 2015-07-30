@@ -13,9 +13,8 @@ import scala.collection.immutable.TreeMap
 
 // TODO: Move object after class in file
 object TableTest {
-  def makeTable() = Table[TestRowType, TestColType, SimpleTableMetadata](Charsets.UTF_8,
-    CsvConstants.defaultSeparatorChar,
-    Locale.ROOT,
+  def makeTable() = Table[TestRowType, TestColType, SimpleTableMetadata](
+    SimpleTableMetadata(),
     CellTypes[TestRowType, TestColType](
       SortedBiMap(TreeMap(RowKey(0) -> TestRowType.CommentRow,
         RowKey(1) -> TestRowType.Worker,
@@ -27,8 +26,8 @@ object TableTest {
         ColKey(2) -> TestColType.PrevWeek,
         ColKey(3) -> TestColType.PrevWeek,
         ColKey(4) -> TestColType.ThisWeek,
-        ColKey(5) -> TestColType.CommentCol)),
-      locale = Locale.ROOT), List[Cell]())
+        ColKey(5) -> TestColType.CommentCol))
+      ), List[Cell]())
 
   val foo = StringCell(CellKey(1, 1), "foo")
   val bar = StringCell(CellKey(2, 1), "bar")

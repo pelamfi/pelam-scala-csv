@@ -8,9 +8,9 @@ class TableWriter[RT, CT, M <: TableMetadata](table: Table[RT, CT, M]) {
 
   def write(output: java.io.OutputStream) = {
 
-    val writer = new OutputStreamWriter(output, table.charset)
+    val writer = new OutputStreamWriter(output, table.metadata.charset)
 
-    val csvWriter = new CsvWriter(writer, table.csvSeparator)
+    val csvWriter = new CsvWriter(writer, table.metadata.separator)
 
     val cells = table.getCells()
 

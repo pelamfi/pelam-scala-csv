@@ -41,7 +41,7 @@ class TableWriterTest {
 
     writer.write(outputStream)
 
-    val written = new String(outputStream.toByteArray(), table.charset)
+    val written = new String(outputStream.toByteArray(), table.metadata.charset)
 
     assertEquals(",,,,,\n,foo,,,,\n,bar,,,,\n,,,,,\n,,,,,\n", written)
   }
@@ -58,7 +58,7 @@ class TableWriterTest {
 
     writer.write(outputStream)
 
-    val written = new String(outputStream.toByteArray(), table.charset)
+    val written = new String(outputStream.toByteArray(), table.metadata.charset)
 
     assertEquals(testFileContent, written)
   }
