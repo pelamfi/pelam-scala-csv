@@ -11,6 +11,7 @@ import org.junit.Test
 
 import scala.collection.immutable.TreeMap
 
+// TODO: Move object after class in file
 object TableTest {
   def makeTable() = Table[TestRowType, TestColType, SimpleTableMetadata](Charsets.UTF_8,
     CsvConstants.defaultSeparatorChar,

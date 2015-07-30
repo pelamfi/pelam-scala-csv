@@ -7,6 +7,7 @@ import com.google.common.io.{ByteSource, Resources}
 import org.junit.Assert._
 import org.junit.Test
 
+// TODO: Move object after class in file
 object TableWriterTest {
 
   val testFileName = "csv–file-for-loading"
