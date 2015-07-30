@@ -1,32 +1,31 @@
 package fi.pelam.csv.table
 
-sealed trait Pipeline[RT, CT] {
-  def map(f: TableReadingState[RT, CT] => TableReadingState[RT, CT]): Pipeline[RT, CT]
-  def flatMap(inner: TableReadingState[RT, CT] => Pipeline[RT, CT]): Pipeline[RT, CT]
-  def run(inputState: TableReadingState[RT, CT]): TableReadingState[RT, CT]
+sealed trait Pipeline[S <: Success] {
+  def map(f: S => S): Pipeline[S]
+  def flatMap(inner: S => Pipeline[S]): Pipeline[S]
+  def run(inputState: S): S
 }
 
 object Pipeline {
 
-  case class Stage[RT, CT](phaseFunc: TableReadingState[RT, CT] => TableReadingState[RT, CT]) extends Pipeline[RT, CT] {
+  case class Stage[S <: Success](phaseFunc: S => S) extends Pipeline[S] {
+    def map(mapFunc: S => S) = Stage[S](state => mapFunc(phaseFunc(state)))
 
-    def map(mapFunc: TableReadingState[RT, CT] => TableReadingState[RT, CT]) = Stage[RT, CT](state => mapFunc(phaseFunc(state)))
+    def flatMap(inner: S => Pipeline[S]): Pipeline[S] = FlatmapStage(this, inner)
 
-    def flatMap(inner: TableReadingState[RT, CT] => Pipeline[RT, CT]): Pipeline[RT, CT] = FlatmapStage(this, inner)
-
-    def run(inputState: TableReadingState[RT, CT]) = phaseFunc(inputState)
+    def run(inputState: S) = phaseFunc(inputState)
   }
 
-  case class FlatmapStage[RT, CT](outer: Pipeline[RT, CT],
-    inner: TableReadingState[RT, CT] => Pipeline[RT, CT],
-    mapFunc: TableReadingState[RT, CT] => TableReadingState[RT, CT] = (state: TableReadingState[RT, CT]) => state) extends Pipeline[RT, CT] {
+  case class FlatmapStage[S <: Success](outer: Pipeline[S],
+    inner: S => Pipeline[S],
+    mapFunc: S => S = (state: S) => state) extends Pipeline[S] {
 
-    def map(newMapFunc: TableReadingState[RT, CT] => TableReadingState[RT, CT]) = FlatmapStage(outer, inner,
-      (state: TableReadingState[RT, CT]) => mapFunc(newMapFunc(state)))
+    def map(newMapFunc: S => S) = FlatmapStage(outer, inner,
+      (state: S) => mapFunc(newMapFunc(state)))
 
-    def flatMap(newInner: TableReadingState[RT, CT] => Pipeline[RT, CT]): Pipeline[RT, CT] = FlatmapStage(this, newInner)
+    def flatMap(newInner: S => Pipeline[S]): Pipeline[S] = FlatmapStage(this, newInner)
 
-    def run(inputState: TableReadingState[RT, CT]) = {
+    def run(inputState: S) = {
       val outerResult = outer.run(inputState)
       if (outerResult.isSuccess) {
         mapFunc(inner(outerResult).run(outerResult)) // to call the inner func, we need state and we get the wrapper,
