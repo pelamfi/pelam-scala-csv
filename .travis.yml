@@ -1,0 +1,16 @@
+language: scala
+env:
+  global:
+  - ARTIFACTS_TARGET_PATHS="latest"
+jdk:
+  - oraclejdk8
+scala:
+  - 2.11.4
+script:
+  - gradle clean check scaladoc
+addons:
+  artifacts:
+    paths:
+    - $TRAVIS_BUILD_DIR/build/docs/scaladoc/
+# disable services since this does not use any. http://blog.travis-ci.com/august-2012-upcoming-ci-environment-updates/
+services: []
