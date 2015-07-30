@@ -175,7 +175,7 @@ class TableReader2[RT, CT, M <: TableMetadata](
 
       if (rowTyper.isDefinedAt(cell) && !input.rowTypes.contains(cell.rowKey)) {
         rowTyper(cell) match {
-          case Left(error) => input.addError(error)
+          case Left(error) => input.addError(error.addedDetails(cell))
           case Right(rowType) => input.defineRowType(cell.rowKey, rowType)
         }
       } else {
@@ -192,7 +192,7 @@ class TableReader2[RT, CT, M <: TableMetadata](
 
       if (colTyper.isDefinedAt(cell, initialInput.rowTypes) && !input.colTypes.contains(cell.colKey)) {
         colTyper(cell, initialInput.rowTypes) match {
-          case Left(error) => input.addError(error)
+          case Left(error) => input.addError(error.addedDetails(cell))
           case Right(colType) => input.defineColType(cell.colKey, colType)
         }
       } else {

@@ -36,7 +36,7 @@ class TableReaderTest {
     case (cell) if cell.colKey.index == 0 => {
       TestRowType.translations(cellTypeLocale).get(cell.serializedString) match {
         case Some(x) => Right(x)
-        case _ => Left(TableReadingError("Unknown row type: " + cell.serializedString))
+        case _ => Left(TableReadingError("Unknown row type."))
       }
     }
   }
@@ -64,10 +64,17 @@ class TableReaderTest {
     () => byteSource.openStream()
   }
 
-  @Test(expected = classOf[RuntimeException])
+  @Test
   def testReadFailNoRowId: Unit = {
     // no row types so error
-    new TableReader2(noRowTypes, SimpleTableMetadata(), rowTyper2(localeFi), colTyper2(localeFi)).read()
+    val (table, errors) = new TableReader2(noRowTypes, SimpleTableMetadata(), rowTyper2(Locale.ROOT), colTyper2(Locale.ROOT)).read()
+
+    assertFalse(errors.noErrors)
+
+    assertEquals(
+      "Unknown row type. Cell containing '1' at Row 1, Column A (0)\n" +
+        "Unknown row type. Cell containing '' at Row 3, Column A (0)\n",
+      errors.errors.foldLeft("")(_ + _.toString() + "\n"))
   }
 
   @Test
