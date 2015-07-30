@@ -60,14 +60,26 @@ class TableReaderTest {
   }
 
   @Test
-  def testJustReadSimple: Unit = {
+  def testJustReadSimpleOld: Unit = {
     // Works because row type identified
     new TableReader(headerAndCommentsOnly).read()
   }
 
   @Test
-  def testRowCount: Unit = {
+  def testJustReadSimple: Unit = {
+    // Works because row type identified
+    new TableReader2(headerAndCommentsOnly).read()
+  }
+
+  @Test
+  def testRowCountOld: Unit = {
     val table = new TableReader(headerAndCommentsOnly).read()
+    assertEquals(4, table.rowCount)
+  }
+
+  @Test
+  def testRowCount: Unit = {
+    val (table, errors) = new TableReader2(headerAndCommentsOnly).read()
     assertEquals(4, table.rowCount)
   }
 
