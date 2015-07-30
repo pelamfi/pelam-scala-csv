@@ -25,7 +25,19 @@ object TableReader2 {
 
   type CellUpgraderResult = Either[TableReadingError, Cell]
 
-  type CellUpgrader[RT, CT, M <: TableMetadata] = PartialFunction[(Cell, M, CellType[RT, CT]), CellUpgraderResult]
+  type CellUpgrader[RT, CT] = PartialFunction[(Cell, CellType[RT, CT]), CellUpgraderResult]
+
+  def defineCellUpgrader[RT, CT](locale: Locale, parserMap: Map[CellType[_, _], CellParser]): CellUpgrader[RT, CT] = {
+
+    case (cell, cellType) if parserMap.contains(cellType) => {
+
+      parserMap(cellType).parse(cell.cellKey, locale, cell.serializedString) match {
+        case Left(error) => Left(TableReadingError(error, cell, cellType))
+        case Right(cell) => Right(cell)
+      }
+    }
+
+  }
 }
 
 case class TableReadingErrors(phase: Int = 0, errors: IndexedSeq[TableReadingError] = IndexedSeq()) {
@@ -92,7 +104,7 @@ class TableReader2[RT, CT, M <: TableMetadata](
   val metadata: M = SimpleTableMetadata(),
   val rowTyper: TableReader2.RowTyper[RT] = PartialFunction.empty,
   val colTyper: TableReader2.ColTyper[RT, CT] = PartialFunction.empty,
-  val cellUpgrader: TableReader2.CellUpgrader[RT, CT, M] = PartialFunction.empty
+  val cellUpgrader: TableReader2.CellUpgrader[RT, CT] = PartialFunction.empty
   ) {
 
   import TableReader2._

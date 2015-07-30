@@ -141,8 +141,7 @@ class TableReaderTest {
 
   @Test
   def testRowTypeFi: Unit = {
-    val metadata = SimpleTableMetadata()
-    val (table, errors) = new TableReader2(headerAndCommentsOnlyFi, metadata, rowTyper2(localeFi), colTyper2(localeFi)).read()
+    val (table, errors) = new TableReader2(headerAndCommentsOnlyFi, SimpleTableMetadata(), rowTyper2(localeFi), colTyper2(localeFi)).read()
     assertTrue(errors.toString, errors.noErrors)
     assertEquals(ColumnHeader, table.rowTypes(RowKey(0)))
     assertEquals(CommentRow, table.rowTypes(RowKey(1)))
@@ -158,7 +157,7 @@ class TableReaderTest {
   }
 
   @Test
-  def testParseLocalizedNumbersAndQuotes: Unit = {
+  def testParseLocalizedNumbersAndQuotesOld: Unit = {
     val input = "Title,Salary,BoolParam1\nWorker,\"12,000.00\",TRUE\n"
     val table = new TableReader(input).read()
     val cells = table.getCells(RowKey(1))
@@ -166,13 +165,44 @@ class TableReaderTest {
   }
 
   @Test
-  def testUpgradeCellType: Unit = {
+  def testParseLocalizedNumbersAndQuotes: Unit = {
+    val input = "Title,Salary,BoolParam1\nWorker,\"12,000.00\",TRUE\n"
+    val (table, errors) = new TableReader2(input).read()
+    assertTrue(errors.toString, errors.noErrors)
+    val cells = table.getCells(RowKey(1))
+    assertEquals("Worker\n12,000.00\nTRUE\n", cells.foldLeft("")(_ + _.serializedString + "\n"))
+  }
+
+  @Test
+  def testUpgradeCellTypeOld: Unit = {
     val table = new TableReader[TestRowType, TestColType](rowAndColTypesFiDataEn, rowTyper, colTyper,
       Map(CellType(TestRowType.Worker, TestColType.Salary) -> IntegerCell), List(Locale.ROOT, localeFi)).read()
 
     val cells = table.getSingleCol(TestColType.Salary, TestRowType.Worker)
 
     assertEquals(Locale.ROOT, table.metadata.dataLocale)
+
+    val expectedIntegerCell = IntegerCell.parse(CellKey(2, 4), Locale.ROOT, "12000").right.get
+
+    assertEquals(IndexedSeq(expectedIntegerCell), cells)
+  }
+
+  @Test
+  def testUpgradeCellType: Unit = {
+    val cellUpgrader = TableReader2.defineCellUpgrader[TestRowType, TestColType](
+      localeFi,
+      Map(CellType(TestRowType.Worker, TestColType.Salary) -> IntegerCell)
+    )
+
+    val (table, errors) = new TableReader2(rowAndColTypesFiDataEn, SimpleTableMetadata(), rowTyper2(localeFi), colTyper2(localeFi),
+      cellUpgrader).read()
+
+    assertTrue(errors.toString, errors.noErrors)
+
+    val cells = table.getSingleCol(TestColType.Salary, TestRowType.Worker)
+
+    // TODO: wrap in locale detection
+    // assertEquals(Locale.ROOT, table.metadata.dataLocale)
 
     val expectedIntegerCell = IntegerCell.parse(CellKey(2, 4), Locale.ROOT, "12000").right.get
 
