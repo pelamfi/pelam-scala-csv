@@ -9,7 +9,7 @@ import fi.pelam.csv.cell._
 import fi.pelam.csv.stream.CsvReader
 import fi.pelam.csv.util.SortedBiMap
 
-object TableReader2 {
+object TableReader {
 
   type RowTyperResult[RT] = Either[TableReadingError, RT]
 
@@ -50,8 +50,8 @@ case class TableReadingErrors(phase: Int = 0, errors: IndexedSeq[TableReadingErr
 }
 
 case class TableReadingState[RT, CT](cells: IndexedSeq[Cell] = IndexedSeq(),
-  rowTypes: TableReader2.RowTypes[RT] = SortedBiMap[RowKey, RT](),
-  colTypes: TableReader2.ColTypes[CT] = SortedBiMap[ColKey, CT](),
+  rowTypes: TableReader.RowTypes[RT] = SortedBiMap[RowKey, RT](),
+  colTypes: TableReader.ColTypes[CT] = SortedBiMap[ColKey, CT](),
   errors: TableReadingErrors = TableReadingErrors()) {
 
   def defineRowType(row: RowKey, rowType: RT): TableReadingState[RT, CT] = copy(rowTypes = rowTypes.updated(row, rowType))
@@ -132,15 +132,15 @@ case class PhaseFlatmap[RT, CT](outer: TableReadingPhase[RT, CT],
  */
 // TODO: Update docs wrt. new TableReader design
 // TODO: Finish documenting the phases and the detection idea after it is implemented
-class TableReader2[RT, CT, M <: TableMetadata](
+class TableReader[RT, CT, M <: TableMetadata](
   val openInputStream: () => java.io.InputStream,
   val metadata: M = SimpleTableMetadata(),
-  val rowTyper: TableReader2.RowTyper[RT] = PartialFunction.empty,
-  val colTyper: TableReader2.ColTyper[RT, CT] = PartialFunction.empty,
-  val cellUpgrader: TableReader2.CellUpgrader[RT, CT] = PartialFunction.empty
+  val rowTyper: TableReader.RowTyper[RT] = PartialFunction.empty,
+  val colTyper: TableReader.ColTyper[RT, CT] = PartialFunction.empty,
+  val cellUpgrader: TableReader.CellUpgrader[RT, CT] = PartialFunction.empty
   ) {
 
-  import TableReader2._
+  import TableReader._
 
   type ResultTable = Table[RT, CT, M]
 

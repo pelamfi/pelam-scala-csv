@@ -52,7 +52,7 @@ class TableWriterTest {
 
   @Test
   def testLoopback: Unit = {
-    val (table, errors) = new TableReader2[TestRowType, TestColType, SimpleTableMetadata](testFile).read()
+    val (table, errors) = new TableReader[TestRowType, TestColType, SimpleTableMetadata](testFile).read()
 
     assertTrue(errors.toString, errors.noErrors)
 
