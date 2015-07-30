@@ -142,10 +142,10 @@ class TableReader[RT, CT, M <: TableMetadata](
 
   def read(): (ResultTable, TableReadingErrors) = {
 
-    val phases = for (_ <- TableReadingPhase.Phase(csvReadingPhase);
-                      _ <- TableReadingPhase.Phase(rowTypeDetectionPhase);
-                      _ <- TableReadingPhase.Phase(colTypeDetectionPhase);
-                      x <- TableReadingPhase.Phase(cellUpgradePhase)) yield x
+    val phases = for (_ <- Pipeline.Stage(csvReadingPhase);
+                      _ <- Pipeline.Stage(rowTypeDetectionPhase);
+                      _ <- Pipeline.Stage(colTypeDetectionPhase);
+                      x <- Pipeline.Stage(cellUpgradePhase)) yield x
 
     val initial = TableReadingState[RT, CT]()
 
