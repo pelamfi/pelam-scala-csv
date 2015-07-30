@@ -54,7 +54,7 @@ class TableReader[RT, CT](val openInputStream: () => java.io.InputStream,
 
       val csvParser = new CsvReader(inputReader, separator = csvSeparator)
 
-      this.cells = csvParser.raiseOnError.toIndexedSeq
+      this.cells = csvParser.throwOnError.toIndexedSeq
 
       val detectedCellTypes: CellTypes[RT, CT] = detectCellTypeLocaleAndRowTypes()
 

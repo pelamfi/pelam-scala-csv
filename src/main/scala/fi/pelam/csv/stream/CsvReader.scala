@@ -14,10 +14,45 @@ import fi.pelam.csv.cell.StringCell
  *
  * This class does parsing in streaming fashion ie. you should be able to
  * handle files larger than what can fit in RAM, though this has
- * not been tested yet.
+ * not been tested yet. The actual parsing is delegated to [[CsvReaderInternal]].
+ * This class just implements the Scala `Iterator` interface on top of [[CsvReaderInternal]].
  *
- * Actual parsing is delegated to [[CsvReaderInternal]]. This class
- * just implements the Scala iterator interface on top of [[CsvReaderInternal]].
+ * == Error handling ==
+ * If an error is encountered in the input a [[CsvReaderError]] will be returned
+ * as the `Left` of `Either`. After this the iterator is exhausted and `hasNext` will return
+ * false. Note that the input stream will be left open in this situation.
+ * If `next` is called when `hasNext` is `false`, a `NoSuchElementException` will
+ * be thrown as usual. See [[CsvReader!.throwOnError the method throwOnError]] for a shortcut to enable
+ * exception based error handling.
+ *
+ * == Code example ==
+ * This example code will pick the second column from the `csvData` and print the `toString`
+ * of each `Cell` from that column. Note the use of `throwOnError` to bypass the `Either`
+ * normally returned by the reader.
+ *
+ * {{{
+ *
+ * import fi.pelam.csv.cell._
+ * import fi.pelam.csv.stream._
+ *
+ * val csvData = "foo,1,a\nbar,2,b\nbaz,3,c\n";
+ *
+ * val pickedCol = ColKey(1)
+ *
+ * for (cell <- new CsvReader(csvData).throwOnError; if cell.colKey == pickedCol) {
+ *   println(cell)
+ * }
+ *
+ * // Running the code above will print:
+ * Cell containing '1' at Row 1, Column B (1)
+ * Cell containing '2' at Row 2, Column B (1)
+ * Cell containing '3' at Row 3, Column B (1)
+ *
+ * }}}
+ *
+ * @note A note on closing the input stream. The
+ *       [[http://docs.oracle.com/javase/8/docs/api/java/io/Reader.html java.io.Reader]] is closed only if the
+ *       CSV data exhausted. In error and other situations it is the responsibility of the caller to close the stream.
  *
  * @see [[fi.pelam.csv.table.TableReader TableReader for a friendlier non streaming API.]]
  *
@@ -28,7 +63,6 @@ import fi.pelam.csv.cell.StringCell
  *
  * @constructor Create a new reader while specifying the separator character.
  */
-// TODO: Code example for CsvReader
 final class CsvReader (input: Reader, val separator: Char) extends Iterator[CsvReader.CellOrError] {
 
   import CsvReader._
@@ -68,11 +102,18 @@ final class CsvReader (input: Reader, val separator: Char) extends Iterator[CsvR
   }
 
   /**
-   * Convert this instance into a form which throws upon encountering an
-   * error instead of returning [[CsvReaderError]]
-   * @return
+   * This method converts this reader into exception based error handling, which
+   * may be useful in smaller applications that don't expect errors in input.
+   *
+   * A `RuntimeException` will be thrown when error is encountered. After this
+   * the iterator is considered exhausted after the error.
+   *
+   * After being wrapped using this method, the reader produces simple
+   * [[fi.pelam.csv.cell.StringCell StringCells]] instead of Scala's Either.
+
+   * @note Note that the stream will be left open in this situation.
    */
-  def raiseOnError: Iterator[StringCell] = this.map {
+  def throwOnError: Iterator[StringCell] = this.map {
     case Left(e: CsvReaderError) => sys.error(e.toString)
     case Right(stringCell) => stringCell
   }
