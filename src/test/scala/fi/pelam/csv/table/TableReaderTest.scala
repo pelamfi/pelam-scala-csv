@@ -32,30 +32,11 @@ class TableReaderTest {
 
   val noRowTypes = "1,2,3,4,\nCommentRow\n\n"
 
-  val rowTyper: TableReader.RowTyper[TestRowType, TestColType] = {
-    case (cell, types) if cell.colKey.index == 0 => {
-      TestRowType.translations(types.locale).get(cell.serializedString) match {
-        case Some(x) => Right(x)
-        case _ => Left(TableReadingError("Unknown row type."))
-      }
-    }
-  }
-
   def rowTyper2(cellTypeLocale: Locale): TableReader2.RowTyper[TestRowType] = {
     case (cell) if cell.colKey.index == 0 => {
       TestRowType.translations(cellTypeLocale).get(cell.serializedString) match {
         case Some(x) => Right(x)
         case _ => Left(TableReadingError("Unknown row type: " + cell.serializedString))
-      }
-    }
-  }
-
-  val colTyper: TableReader.ColTyper[TestRowType, TestColType] = {
-    case (cell, _) if cell.colKey.index == 0 => Right(TestColType.RowType)
-    case (cell, types) if types.rowTypes.get(cell.rowKey) == Some(TestRowType.ColumnHeader) => {
-      TestColType.translations(types.locale).get(cell.serializedString) match {
-        case Some(x) => Right(x)
-        case _ => Left(TableReadingError("Unknown column type."))
       }
     }
   }
@@ -86,13 +67,7 @@ class TableReaderTest {
   @Test(expected = classOf[RuntimeException])
   def testReadFailNoRowId: Unit = {
     // no row types so error
-    new TableReader(noRowTypes, rowTyper, colTyper).read()
-  }
-
-  @Test
-  def testJustReadSimpleOld: Unit = {
-    // Works because row type identified
-    new TableReader(headerAndCommentsOnly).read()
+    new TableReader2(noRowTypes, SimpleTableMetadata(), rowTyper2(localeFi), colTyper2(localeFi)).read()
   }
 
   @Test
@@ -103,35 +78,15 @@ class TableReaderTest {
   }
 
   @Test
-  def testRowCountOld: Unit = {
-    val table = new TableReader(headerAndCommentsOnly).read()
-    assertEquals(4, table.rowCount)
-  }
-
-  @Test
   def testRowCount: Unit = {
     val (table, errors) = new TableReader2(headerAndCommentsOnly).read()
     assertEquals(4, table.rowCount)
   }
 
   @Test
-  def testColCountOld: Unit = {
-    val table = new TableReader(headerAndCommentsOnly).read()
-    assertEquals(5, table.colCount)
-  }
-
-  @Test
   def testColCount: Unit = {
     val (table, errors) = new TableReader2(headerAndCommentsOnly).read()
     assertEquals(5, table.colCount)
-  }
-
-  @Test
-  def testRowTypeFiOld: Unit = {
-    val table = new TableReader(headerAndCommentsOnly, rowTyper, colTyper).read()
-    assertEquals(ColumnHeader, table.rowTypes(RowKey(0)))
-    assertEquals(CommentRow, table.rowTypes(RowKey(1)))
-    assertEquals(CommentRow, table.rowTypes(RowKey(2)))
   }
 
   @Test
@@ -154,42 +109,12 @@ class TableReaderTest {
   }
 
   @Test
-  def testRowTypeOld: Unit = {
-    val table = new TableReader(headerAndCommentsOnly, rowTyper, colTyper).read()
-    assertEquals(ColumnHeader, table.rowTypes(RowKey(0)))
-    assertEquals(CommentRow, table.rowTypes(RowKey(1)))
-    assertEquals(CommentRow, table.rowTypes(RowKey(2)))
-  }
-
-  @Test
-  def testParseLocalizedNumbersAndQuotesOld: Unit = {
-    val input = "Title,Salary,BoolParam1\nWorker,\"12,000.00\",TRUE\n"
-    val table = new TableReader(input).read()
-    val cells = table.getCells(RowKey(1))
-    assertEquals("Worker\n12,000.00\nTRUE\n", cells.foldLeft("")(_ + _.serializedString + "\n"))
-  }
-
-  @Test
   def testParseLocalizedNumbersAndQuotes: Unit = {
     val input = "Title,Salary,BoolParam1\nWorker,\"12,000.00\",TRUE\n"
     val (table, errors) = new TableReader2(input).read()
     assertTrue(errors.toString, errors.noErrors)
     val cells = table.getCells(RowKey(1))
     assertEquals("Worker\n12,000.00\nTRUE\n", cells.foldLeft("")(_ + _.serializedString + "\n"))
-  }
-
-  @Test
-  def testUpgradeCellTypeOld: Unit = {
-    val table = new TableReader[TestRowType, TestColType](rowAndColTypesFiDataEn, rowTyper, colTyper,
-      Map(CellType(TestRowType.Worker, TestColType.Salary) -> IntegerCell), List(Locale.ROOT, localeFi)).read()
-
-    val cells = table.getSingleCol(TestColType.Salary, TestRowType.Worker)
-
-    assertEquals(Locale.ROOT, table.metadata.dataLocale)
-
-    val expectedIntegerCell = IntegerCell.parse(CellKey(2, 4), Locale.ROOT, "12000").right.get
-
-    assertEquals(IndexedSeq(expectedIntegerCell), cells)
   }
 
   @Test
@@ -225,50 +150,6 @@ class TableReaderTest {
     assertEquals(1, errors.errors.size)
   }
 
-  @Test
-  def testUpgradeCellTypeParsingFailedOld: Unit = {
-    val brokenData = rowAndColTypesFiDataEn.replace("\"12,000.00\"", "injected-error-should-be-number")
-
-    try {
-      new TableReader[TestRowType, TestColType](brokenData, rowTyper, colTyper,
-        Map(CellType(TestRowType.Worker, TestColType.Salary) -> IntegerCell),
-        locales = Seq(Locale.ROOT, localeFi)).read()
-      fail()
-    } catch {
-      case e: Exception => {
-        assertEquals("Failed to parse data in some cells and or identify language/locale.\n" +
-          "Error parsing cell content: Expected integer, but input 'injected-error-should-be-number' could not be " +
-          "fully parsed with locale 'fi'. CellType(Worker,Salary) Cell containing " +
-          "'injected-error-should-be-number' at Row 3, Column E (4)\n", e.getMessage())
-      }
-    }
-  }
-
-  @Test
-  def testBuildCellTypesRow: Unit = {
-    assertEquals(CellTypesTemp[TestRowType, TestColType](
-      CellTypes(rowTypes = SortedBiMap(RowKey(0) -> TestRowType.CommentRow)),
-      locale = Locale.ROOT),
-      TableReader.buildCellTypes(List(StringCell(CellKey(0, 0), "CommentRow")), Locale.ROOT, rowTyper, PartialFunction.empty))
-  }
-
-  @Test
-  def testBuildCellTypesCol: Unit = {
-    assertEquals(CellTypesTemp[TestRowType, TestColType](
-      CellTypes(rowTypes = SortedBiMap(RowKey(0) -> TestRowType.ColumnHeader),
-      colTypes = SortedBiMap(ColKey(0) -> TestColType.RowType)),
-      locale = Locale.ROOT),
-      TableReader.buildCellTypes(List(StringCell(CellKey(0, 0), "ColumnHeader")), Locale.ROOT, rowTyper, colTyper))
-  }
-
-  @Test
-  def testBuildCellTypesError: Unit = {
-    val cell = StringCell(CellKey(0, 0), "Bogus")
-    assertEquals(CellTypesTemp[TestRowType, TestColType](
-      errors = IndexedSeq(TableReadingError("Unknown row type.", Some(cell))),
-      locale = Locale.ROOT),
-      TableReader.buildCellTypes(List(cell), Locale.ROOT, rowTyper, PartialFunction.empty))
-  }
 
   @Test
   def testGetRowAndColTypes: Unit = {
@@ -276,13 +157,6 @@ class TableReaderTest {
     val (table, errors) = new TableReader2(rowAndColTypesFiDataEn, SimpleTableMetadata(), rowTyper2(localeFi), colTyper2(localeFi),
       cellUpgrader(Locale.ROOT)).read()
 
-    assertEquals(List(RowType, Qualifications, WorkerId, IntParam1, Salary), table.colTypes.values.toList)
-    assertEquals(List(TestRowType.CommentRow, ColumnHeader, Worker), table.rowTypes.values.toList)
-  }
-
-  @Test
-  def testGetRowAndColTypesOld: Unit = {
-    val table = new TableReader(rowAndColTypesFiDataEn, rowTyper, colTyper, locales = Seq(Locale.ROOT, localeFi)).read()
     assertEquals(List(RowType, Qualifications, WorkerId, IntParam1, Salary), table.colTypes.values.toList)
     assertEquals(List(TestRowType.CommentRow, ColumnHeader, Worker), table.rowTypes.values.toList)
   }
@@ -306,22 +180,4 @@ class TableReaderTest {
       table.getSingleCol(Qualifications, Worker).map(_.serializedString).reduce(_ + "," + _))
 
   }
-
-  @Test
-  def readCompletefileFiUtf8CsvOld: Unit = {
-    val file = Resources.asByteSource(Resources.getResource("csv–file-for-loading"))
-
-    val table = new TableReader(file, rowTyper, colTyper).read()
-
-    assertEquals(List(RowType, Qualifications, WorkerId, IntParam1, Salary,
-      BoolParam1, PrevWeek, PrevWeek, PrevWeek), table.colTypes.values.toList.slice(0, 9))
-
-    assertEquals(List(CommentRow, CommentRow, ColumnHeader, Day, Worker, Worker),
-      table.rowTypes.values.toList.slice(0, 6))
-
-    assertEquals("Qualifications for all workers should match.", "MSc/MSP,BSc,MBA",
-      table.getSingleCol(Qualifications, Worker).map(_.serializedString).reduce(_ + "," + _))
-
-  }
-
 }
