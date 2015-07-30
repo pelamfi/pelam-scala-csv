@@ -70,6 +70,11 @@ class TableReaderTest {
     }
   }
 
+  def cellUpgrader(locale: Locale) = TableReader2.defineCellUpgrader[TestRowType, TestColType](
+    locale,
+    Map(CellType(TestRowType.Worker, TestColType.Salary) -> IntegerCell)
+  )
+
   implicit def opener(string: String): () => java.io.InputStream = {
     () => new ByteArrayInputStream(string.getBytes(Charsets.UTF_8))
   }
@@ -189,13 +194,9 @@ class TableReaderTest {
 
   @Test
   def testUpgradeCellType: Unit = {
-    val cellUpgrader = TableReader2.defineCellUpgrader[TestRowType, TestColType](
-      Locale.ROOT,
-      Map(CellType(TestRowType.Worker, TestColType.Salary) -> IntegerCell)
-    )
 
     val (table, errors) = new TableReader2(rowAndColTypesFiDataEn, SimpleTableMetadata(), rowTyper2(localeFi), colTyper2(localeFi),
-      cellUpgrader).read()
+      cellUpgrader(Locale.ROOT)).read()
 
     assertTrue(errors.toString, errors.noErrors)
 
@@ -211,6 +212,21 @@ class TableReaderTest {
 
   @Test
   def testUpgradeCellTypeParsingFailed: Unit = {
+    val brokenData = rowAndColTypesFiDataEn.replace("\"12,000.00\"", "injected-error-should-be-number")
+
+    val (table, errors) = new TableReader2(brokenData, SimpleTableMetadata(), rowTyper2(localeFi), colTyper2(localeFi),
+      cellUpgrader(localeFi)).read()
+
+    assertEquals(
+      "Error parsing cell content: Expected integer, but input 'injected-error-should-be-number' could not be " +
+      "fully parsed with locale 'fi'. CellType(Worker,Salary) Cell containing " +
+      "'injected-error-should-be-number' at Row 3, Column E (4)", errors.errors(0).toString())
+
+    assertEquals(1, errors.errors.size)
+  }
+
+  @Test
+  def testUpgradeCellTypeParsingFailedOld: Unit = {
     val brokenData = rowAndColTypesFiDataEn.replace("\"12,000.00\"", "injected-error-should-be-number")
 
     try {
@@ -256,6 +272,16 @@ class TableReaderTest {
 
   @Test
   def testGetRowAndColTypes: Unit = {
+    // TODO: test with locale detection heuristic
+    val (table, errors) = new TableReader2(rowAndColTypesFiDataEn, SimpleTableMetadata(), rowTyper2(localeFi), colTyper2(localeFi),
+      cellUpgrader(Locale.ROOT)).read()
+
+    assertEquals(List(RowType, Qualifications, WorkerId, IntParam1, Salary), table.colTypes.values.toList)
+    assertEquals(List(TestRowType.CommentRow, ColumnHeader, Worker), table.rowTypes.values.toList)
+  }
+
+  @Test
+  def testGetRowAndColTypesOld: Unit = {
     val table = new TableReader(rowAndColTypesFiDataEn, rowTyper, colTyper, locales = Seq(Locale.ROOT, localeFi)).read()
     assertEquals(List(RowType, Qualifications, WorkerId, IntParam1, Salary), table.colTypes.values.toList)
     assertEquals(List(TestRowType.CommentRow, ColumnHeader, Worker), table.rowTypes.values.toList)
@@ -263,6 +289,26 @@ class TableReaderTest {
 
   @Test
   def readCompletefileFiUtf8Csv: Unit = {
+    val file = Resources.asByteSource(Resources.getResource("csv–file-for-loading"))
+
+    val (table, errors) = new TableReader2(file, SimpleTableMetadata(), rowTyper2(Locale.ROOT), colTyper2(Locale.ROOT),
+      cellUpgrader(Locale.ROOT)).read()
+
+    assertTrue(errors.toString, errors.noErrors)
+
+    assertEquals(List(RowType, Qualifications, WorkerId, IntParam1, Salary,
+      BoolParam1, PrevWeek, PrevWeek, PrevWeek), table.colTypes.values.toList.slice(0, 9))
+
+    assertEquals(List(CommentRow, CommentRow, ColumnHeader, Day, Worker, Worker),
+      table.rowTypes.values.toList.slice(0, 6))
+
+    assertEquals("Qualifications for all workers should match.", "MSc/MSP,BSc,MBA",
+      table.getSingleCol(Qualifications, Worker).map(_.serializedString).reduce(_ + "," + _))
+
+  }
+
+  @Test
+  def readCompletefileFiUtf8CsvOld: Unit = {
     val file = Resources.asByteSource(Resources.getResource("csv–file-for-loading"))
 
     val table = new TableReader(file, rowTyper, colTyper).read()
