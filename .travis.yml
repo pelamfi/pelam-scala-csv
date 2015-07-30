@@ -11,6 +11,6 @@ script:
 addons:
   artifacts:
     paths:
-    - $TRAVIS_BUILD_DIR/build/docs/scaladoc/Dis
+    - $TRAVIS_BUILD_DIR/build/docs/scaladoc/
 # disable services since this does not use any. http://blog.travis-ci.com/august-2012-upcoming-ci-environment-updates/
 services: []
