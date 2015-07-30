@@ -9,11 +9,11 @@ import fi.pelam.csv.cell._
 import fi.pelam.csv.table.Locales.localeFi
 import fi.pelam.csv.table.TestColType._
 import fi.pelam.csv.table.TestRowType._
-import fi.pelam.csv.util.SortedBiMap
 import org.junit.Assert._
 import org.junit.Test
 
 class TableReaderTest {
+
   import TableReaderTest._
 
   @Test
@@ -103,8 +103,8 @@ class TableReaderTest {
 
     assertEquals(
       "Error parsing cell content: Expected integer, but input 'injected-error-should-be-number' could not be " +
-      "fully parsed with locale 'fi'. CellType(Worker,Salary) Cell containing " +
-      "'injected-error-should-be-number' at Row 3, Column E (4)", errors.errors(0).toString())
+        "fully parsed with locale 'fi'. CellType(Worker,Salary) Cell containing " +
+        "'injected-error-should-be-number' at Row 3, Column E (4)", errors.errors(0).toString())
 
     assertEquals(1, errors.errors.size)
   }

@@ -1,8 +1,5 @@
 package fi.pelam.csv.table
 
-import java.nio.charset.Charset
-import java.util.Locale
-
 import fi.pelam.csv.cell._
 
 import scala.collection.SortedMap
@@ -68,7 +65,7 @@ object Table {
  * @tparam RT Client specified object type used for typing rows in CSV data.
  * @tparam CT Client specified object type used for typing columns in CSV data.
  */
-case class Table[RT, CT, M <: TableMetadata] private (metadata: M,
+case class Table[RT, CT, M <: TableMetadata] private(metadata: M,
   cellTypes: CellTypes[RT, CT],
   cells: IndexedSeq[IndexedSeq[Cell]]) {
 

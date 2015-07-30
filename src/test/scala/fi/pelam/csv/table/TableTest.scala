@@ -1,9 +1,5 @@
 package fi.pelam.csv.table
 
-import java.util.Locale
-
-import com.google.common.base.Charsets
-import fi.pelam.csv.CsvConstants
 import fi.pelam.csv.cell._
 import fi.pelam.csv.util.SortedBiMap
 import org.junit.Assert._
@@ -27,7 +23,7 @@ object TableTest {
         ColKey(3) -> TestColType.PrevWeek,
         ColKey(4) -> TestColType.ThisWeek,
         ColKey(5) -> TestColType.CommentCol))
-      ), List[Cell]())
+    ), List[Cell]())
 
   val foo = StringCell(CellKey(1, 1), "foo")
   val bar = StringCell(CellKey(2, 1), "bar")

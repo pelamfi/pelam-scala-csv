@@ -1,10 +1,8 @@
 package fi.pelam.csv.table
 
 import java.io.BufferedReader
-import java.nio.charset.StandardCharsets
 import java.util.Locale
 
-import fi.pelam.csv.CsvConstants
 import fi.pelam.csv.cell._
 import fi.pelam.csv.stream.CsvReader
 import fi.pelam.csv.util.SortedBiMap
@@ -29,17 +27,17 @@ import fi.pelam.csv.util.SortedBiMap
  * The table reading is split to stages to allow implementing format detection heuristics
  * in a structured manner.
  *
- *   - `csvReadingStage` Parse CSV byte data to cells. Depends on `charset` and `separator` provided
- *   via the `metadata` parameter.
+ * - `csvReadingStage` Parse CSV byte data to cells. Depends on `charset` and `separator` provided
+ * via the `metadata` parameter.
  *
- *   - `rowTypeDetectionStage` Detect row types (hard coded or based on cell contents). The `rowTyper` parameter
- *   is used in this stage.
+ * - `rowTypeDetectionStage` Detect row types (hard coded or based on cell contents). The `rowTyper` parameter
+ * is used in this stage.
  *
- *   - `colTypeDetectionStage` Detect column types (hard coded or based on row types and cell contents). The `colTyper` parameter
- *   is used in this stage.
+ * - `colTypeDetectionStage` Detect column types (hard coded or based on row types and cell contents). The `colTyper` parameter
+ * is used in this stage.
  *
- *   - `cellUpgradeStage` Upgrade cells based on cell types, which are combined from row and column types. The `cellUpgrader`
- *   parameter is used in this stage
+ * - `cellUpgradeStage` Upgrade cells based on cell types, which are combined from row and column types. The `cellUpgrader`
+ * parameter is used in this stage
  *
  * == CSV format detection heuristics ==
  *
@@ -86,8 +84,6 @@ class TableReader[RT, CT, M <: TableMetadata](
   val colTyper: TableReader.ColTyper[RT, CT] = PartialFunction.empty,
   val cellUpgrader: TableReader.CellUpgrader[RT, CT] = PartialFunction.empty
   ) {
-
-  import TableReader._
 
   type ResultTable = Table[RT, CT, M]
 
@@ -172,9 +168,9 @@ class TableReader[RT, CT, M <: TableMetadata](
     val upgrades = for (cell <- input.cells) yield {
 
       val upgrade = for (rowType <- input.rowTypes.get(cell.rowKey);
-           colType <- input.colTypes.get(cell.colKey);
-           cellType = CellType[RT, CT](rowType, colType);
-           upgradeResult <- upgrader(cell, cellType)) yield upgradeResult
+                         colType <- input.colTypes.get(cell.colKey);
+                         cellType = CellType[RT, CT](rowType, colType);
+                         upgradeResult <- upgrader(cell, cellType)) yield upgradeResult
 
       upgrade match {
         case Some(Left(tableReadingError)) => Left(tableReadingError.addedDetails(cell))

@@ -2,11 +2,14 @@ package fi.pelam.csv.table
 
 sealed trait Pipeline[S <: Success] {
   def map(f: S => S): Pipeline[S]
+
   def flatMap(inner: S => Pipeline[S]): Pipeline[S]
+
   def run(inputState: S): S
 }
 
 object Pipeline {
+
   case class Stage[S <: Success](stageFunction: S => S) extends Pipeline[S] {
     override def map(mapFunc: S => S) = Stage[S](state => mapFunc(stageFunction(state)))
 
@@ -35,4 +38,5 @@ object Pipeline {
       }
     }
   }
+
 }

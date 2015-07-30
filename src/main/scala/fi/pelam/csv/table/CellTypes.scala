@@ -1,7 +1,5 @@
 package fi.pelam.csv.table
 
-import java.util.Locale
-
 import fi.pelam.csv.cell.{AxisKey, Cell, ColKey, RowKey}
 import fi.pelam.csv.util.SortedBiMap
 
