@@ -9,37 +9,6 @@ import fi.pelam.csv.cell._
 import fi.pelam.csv.stream.CsvReader
 import fi.pelam.csv.util.SortedBiMap
 
-object TableReader {
-
-  type RowTyperResult[RT] = Either[TableReadingError, RT]
-
-  type RowTyper[RT] = PartialFunction[(Cell), RowTyperResult[RT]]
-
-  type ColTyperResult[CT] = Either[TableReadingError, CT]
-
-  type RowTypes[RT] = SortedBiMap[RowKey, RT]
-
-  type ColTyper[RT, CT] = PartialFunction[(Cell, RowTypes[RT]), ColTyperResult[CT]]
-
-  type ColTypes[CT] = SortedBiMap[ColKey, CT]
-
-  type CellUpgraderResult = Either[TableReadingError, Cell]
-
-  type CellUpgrader[RT, CT] = PartialFunction[(Cell, CellType[RT, CT]), CellUpgraderResult]
-
-  def defineCellUpgrader[RT, CT](locale: Locale, parserMap: Map[CellType[_, _], CellParser]): CellUpgrader[RT, CT] = {
-
-    case (cell, cellType) if parserMap.contains(cellType) => {
-
-      parserMap(cellType).parse(cell.cellKey, locale, cell.serializedString) match {
-        case Left(error) => Left(TableReadingError(error, cell, cellType))
-        case Right(cell) => Right(cell)
-      }
-    }
-
-  }
-}
-
 case class TableReadingErrors(phase: Int = 0, errors: IndexedSeq[TableReadingError] = IndexedSeq()) {
 
   def add(moreErrors: TraversableOnce[TableReadingError]): TableReadingErrors = copy(errors = errors ++ moreErrors.toIndexedSeq)
@@ -246,3 +215,33 @@ class TableReader[RT, CT, M <: TableMetadata](
   }
 }
 
+object TableReader {
+
+  type RowTyperResult[RT] = Either[TableReadingError, RT]
+
+  type RowTyper[RT] = PartialFunction[(Cell), RowTyperResult[RT]]
+
+  type ColTyperResult[CT] = Either[TableReadingError, CT]
+
+  type RowTypes[RT] = SortedBiMap[RowKey, RT]
+
+  type ColTyper[RT, CT] = PartialFunction[(Cell, RowTypes[RT]), ColTyperResult[CT]]
+
+  type ColTypes[CT] = SortedBiMap[ColKey, CT]
+
+  type CellUpgraderResult = Either[TableReadingError, Cell]
+
+  type CellUpgrader[RT, CT] = PartialFunction[(Cell, CellType[RT, CT]), CellUpgraderResult]
+
+  def defineCellUpgrader[RT, CT](locale: Locale, parserMap: Map[CellType[_, _], CellParser]): CellUpgrader[RT, CT] = {
+
+    case (cell, cellType) if parserMap.contains(cellType) => {
+
+      parserMap(cellType).parse(cell.cellKey, locale, cell.serializedString) match {
+        case Left(error) => Left(TableReadingError(error, cell, cellType))
+        case Right(cell) => Right(cell)
+      }
+    }
+
+  }
+}
