@@ -10,39 +10,75 @@ import fi.pelam.csv.stream.CsvReader
 import fi.pelam.csv.util.SortedBiMap
 
 /**
+ *
  * This class is part of the the higher level api for reading, writing and processing CSV data.
  *
- * [[Table]] is an immutable data structure for holding and processing
- * the parsed data in a spreadsheet program like format.
+ * The result of calling `read` method on this class will be an instance of [[Table]] class.
+ * The table is an immutable data structure for holding and processing the parsed data
+ * in a spreadsheet program like format.
  *
- * [[TableWriter]] is the counterpart of this class for writing [[Table]] out to disk.
+ * [[TableWriter]] is the counterpart of this class for writing [[Table]] out to disk for example.
  *
  * == Stages ==
- * The table reading process may fail and terminate at each phase. Then an incomplete Table object
- * will be returned containing the errors detected so far.
  *
- * The table reading is split to phases to allow implementing format detection heuristics in that
- * lock some variables during the earlier phases and then proceeding to later phases.
+ * The table reading is split into four stages.
+ *
+ * The table reading process may fail and terminate at each phase. Then an incomplete Table object
+ * will be returned together with the errors detected so far.
+ *
+ * The table reading is split to stages to allow implementing format detection heuristics
+ * in a structured manner.
+ *
+ *   - `csvReadingStage` Parse CSV byte data to cells. Depends on `charset` and `separator` provided
+ *   via the `metadata` parameter.
+ *
+ *   - `rowTypeDetectionStage` Detect row types (hard coded or based on cell contents). The `rowTyper` parameter
+ *   is used in this stage.
+ *
+ *   - `colTypeDetectionStage` Detect column types (hard coded or based on row types and cell contents). The `colTyper` parameter
+ *   is used in this stage.
+ *
+ *   - `cellUpgradeStage` Upgrade cells based on cell types, which are combined from row and column types. The `cellUpgrader`
+ *   parameter is used in this stage
+ *
+ * == CSV format detection heuristics ==
+ *
+ * Since deducing whether correct parameters like character set were used in reading a CSV
+ * file without any extra knowledge is impossible, this class supports implementing a custom
+ * format detection algorithm by client code.
+ *
+ * The table reading is split to stages to allow implementing format detection heuristics that
+ * lock some variables during the earlier stages and then proceeding to later stages.
  *
  * Locking some variables and then proceeding results in more efficient algorithm
  * than exhaustive search of the full set of combinations (character set, locale, separator etc).
  *
- *   - Parse to cells
- *   - Detect cell types
- *   - Upgrade cells
+ * The actual detection heuristic is handled outside this class. The idea is that the
+ * detection heuristic class uses this repeatedly with varying parameters until some critertion
+ * is met. The criterion for ending detection could be that zero errors is detected.
+ * If no combination of parameters gives zero errors, then the heuristic could just pick
+ * the solution which gave errors in the latest stage and then the fewest errors.
  *
- * @param openInputStream
- * @param rowTypeDefinition
- * @param colTypeDefinition
- * @param cellTypes map from [[CellType]] to [[fi.pelam.csv.cell.CellParser CellParser]] instances. Use this to get more
- *                  specialized [[fi.pelam.csv.cell.Cell Cell]] instances than the simple
- *                  [[fi.pelam.csv.cell.StringCell StringCell]].
- * @param locales
- * @tparam RT
- * @tparam CT
+ * @param openInputStream A function that returns input stream from which the data should be read.
+ *                        The function is called once in `csvReadingStage` and the stream is always closed.
+ *
+ * @param metadata A custom metadata object which will be passed to the resulting `Table` object.
+ *
+ * @param rowTyper Partial function used in `rowTypeDetectionStage`
+ *
+ * @param colTyper Partial function used in `colTypeDetectionStage`
+ *
+ * @param cellUpgrader Partial function used in `cellUpgradeStage`
+ *
+ * @tparam RT The client specific row type.
+ *
+ * @tparam CT The client specific column type.
+ *
+ * @tparam M The type of the `metadata` parameter. Must be a sub type of [[TableMetadata]].
+ *           This specifies the character set and separator to use when reading the CSV data from the input stream.
  */
-// TODO: Update docs wrt. new TableReader design
-// TODO: Finish documenting the phases and the detection idea after it is implemented
+// TODO: Add code example to ScalaDoc
+// TODO: Add ready made detection heuristics wrappers around this class
 class TableReader[RT, CT, M <: TableMetadata](
   val openInputStream: () => java.io.InputStream,
   val metadata: M = SimpleTableMetadata(),
@@ -57,7 +93,23 @@ class TableReader[RT, CT, M <: TableMetadata](
 
   type State = TableReadingState[RT, CT]
 
-  def csvReadingPhase(input: State): State = {
+  def read(): (ResultTable, TableReadingErrors) = {
+
+    val pipeline = for (_ <- Pipeline.Stage(csvReadingStage);
+                        _ <- Pipeline.Stage(rowTypeDetectionStage);
+                        _ <- Pipeline.Stage(colTypeDetectionStage);
+                        x <- Pipeline.Stage(cellUpgradeStage)) yield x
+
+    val initial = TableReadingState[RT, CT]()
+
+    val result = pipeline.run(initial)
+
+    val cellTypes = CellTypes[RT, CT](result.rowTypes, result.colTypes)
+
+    (Table(metadata, cellTypes, result.cells), result.errors)
+  }
+
+  private[csv] def csvReadingStage(input: State): State = {
     val inputStream = openInputStream()
 
     try {
@@ -79,7 +131,7 @@ class TableReader[RT, CT, M <: TableMetadata](
     }
   }
 
-  def rowTypeDetectionPhase(initialInput: State): State = {
+  private[csv] def rowTypeDetectionStage(initialInput: State): State = {
 
     // Accumulate state with row types in the map
     initialInput.cells.foldLeft(initialInput) { (input, cell) =>
@@ -96,7 +148,7 @@ class TableReader[RT, CT, M <: TableMetadata](
     }
   }
 
-  def colTypeDetectionPhase(initialInput: State): State = {
+  private[csv] def colTypeDetectionStage(initialInput: State): State = {
 
     // Accumulate state with column types in the map
     initialInput.cells.foldLeft(initialInput) { (input, cell) =>
@@ -113,7 +165,7 @@ class TableReader[RT, CT, M <: TableMetadata](
     }
   }
 
-  def cellUpgradePhase(input: State): State = {
+  private[csv] def cellUpgradeStage(input: State): State = {
     val upgrader = cellUpgrader.lift
 
     // Map each cell to same cell, upgraded cell or possible error
@@ -139,22 +191,6 @@ class TableReader[RT, CT, M <: TableMetadata](
     // Package in upgraded cells and possible errors
     input.copy(errors = input.errors.add(errors), cells = upgradedCells.toIndexedSeq)
   }
-
-  def read(): (ResultTable, TableReadingErrors) = {
-
-    val phases = for (_ <- Pipeline.Stage(csvReadingPhase);
-                      _ <- Pipeline.Stage(rowTypeDetectionPhase);
-                      _ <- Pipeline.Stage(colTypeDetectionPhase);
-                      x <- Pipeline.Stage(cellUpgradePhase)) yield x
-
-    val initial = TableReadingState[RT, CT]()
-
-    val result = phases.run(initial)
-
-    val cellTypes = CellTypes[RT, CT](result.rowTypes, result.colTypes)
-
-    (Table(metadata, cellTypes, result.cells), result.errors)
-  }
 }
 
 object TableReader {
@@ -173,8 +209,31 @@ object TableReader {
 
   type CellUpgraderResult = Either[TableReadingError, Cell]
 
+  /**
+   * A partial function that can inspect cells and their assigned cell types and
+   * optionally return a modified (upgraded) cell or [[TableReadingError]]error.
+   *
+   * Idea is to allow specifying more specialized types like [[fi.pelam.csv.cell.IntegerCell the IntegerCell]]
+   * for some cell types.
+   *
+   * There are two major benefits of more specific cell types. One is that CSV contents get validated
+   * better and another is that getting data from the resulting [[Table]] object later in the client
+   * code will be much simpler as working with strings there can be avoided.
+   *
+   * @tparam RT client specific row type
+   * @tparam CT client specific column type
+   */
   type CellUpgrader[RT, CT] = PartialFunction[(Cell, CellType[RT, CT]), CellUpgraderResult]
 
+  /**
+   * Helper method to setup a cell upgrader by using a map only
+   *
+   * @param locale locale to be passed to cell parsers
+   * @param parserMap a map from [[CellTypes]] to [[fi.pelam.csv.cell.CellParser CellParsers]]
+   * @tparam RT client specific row type
+   * @tparam CT client specific column type
+   * @return a [[CellUpgrader]] to be passed to [[TableReader]]
+   */
   def defineCellUpgrader[RT, CT](locale: Locale, parserMap: Map[CellType[_, _], CellParser]): CellUpgrader[RT, CT] = {
 
     case (cell, cellType) if parserMap.contains(cellType) => {
