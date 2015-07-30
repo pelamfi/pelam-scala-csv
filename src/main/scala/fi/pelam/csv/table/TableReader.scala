@@ -35,7 +35,7 @@ case class PhaseFlatmap[RT, CT](outer: TableReadingPhase[RT, CT],
 
   def run(inputState: TableReadingState[RT, CT]) = {
     val outerResult = outer.run(inputState)
-    if (outerResult.errors.noErrors) {
+    if (outerResult.isSuccess) {
       mapFunc(inner(outerResult).run(outerResult)) // to call the inner func, we need state and we get the wrapper,
     } else {
       // Don't run further phases if one had error
