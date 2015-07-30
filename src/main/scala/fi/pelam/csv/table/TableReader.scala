@@ -5,8 +5,9 @@ import java.nio.charset.StandardCharsets
 import java.util.Locale
 
 import fi.pelam.csv.CsvConstants
-import fi.pelam.csv.cell.{CellParsingError, CellParser, Cell}
+import fi.pelam.csv.cell.{RowKey, CellParsingError, CellParser, Cell}
 import fi.pelam.csv.stream.CsvReader
+import fi.pelam.csv.util.SortedBiMap
 
 object TableReader2 {
 
