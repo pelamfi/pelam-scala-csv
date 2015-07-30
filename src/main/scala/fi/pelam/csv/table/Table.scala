@@ -7,6 +7,7 @@ import fi.pelam.csv.cell._
 
 import scala.collection.SortedMap
 
+// TODO: Move object after class in file
 object Table {
 
   private[csv] def buildCells(initialCells: TraversableOnce[Cell], rowCount: Int = 0, colCount: Int = 0): IndexedSeq[IndexedSeq[Cell]] = {

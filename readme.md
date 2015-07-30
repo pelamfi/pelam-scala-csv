@@ -53,10 +53,8 @@ TODO list
 
   * TODO: The locale detection in TableReader is a forced on feature. 
   The interface should allow either providing other similar algorithms or just remove the thing.
-  * TODO: Scaladocs all around
   * TODO: Some simple demo project
-  * TODO: Mark classes not intended to be extended final.
-  * TODO: Companion objects should be after the class. 
+  * TODO: Mark classes and objects not intended to be extended final.
   * TODO: Add @constructor scaladoc tags where needed in class scaladocs.
   * TODO: Try to reduce dependencies of the final artifact.
 
