@@ -9,29 +9,6 @@ import fi.pelam.csv.cell._
 import fi.pelam.csv.stream.CsvReader
 import fi.pelam.csv.util.SortedBiMap
 
-case class TableReadingErrors(phase: Int = 0, errors: IndexedSeq[TableReadingError] = IndexedSeq()) {
-
-  def add(moreErrors: TraversableOnce[TableReadingError]): TableReadingErrors = copy(errors = errors ++ moreErrors.toIndexedSeq)
-
-  def add(error: TableReadingError): TableReadingErrors = copy(errors = errors :+ error)
-
-  def noErrors = errors.isEmpty 
-}
-
-case class TableReadingState[RT, CT](cells: IndexedSeq[Cell] = IndexedSeq(),
-  rowTypes: TableReader.RowTypes[RT] = SortedBiMap[RowKey, RT](),
-  colTypes: TableReader.ColTypes[CT] = SortedBiMap[ColKey, CT](),
-  errors: TableReadingErrors = TableReadingErrors()) {
-
-  def defineRowType(row: RowKey, rowType: RT): TableReadingState[RT, CT] = copy(rowTypes = rowTypes.updated(row, rowType))
-
-  def defineColType(col: ColKey, colType: CT): TableReadingState[RT, CT] = copy(colTypes = colTypes.updated(col, colType))
-
-  def addErrors(moreErrors: Iterator[TableReadingError]): TableReadingState[RT, CT] = copy(errors = errors.add(moreErrors))
-
-  def addError(error: TableReadingError): TableReadingState[RT, CT] = copy(errors = errors.add(error))
-}
-
 sealed trait TableReadingPhase[RT, CT] {
   def map(f: TableReadingState[RT, CT] => TableReadingState[RT, CT]): TableReadingPhase[RT, CT]
   def flatMap(inner: TableReadingState[RT, CT] => TableReadingPhase[RT, CT]): TableReadingPhase[RT, CT]
