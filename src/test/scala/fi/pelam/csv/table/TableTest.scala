@@ -15,19 +15,19 @@ object TableTest {
   def makeTable() = Table[TestRowType, TestColType](Charsets.UTF_8,
     CsvConstants.defaultSeparatorChar,
     Locale.ROOT,
-  CellTypes[TestRowType, TestColType](
-    SortedBiMap(TreeMap(RowKey(0) -> TestRowType.CommentRow,
-      RowKey(1) -> TestRowType.Worker,
-      RowKey(2) -> TestRowType.Worker,
-      RowKey(3) -> TestRowType.Day,
-      RowKey(4) -> TestRowType.CommentRow)),
+    CellTypes[TestRowType, TestColType](
+      SortedBiMap(TreeMap(RowKey(0) -> TestRowType.CommentRow,
+        RowKey(1) -> TestRowType.Worker,
+        RowKey(2) -> TestRowType.Worker,
+        RowKey(3) -> TestRowType.Day,
+        RowKey(4) -> TestRowType.CommentRow)),
 
-    SortedBiMap(TreeMap(ColKey(1) -> TestColType.Qualifications,
-      ColKey(2) -> TestColType.PrevWeek,
-      ColKey(3) -> TestColType.PrevWeek,
-      ColKey(4) -> TestColType.ThisWeek,
-      ColKey(5) -> TestColType.CommentCol)),
-    locale = Locale.ROOT), List[Cell]())
+      SortedBiMap(TreeMap(ColKey(1) -> TestColType.Qualifications,
+        ColKey(2) -> TestColType.PrevWeek,
+        ColKey(3) -> TestColType.PrevWeek,
+        ColKey(4) -> TestColType.ThisWeek,
+        ColKey(5) -> TestColType.CommentCol)),
+      locale = Locale.ROOT), List[Cell]())
 
   val foo = StringCell(CellKey(1, 1), "foo")
   val bar = StringCell(CellKey(2, 1), "bar")

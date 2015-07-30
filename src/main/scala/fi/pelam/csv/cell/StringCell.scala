@@ -8,9 +8,9 @@ import java.util.Locale
  * This cell type simply contains the raw data from a position in a CSV text file.
  *
  * @note However note that any possible quoting is removed and no separator or CSV line ending
- * characters are included.
+ *       characters are included.
  *
- * The lower level CSV parser API [[fi.pelam.csv.stream.CsvReader CsvReader]] produces these.
+ *       The lower level CSV parser API [[fi.pelam.csv.stream.CsvReader CsvReader]] produces these.
  *
  * @param cellKey the location of the cell in the CSV file.
  * @param serializedString simply the string from the CSV file.

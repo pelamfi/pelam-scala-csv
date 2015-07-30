@@ -70,8 +70,7 @@ class TableReader[RT, CT](val openInputStream: () => java.io.InputStream,
 
   def detectCellTypeLocaleAndRowTypes(): CellTypes[RT, CT] = {
 
-    val bestTypes = locales.foldLeft[Option[CellTypes[RT, CT]]](None)
-    { (prev: Option[CellTypes[RT, CT]], locale) =>
+    val bestTypes = locales.foldLeft[Option[CellTypes[RT, CT]]](None) { (prev: Option[CellTypes[RT, CT]], locale) =>
       if (prev.map(_.errors == 0).getOrElse(false)) {
         // TODO: Naming of everything here...
 
@@ -91,7 +90,7 @@ class TableReader[RT, CT](val openInputStream: () => java.io.InputStream,
     }
 
     // Throw if errors
-    bestTypes.fold(sys.error("Could not detect locale. No loclaes defined?"))( types =>
+    bestTypes.fold(sys.error("Could not detect locale. No loclaes defined?"))(types =>
       if (types.errors.size > 0) {
         val message = "Failed to identify language and/or some row and column types.\n" +
           types.errors.foldLeft("")(_ + _ + "\n")

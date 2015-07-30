@@ -63,7 +63,7 @@ import fi.pelam.csv.cell.StringCell
  *
  * @constructor Create a new reader while specifying the separator character.
  */
-final class CsvReader (input: Reader, val separator: Char) extends Iterator[CsvReader.CellOrError] {
+final class CsvReader(input: Reader, val separator: Char) extends Iterator[CsvReader.CellOrError] {
 
   import CsvReader._
 

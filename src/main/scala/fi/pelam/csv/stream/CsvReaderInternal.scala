@@ -14,7 +14,7 @@ import fi.pelam.csv.cell.{CellKey, StringCell}
  * @param separator separator char to use.
  *
  * @constructor create a parser from [[http://docs.oracle.com/javase/8/docs/api/java/io/Reader.html java.io.Reader]]
- *             and a separator character.
+ *              and a separator character.
  */
 final class CsvReaderInternal(input: Reader, separator: Char) {
 

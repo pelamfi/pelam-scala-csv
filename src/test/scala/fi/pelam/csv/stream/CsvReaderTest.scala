@@ -155,7 +155,7 @@ class CsvReaderTest {
 
     assertTrue(reader.hasNext)
 
-    assertEquals(Left(CsvReaderError("Input stream ended while processing quoted characters.", CellKey(0,0))),
+    assertEquals(Left(CsvReaderError("Input stream ended while processing quoted characters.", CellKey(0, 0))),
       reader.next())
 
     assertFalse(reader.hasNext)

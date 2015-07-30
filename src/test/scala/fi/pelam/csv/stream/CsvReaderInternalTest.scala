@@ -9,16 +9,16 @@ import org.junit.Test
 
 /**
  * @note [[fi.pelam.csv.stream.CsvReaderInternal CsvReaderInternal]]
- *      is mostly tested indirectly through its wrapper's
- *      tests in [[fi.pelam.csv.stream.CsvReaderTest CsvReaderTest]].
+ *       is mostly tested indirectly through its wrapper's
+ *       tests in [[fi.pelam.csv.stream.CsvReaderTest CsvReaderTest]].
  */
 class CsvReaderInternalTest {
 
   @Test
   def testRead: Unit = {
     val reader = new CsvReaderInternal(new StringReader("fooxbar\n"), 'x')
-    assertEquals(Some(Right(StringCell(CellKey(0,0), "foo"))), reader.read())
-    assertEquals(Some(Right(StringCell(CellKey(0,1), "bar"))), reader.read())
+    assertEquals(Some(Right(StringCell(CellKey(0, 0), "foo"))), reader.read())
+    assertEquals(Some(Right(StringCell(CellKey(0, 1), "bar"))), reader.read())
     assertEquals(None, reader.read())
     assertEquals("Subsequent calls give None", None, reader.read())
   }

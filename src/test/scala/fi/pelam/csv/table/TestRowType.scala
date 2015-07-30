@@ -15,10 +15,15 @@ object TestRowType extends Enum[TestRowType] {
   val values = findValues
 
   case object ColumnHeader extends TestRowType
+
   case object CommentRow extends TestRowType
+
   case object Worker extends TestRowType
+
   case object Day extends TestRowType
+
   case object WeekDay extends TestRowType
+
   case object Holiday extends TestRowType
 
   val translations = Map(Locale.ROOT -> namesToValuesMap,

@@ -31,8 +31,8 @@ case class CellTypes[RT, CT](
   val colCount = tableDimension(colTypes.keys)
 
   def getCellType(cell: Cell): Option[CellType[RT, CT]] = {
-    for(rowType <- getRowType(cell);
-        colType <- getColType(cell)) yield {
+    for (rowType <- getRowType(cell);
+         colType <- getColType(cell)) yield {
       CellType(rowType, colType)
     }
   }

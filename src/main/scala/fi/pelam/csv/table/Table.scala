@@ -76,7 +76,7 @@ object Table {
  * @tparam RT Client specified object type used for typing rows in CSV data.
  * @tparam CT Client specified object type used for typing columns in CSV data.
  */
-case class Table[RT, CT] private (charset: Charset,
+case class Table[RT, CT] private(charset: Charset,
   csvSeparator: Char,
 
   /**

@@ -17,7 +17,7 @@ import fi.pelam.csv.cell.{Cell, CellKey}
  * is handled by [[fi.pelam.csv.cell.Cell.serializedString]] implementations.
  *
  * @note This class does not flush or close the [[output]] stream.
- * Client must take care of that.
+ *       Client must take care of that.
  *
  * @param output Java writer to write the CSV data to.
  * @param separator Optionally specify CSV separator to use.
