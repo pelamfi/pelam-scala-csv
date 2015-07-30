@@ -29,6 +29,9 @@ object TableReader2 {
 }
 
 case class TableReadingErrors(phase: Int = 0, errors: IndexedSeq[TableReadingError] = IndexedSeq()) {
+
+  def add(moreErrors: Iterator[TableReadingError]): TableReadingErrors = copy(errors = errors ++ moreErrors.toIndexedSeq)
+
   def noErrors = errors.isEmpty 
 }
 
@@ -88,9 +91,27 @@ class TableReader2[RT, CT, M <: TableMetadata](
 
   type State = TableReadingState[RT, CT]
 
-  def phase1(state: State): State = {
-    state
+  def phase1(input: State): State = {
+    val inputStream = openInputStream()
+
+    try {
+
+      val inputReader: java.io.Reader = new BufferedReader(new java.io.InputStreamReader(inputStream, metadata.charset), 1024)
+
+      val csvReader = new CsvReader(inputReader, separator = metadata.separator)
+
+      val (lefts, rights) = csvReader.partition(_.isLeft)
+
+      val errors = lefts.map(either => TableReadingError(either.left.get))
+      val cells = rights.map(either => either.right.get)
+
+      input.copy(errors = input.errors.add(errors), cells = cells.toIndexedSeq)
+
+    } finally {
+      inputStream.close()
+    }
   }
+
 
   def phase2(state: State): State = {
     state

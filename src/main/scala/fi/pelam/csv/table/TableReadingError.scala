@@ -1,6 +1,7 @@
 package fi.pelam.csv.table
 
 import fi.pelam.csv.cell.{Cell, CellParsingError}
+import fi.pelam.csv.stream.CsvReaderError
 
 /**
  * - Various phases in [[TableReader]] produce these when building a Table object from input fails.
@@ -27,5 +28,10 @@ object TableReadingError {
   def apply(innerError: CellParsingError, cell: Cell, cellType: CellType[_, _]): TableReadingError = {
     TableReadingError(s"$innerError $cellType", Some(cell))
   }
+
+  def apply(innerError: CsvReaderError): TableReadingError = {
+    TableReadingError(innerError.toString, None)
+  }
+
 
 }
