@@ -2,7 +2,6 @@ package fi.pelam.csv.cell
 
 import java.util.Locale
 
-import fi.pelam.csv.table.TableReadingError
 import org.junit.Assert._
 import org.junit.Test
 

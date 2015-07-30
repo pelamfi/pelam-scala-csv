@@ -1,7 +1,5 @@
 package fi.pelam
 
-import fi.pelam.csv.table.TableReader
-
 /**
  * This is pelam-scala-csv contained in package fi.pelam.csv. Pelam-scala-csv is a
  * library for reading and writing CSV data.

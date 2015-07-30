@@ -1,6 +1,6 @@
 package fi.pelam.csv.table
 
-import fi.pelam.csv.cell.{CellParsingError, CellParser, Cell}
+import fi.pelam.csv.cell.{Cell, CellParsingError}
 
 /**
  * - Various phases in [[TableReader]] produce these when building a Table object from input fails.

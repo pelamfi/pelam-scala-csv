@@ -5,7 +5,7 @@ import java.nio.charset.StandardCharsets
 import java.util.Locale
 
 import fi.pelam.csv.CsvConstants
-import fi.pelam.csv.cell.{CellParsingError, CellParser, Cell}
+import fi.pelam.csv.cell.{Cell, CellParser, CellParsingError}
 import fi.pelam.csv.stream.CsvReader
 
 /**
