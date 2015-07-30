@@ -17,7 +17,7 @@ import fi.pelam.csv.cell.{Cell, CellKey}
  * is handled by [[fi.pelam.csv.cell.Cell.serializedString]] implementations.
  *
  * @note This class does not flush or close the [[output]] stream.
- * Client must take care of that.
+ *       Client must take care of that.
  *
  * @param output Java writer to write the CSV data to.
  * @param separator Optionally specify CSV separator to use.
@@ -53,7 +53,7 @@ class CsvWriter(val output: java.io.Writer, val separator: Char = defaultSeparat
   /**
    * Write a single cell to output stream.
    *
-   * Will raise an error if cell with succeeding [[fi.pelam.csv.cell.CellKey CellKey]]
+   * Will throw a `RuntimeException` if cell with succeeding [[fi.pelam.csv.cell.CellKey CellKey]]
    * has already been written. This is because cells are expected
    * to be written in natural order of [[fi.pelam.csv.cell.CellKey CellKeys]] (rows top down, columns right to left).
    *
@@ -83,7 +83,7 @@ class CsvWriter(val output: java.io.Writer, val separator: Char = defaultSeparat
   /**
    * Shortcut to call write for each cell in a traversable.
    *
-   * The cells are expected to be in [[fi.pelam.csv.cell.CellKey]] order.
+   * The cells are expected to be in [[fi.pelam.csv.cell.CellKey CellKey]] order.
    *
    * @param cells sequence of cells to be written.
    */

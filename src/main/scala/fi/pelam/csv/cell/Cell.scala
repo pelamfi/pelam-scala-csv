@@ -12,7 +12,7 @@ package fi.pelam.csv.cell
  * a subclass of this class.
 
  * @see See the documentation of cellKey member below for design rationale
- *     on having coordinates in each cell.
+ *      on having coordinates in each cell.
  */
 abstract class Cell {
 
