@@ -1,1 +1,11 @@
-language: java
+language: scala
+jdk:
+  - oraclejdk8
+scala:
+  - 2.11.4
+script:
+  - bundle exec gradle clean check scaladoc
+addons:
+  artifacts:
+    paths:
+    - $HOME/build/docs/scaladoc/
