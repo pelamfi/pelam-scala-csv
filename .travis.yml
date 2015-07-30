@@ -8,4 +8,4 @@ script:
 addons:
   artifacts:
     paths:
-    - $HOME/build/docs/scaladoc/
+    - $TRAVIS_BUILD_DIR/build/docs/scaladoc/
