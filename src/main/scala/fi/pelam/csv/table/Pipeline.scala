@@ -7,12 +7,12 @@ sealed trait Pipeline[S <: Success] {
 }
 
 object Pipeline {
-  case class Stage[S <: Success](phaseFunc: S => S) extends Pipeline[S] {
-    override def map(mapFunc: S => S) = Stage[S](state => mapFunc(phaseFunc(state)))
+  case class Stage[S <: Success](stageFunction: S => S) extends Pipeline[S] {
+    override def map(mapFunc: S => S) = Stage[S](state => mapFunc(stageFunction(state)))
 
     override def flatMap(inner: S => Pipeline[S]): Pipeline[S] = FlatmapStage(this, inner)
 
-    override def run(inputState: S) = phaseFunc(inputState)
+    override def run(inputState: S) = stageFunction(inputState)
   }
 
   case class FlatmapStage[S <: Success](outer: Pipeline[S],
