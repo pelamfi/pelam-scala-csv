@@ -32,6 +32,8 @@ case class TableReadingErrors(phase: Int = 0, errors: IndexedSeq[TableReadingErr
 
   def add(moreErrors: Iterator[TableReadingError]): TableReadingErrors = copy(errors = errors ++ moreErrors.toIndexedSeq)
 
+  def add(error: TableReadingError): TableReadingErrors = copy(errors = errors :+ error)
+
   def noErrors = errors.isEmpty 
 }
 
@@ -39,6 +41,14 @@ case class TableReadingState[RT, CT](cells: IndexedSeq[Cell] = IndexedSeq(),
   rowTypes: TableReader2.RowTypes[RT] = SortedBiMap[RowKey, RT](),
   colTypes: TableReader2.ColTypes[CT] = SortedBiMap[ColKey, CT](),
   errors: TableReadingErrors = TableReadingErrors()) {
+
+  def defineRowType(row: RowKey, rowType: RT): TableReadingState[RT, CT] = copy(rowTypes = rowTypes.updated(row, rowType))
+
+  def defineColType(col: ColKey, colType: CT): TableReadingState[RT, CT] = copy(colTypes = colTypes.updated(col, colType))
+
+  def addErrors(moreErrors: Iterator[TableReadingError]): TableReadingState[RT, CT] = copy(errors = errors.add(moreErrors))
+
+  def addError(error: TableReadingError): TableReadingState[RT, CT] = copy(errors = errors.add(error))
 }
 
 sealed trait TableReadingPhase[RT, CT] {
@@ -91,7 +101,7 @@ class TableReader2[RT, CT, M <: TableMetadata](
 
   type State = TableReadingState[RT, CT]
 
-  def phase1(input: State): State = {
+  def csvReadingPhase(input: State): State = {
     val inputStream = openInputStream()
 
     try {
@@ -112,9 +122,17 @@ class TableReader2[RT, CT, M <: TableMetadata](
     }
   }
 
-
-  def phase2(state: State): State = {
-    state
+  def rowTypeDetectionPhase(initialInput: State): State = {
+    initialInput.cells.foldLeft(initialInput) { (input, cell) =>
+      if (rowTyper.isDefinedAt(cell) && !input.rowTypes.contains(cell.rowKey)) {
+        rowTyper(cell) match {
+          case Left(error) => input.addError(error)
+          case Right(rowType) => input.defineRowType(cell.rowKey, rowType)
+        }
+      } else {
+        input
+      }
+    }
   }
 
   def phase3(state: State): State = {
@@ -123,8 +141,8 @@ class TableReader2[RT, CT, M <: TableMetadata](
 
   def read(): (ResultTable, TableReadingErrors) = {
 
-    val phases = for (_ <- Phase(phase1);
-                      _ <- Phase(phase2);
+    val phases = for (_ <- Phase(csvReadingPhase);
+                      _ <- Phase(rowTypeDetectionPhase);
                       x <- Phase(phase3)) yield x
 
     val initial = TableReadingState[RT, CT]()

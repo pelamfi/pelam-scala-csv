@@ -19,6 +19,11 @@ class TableReaderTest {
     "CommentRow\n" +
     "CommentRow,\n"
 
+  val headerAndCommentsOnlyFi = "SarakeOtsikko,KommenttiSarake,KommenttiSarake,KommenttiSarake,KommenttiSarake\n" +
+    "KommenttiRivi,1,2,3,4\n" +
+    "KommenttiRivi\n" +
+    "KommenttiRivi,\n"
+
   val rowAndColTypesFiDataEn = "KommenttiRivi,1,2,3,4\n" +
     "SarakeOtsikko,Tyypit,TyöntekijäId,IntParam1,Palkka\n" +
     "Työntekijä,ValueCC,4001,8,\"12,000.00\"\n"
@@ -40,7 +45,7 @@ class TableReaderTest {
     case (cell) if cell.colKey.index == 0 => {
       TestRowType.translations(cellTypeLocale).get(cell.serializedString) match {
         case Some(x) => Right(x)
-        case _ => Left(TableReadingError("Unknown row type."))
+        case _ => Left(TableReadingError("Unknown row type: " + cell.serializedString))
       }
     }
   }
@@ -125,17 +130,27 @@ class TableReaderTest {
   }
 
   @Test
-  def testRowTypeFi: Unit = {
+  def testRowTypeEn: Unit = {
     val metadata = SimpleTableMetadata()
-    val (table, errors) = new TableReader2(headerAndCommentsOnly, metadata, rowTyper2(localeFi), colTyper2(localeFi)).read()
-    assertTrue(errors.noErrors)
+    val (table, errors) = new TableReader2(headerAndCommentsOnly, metadata, rowTyper2(Locale.ROOT), colTyper2(Locale.ROOT)).read()
+    assertTrue(errors.toString, errors.noErrors)
     assertEquals(ColumnHeader, table.rowTypes(RowKey(0)))
     assertEquals(CommentRow, table.rowTypes(RowKey(1)))
     assertEquals(CommentRow, table.rowTypes(RowKey(2)))
   }
 
   @Test
-  def testRowType: Unit = {
+  def testRowTypeFi: Unit = {
+    val metadata = SimpleTableMetadata()
+    val (table, errors) = new TableReader2(headerAndCommentsOnlyFi, metadata, rowTyper2(localeFi), colTyper2(localeFi)).read()
+    assertTrue(errors.toString, errors.noErrors)
+    assertEquals(ColumnHeader, table.rowTypes(RowKey(0)))
+    assertEquals(CommentRow, table.rowTypes(RowKey(1)))
+    assertEquals(CommentRow, table.rowTypes(RowKey(2)))
+  }
+
+  @Test
+  def testRowTypeOld: Unit = {
     val table = new TableReader(headerAndCommentsOnly, rowTyper, colTyper).read()
     assertEquals(ColumnHeader, table.rowTypes(RowKey(0)))
     assertEquals(CommentRow, table.rowTypes(RowKey(1)))
