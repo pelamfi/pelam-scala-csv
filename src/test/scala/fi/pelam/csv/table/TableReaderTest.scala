@@ -190,7 +190,7 @@ class TableReaderTest {
   @Test
   def testUpgradeCellType: Unit = {
     val cellUpgrader = TableReader2.defineCellUpgrader[TestRowType, TestColType](
-      localeFi,
+      Locale.ROOT,
       Map(CellType(TestRowType.Worker, TestColType.Salary) -> IntegerCell)
     )
 

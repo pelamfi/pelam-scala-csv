@@ -42,7 +42,7 @@ object TableReader2 {
 
 case class TableReadingErrors(phase: Int = 0, errors: IndexedSeq[TableReadingError] = IndexedSeq()) {
 
-  def add(moreErrors: Iterator[TableReadingError]): TableReadingErrors = copy(errors = errors ++ moreErrors.toIndexedSeq)
+  def add(moreErrors: TraversableOnce[TableReadingError]): TableReadingErrors = copy(errors = errors ++ moreErrors.toIndexedSeq)
 
   def add(error: TableReadingError): TableReadingErrors = copy(errors = errors :+ error)
 
@@ -127,6 +127,7 @@ class TableReader2[RT, CT, M <: TableMetadata](
       val errors = lefts.map(either => TableReadingError(either.left.get))
       val cells = rights.map(either => either.right.get)
 
+      // Package StringCells and possible errors to output state
       input.copy(errors = input.errors.add(errors), cells = cells.toIndexedSeq)
 
     } finally {
@@ -135,7 +136,10 @@ class TableReader2[RT, CT, M <: TableMetadata](
   }
 
   def rowTypeDetectionPhase(initialInput: State): State = {
+
+    // Accumulate state with row types in the map
     initialInput.cells.foldLeft(initialInput) { (input, cell) =>
+
       if (rowTyper.isDefinedAt(cell) && !input.rowTypes.contains(cell.rowKey)) {
         rowTyper(cell) match {
           case Left(error) => input.addError(error)
@@ -144,18 +148,60 @@ class TableReader2[RT, CT, M <: TableMetadata](
       } else {
         input
       }
+
     }
   }
 
-  def phase3(state: State): State = {
-    state
+  def colTypeDetectionPhase(initialInput: State): State = {
+
+    // Accumulate state with column types in the map
+    initialInput.cells.foldLeft(initialInput) { (input, cell) =>
+
+      if (colTyper.isDefinedAt(cell, initialInput.rowTypes) && !input.colTypes.contains(cell.colKey)) {
+        colTyper(cell, initialInput.rowTypes) match {
+          case Left(error) => input.addError(error)
+          case Right(colType) => input.defineColType(cell.colKey, colType)
+        }
+      } else {
+        input
+      }
+
+    }
+  }
+
+  def cellUpgradePhase(input: State): State = {
+    val upgrader = cellUpgrader.lift
+
+    // Map each cell to same cell, upgraded cell or possible error
+    val upgrades = for (cell <- input.cells) yield {
+
+      val upgrade = for (rowType <- input.rowTypes.get(cell.rowKey);
+           colType <- input.colTypes.get(cell.colKey);
+           cellType = CellType[RT, CT](rowType, colType);
+           upgradeResult <- upgrader(cell, cellType)) yield upgradeResult
+
+      upgrade match {
+        case Some(Left(tableReadingError)) => Left(tableReadingError.addedDetails(cell))
+        case Some(Right(upgradedCell)) => Right(upgradedCell)
+        case None => Right(cell)
+      }
+    }
+
+    val (lefts, rights) = upgrades.partition(_.isLeft)
+
+    val errors = lefts.map(either => either.left.get)
+    val upgradedCells = rights.map(either => either.right.get)
+
+    // Package in upgraded cells and possible errors
+    input.copy(errors = input.errors.add(errors), cells = upgradedCells.toIndexedSeq)
   }
 
   def read(): (ResultTable, TableReadingErrors) = {
 
     val phases = for (_ <- Phase(csvReadingPhase);
                       _ <- Phase(rowTypeDetectionPhase);
-                      x <- Phase(phase3)) yield x
+                      _ <- Phase(colTypeDetectionPhase);
+                      x <- Phase(cellUpgradePhase)) yield x
 
     val initial = TableReadingState[RT, CT]()
 
