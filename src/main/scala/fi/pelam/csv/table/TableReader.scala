@@ -9,7 +9,7 @@ import fi.pelam.csv.util.SortedBiMap
 
 /**
  *
- * This class is part of the the higher level api for reading, writing and processing CSV data.
+ * This class is part of the the higher level API for reading, writing and processing CSV data.
  *
  * The result of calling `read` method on this class will be an instance of [[Table]] class.
  * The table is an immutable data structure for holding and processing the parsed data
