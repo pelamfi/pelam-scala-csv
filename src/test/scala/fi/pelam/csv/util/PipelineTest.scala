@@ -5,7 +5,7 @@ import org.junit.Assert._
 
 class PipelineTest {
 
-  case class State(override val success: Boolean = true, value: Int = 0) extends Success
+  case class State(override val success: Boolean = true, value: Int = 0) extends SuccessState
 
   @Test
   def testRun: Unit = {

@@ -1,12 +1,12 @@
 package fi.pelam.csv.table
 
 import fi.pelam.csv.cell._
-import fi.pelam.csv.util.{Success, SortedBiMap}
+import fi.pelam.csv.util.{SuccessState, SortedBiMap}
 
 case class TableReadingState[RT, CT](cells: IndexedSeq[Cell] = IndexedSeq(),
   rowTypes: TableReader.RowTypes[RT] = SortedBiMap[RowKey, RT](),
   colTypes: TableReader.ColTypes[CT] = SortedBiMap[ColKey, CT](),
-  errors: TableReadingErrors = TableReadingErrors()) extends Success {
+  errors: TableReadingErrors = TableReadingErrors()) extends SuccessState {
 
   override val success: Boolean = errors.noErrors
 
