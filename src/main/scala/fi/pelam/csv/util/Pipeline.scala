@@ -1,5 +1,33 @@
-package fi.pelam.csv.table
+package fi.pelam.csv.util
 
+/**
+ * A monad abstraction that can be used to build up a chain of
+ * transformations of state. An input state can then be passed
+ * through the pipeline with the [[Pipeline!.run run]] method.
+ *
+ * The state is queried for success via the trait [[Success]].
+ *
+ * If the state does not report as success after executing a stage,
+ * the rest of the pipeline is bypassed.
+ *
+ * == Code example ==
+ *
+ * {{{
+ *   case class State(override val success: Boolean = true, value: Int = 0) extends Success
+ *
+ *   val pipeline = for (
+ *     _ <- Pipeline.Stage((a: State) => a.copy(value = a.value + 1));
+ *     _ <- Pipeline.Stage((a: State) => a.copy(value = a.value + 10));
+ *     finalState <- Pipeline.Stage((a: State) => a.copy(value = a.value + 100))
+ *   ) yield finalState
+ *
+ *   println(pipeline.run(State()))
+ *   // Will print State(true,111)
+ * }}}
+ *
+ * @tparam S The type of the state to be threaded through pipeline stages.
+ */
+// TODO: Is it accurate to call this a monad?
 sealed trait Pipeline[S <: Success] {
   def map(f: S => S): Pipeline[S]
 
@@ -18,7 +46,7 @@ object Pipeline {
     override def run(inputState: S) = stageFunction(inputState)
   }
 
-  case class FlatmapStage[S <: Success](outer: Pipeline[S],
+  private case class FlatmapStage[S <: Success](outer: Pipeline[S],
     inner: S => Pipeline[S],
     mapFunc: S => S = (state: S) => state) extends Pipeline[S] {
 
@@ -29,7 +57,7 @@ object Pipeline {
 
     override def run(inputState: S) = {
       val outerResult = outer.run(inputState)
-      if (outerResult.isSuccess) {
+      if (outerResult.success) {
         // Call the inner (and downstream in the pipeline) stages
         mapFunc(inner(outerResult).run(outerResult))
       } else {

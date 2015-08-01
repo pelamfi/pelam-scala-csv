@@ -5,7 +5,7 @@ import java.util.Locale
 
 import fi.pelam.csv.cell._
 import fi.pelam.csv.stream.CsvReader
-import fi.pelam.csv.util.SortedBiMap
+import fi.pelam.csv.util.{Pipeline, SortedBiMap}
 
 /**
  *

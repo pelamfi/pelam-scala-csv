@@ -35,7 +35,8 @@ case class IntegerCell(override val cellKey: CellKey,
  * interesting as it implements the [[CellParser]] trait and acts as a factory
  * which produces IntegerCell instances (or errors if parsing fails) from String data.
  *
- * This companion object can be used as an argument to [[fi.pelam.csv.table.TableReader.cellTypes TableReader]]
+ * This companion object can be used used to upgrade cells in TableReader in an easy way
+ * by using it in a map passed to [[fi.pelam.csv.table.TableReader.defineCellUpgrader]].
  * to specify which cells should be interpreted as containing integers.
  */
 // TODO: Is there a scaladoc way to refer to cellTypes in TableReader?
