@@ -1,12 +1,13 @@
-package fi.pelam.csv
+package fi.pelam.csv.stream
 
 import fi.pelam.csv.CsvConstants._
 import fi.pelam.csv.cell.{Cell, CellKey}
 
 /**
- * Opposite of [[CsvReaderInternal]]. The API is simple. There
+ * Opposite of [[CsvReader]]. The API is simple. There
  * are just 2 public methods. One to write a single cell and another
- * to write a [[http://www.scala-lang.org/api/current/index.html#scala.collection.TraversableOnce TraversableOnce]] of cells.
+ * to write a [[http://www.scala-lang.org/api/current/index.html#scala.collection.TraversableOnce TraversableOnce]]
+ * of cells.
  *
  * The cells are expected to be in top to bottom left to right order.
  * The sequence of cells can contain holes. Empty cells in CSV data will
@@ -15,8 +16,8 @@ import fi.pelam.csv.cell.{Cell, CellKey}
  * This class handles quoting, but all other special processing
  * is handled by [[fi.pelam.csv.cell.Cell.serializedString]] implementations.
  *
- * @note that this class does not flush or close the [[output]] stream.
- * Client must take care of that.
+ * @note This class does not flush or close the [[output]] stream.
+ *       Client must take care of that.
  *
  * @param output Java writer to write the CSV data to.
  * @param separator Optionally specify CSV separator to use.
@@ -52,9 +53,9 @@ class CsvWriter(val output: java.io.Writer, val separator: Char = defaultSeparat
   /**
    * Write a single cell to output stream.
    *
-   * Will raise an error if cell with succeeding [[fi.pelam.csv.cell.CellKey]]
+   * Will throw a `RuntimeException` if cell with succeeding [[fi.pelam.csv.cell.CellKey CellKey]]
    * has already been written. This is because cells are expected
-   * to be written in natural order of [[fi.pelam.csv.cell.CellKey]]s (rows top down, columns right to left).
+   * to be written in natural order of [[fi.pelam.csv.cell.CellKey CellKeys]] (rows top down, columns right to left).
    *
    * @param cell to write.
    */
@@ -82,7 +83,7 @@ class CsvWriter(val output: java.io.Writer, val separator: Char = defaultSeparat
   /**
    * Shortcut to call write for each cell in a traversable.
    *
-   * The cells are expected to be in [[fi.pelam.csv.cell.CellKey]] order.
+   * The cells are expected to be in [[fi.pelam.csv.cell.CellKey CellKey]] order.
    *
    * @param cells sequence of cells to be written.
    */

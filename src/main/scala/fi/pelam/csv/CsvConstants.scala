@@ -2,6 +2,9 @@ package fi.pelam.csv
 
 import java.nio.charset.StandardCharsets
 
+/**
+ * This object contains some common CSV data related constants.
+ */
 object CsvConstants {
 
   /**
@@ -31,8 +34,8 @@ object CsvConstants {
   val doubleQuote: String = quote + quote
 
   /**
-   * There is no really any de facto character set for CSV, but UTF-8 is
-   * a good bet for anything.
+   * There is no really any de facto character for CSV, but UTF-8 is
+   * a good place to start with for anything.
    */
   val defaultCharset = StandardCharsets.UTF_8
 

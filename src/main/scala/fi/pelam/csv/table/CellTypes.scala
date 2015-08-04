@@ -1,12 +1,7 @@
-package fi.pelam.csv
+package fi.pelam.csv.table
 
-import java.io.BufferedReader
-import java.nio.charset.StandardCharsets
-import java.util.Locale
-
-import fi.pelam.csv.cell.{AxisKey, Cell, RowKey, ColKey}
-
-import scala.collection.SortedMap
+import fi.pelam.csv.cell.{AxisKey, Cell, ColKey, RowKey}
+import fi.pelam.csv.util.SortedBiMap
 
 /**
  * This class is used internally by this CSV package to track mapping of rows and columns to their
@@ -14,17 +9,12 @@ import scala.collection.SortedMap
  *
  * @param rowTypes
  * @param colTypes
- * @param errors
- * @param locale is the cell type locale ie. the locale used in names in CSV data identifying types of each column and row
  * @tparam RT
  * @tparam CT
  */
-// TODO: Refactor errors and locale somewhere else
 case class CellTypes[RT, CT](
   rowTypes: SortedBiMap[RowKey, RT] = SortedBiMap[RowKey, RT](),
-  colTypes: SortedBiMap[ColKey, CT] = SortedBiMap[ColKey, CT](),
-  errors: Seq[TableReadingError] = IndexedSeq(),
-  locale: Locale
+  colTypes: SortedBiMap[ColKey, CT] = SortedBiMap[ColKey, CT]()
   ) {
 
   import CellTypes._
@@ -34,8 +24,8 @@ case class CellTypes[RT, CT](
   val colCount = tableDimension(colTypes.keys)
 
   def getCellType(cell: Cell): Option[CellType[RT, CT]] = {
-    for(rowType <- getRowType(cell);
-        colType <- getColType(cell)) yield {
+    for (rowType <- getRowType(cell);
+         colType <- getColType(cell)) yield {
       CellType(rowType, colType)
     }
   }

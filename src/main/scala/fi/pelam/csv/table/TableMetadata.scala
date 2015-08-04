@@ -1,7 +1,9 @@
-package fi.pelam.csv
+package fi.pelam.csv.table
 
-import java.nio.charset.{StandardCharsets, Charset}
+import java.nio.charset.Charset
 import java.util.Locale
+
+import fi.pelam.csv.CsvConstants
 
 // TODO: WIP, start using something like this internally or  remove this class
 /**
@@ -28,7 +30,7 @@ trait TableMetadata {
 
   /**
    * The character set used to convert input bytes into a string
-   * when reading CSV data.
+   * when reading CSV data or vice versa when writing CSV.
    */
   val charset: Charset = CsvConstants.defaultCharset
 

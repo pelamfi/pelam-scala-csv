@@ -1,6 +1,6 @@
-package fi.pelam.csv
+package fi.pelam.csv.stream
 
-import java.io.{Reader, StringReader}
+import java.io.Reader
 
 import fi.pelam.csv.cell.{CellKey, StringCell}
 
@@ -14,9 +14,9 @@ import fi.pelam.csv.cell.{CellKey, StringCell}
  * @param separator separator char to use.
  *
  * @constructor create a parser from [[http://docs.oracle.com/javase/8/docs/api/java/io/Reader.html java.io.Reader]]
- *             and a separator character.
+ *              and a separator character.
  */
-final class CsvReaderInternal(input: Reader, val separator: Char) {
+final class CsvReaderInternal(input: Reader, separator: Char) {
 
   import CsvReaderInternal._
 
@@ -30,9 +30,18 @@ final class CsvReaderInternal(input: Reader, val separator: Char) {
 
   private[this] var cellContentBuffer: StringBuilder = null
 
-  // An FSM state does not always consume just read the character.
-  // These variables will pass the character to the next FSM state.
+  /** An FSM state does not always consume just read the character.
+    * This variables together with [[charConsumed]] will pass the character
+    * to the next FSM state.
+    */
   private[this] var char: Int = 0
+
+  /**
+   * This flag tracks whether caracter in [[char]] is consumed.
+   *
+   * If this flag is true, first thing in the processing of next
+   * state will be reading a new character to [[char]].
+   */
   private[this] var charConsumed = true
 
   /**

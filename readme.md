@@ -1,5 +1,6 @@
 Pelam's Scala CSV Library
 =========================
+[![Build Status](https://travis-ci.org/pelamfi/pelam-scala-csv.svg?branch=master)](https://travis-ci.org/pelamfi/pelam-scala-csv)
 
 NOTE: THIS PROJECT IS NOT YET FUNCTIONAL.
 See History section below...
@@ -7,7 +8,7 @@ See History section below...
 Scala library for reading and writing CSV data. 
 
 Main points
------------
+===========
 
   * Two levels of APIs for both input and output
 
@@ -29,18 +30,22 @@ Main points
 
 License
 =======
+
 TODO, some permissive license
 
 Maven coordinates
 =================
+
 TBD
 
 Quick examples
 ==============
+
 TBD
 
 Demo application
 ================
+
 TBD
 
 TODO list
@@ -48,15 +53,14 @@ TODO list
 
   * TODO: The locale detection in TableReader is a forced on feature. 
   The interface should allow either providing other similar algorithms or just remove the thing.
-  * TODO: Scaladocs all around
   * TODO: Some simple demo project
-  * TODO: Mark classes not intended to be extended final.
-  * TODO: Companion objects should be after the class. 
+  * TODO: Mark classes and objects not intended to be extended final.
   * TODO: Add @constructor scaladoc tags where needed in class scaladocs.
   * TODO: Try to reduce dependencies of the final artifact.
 
 History of this project
 =======================
+
 This CSV code was originally developed as an IO solution for a custom project called Ahma.
 I broke it off from Ahma as I felt that this had a tiny chance of becoming a generally useful
 open source Scala library. The history up to around June 28th 2015 is pretty broken (won't compile etc.) due

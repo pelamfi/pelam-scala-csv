@@ -1,4 +1,4 @@
-package fi.pelam.csv
+package fi.pelam.csv.table
 
 import java.io.ByteArrayOutputStream
 
@@ -7,6 +7,7 @@ import com.google.common.io.{ByteSource, Resources}
 import org.junit.Assert._
 import org.junit.Test
 
+// TODO: Move object after class in file
 object TableWriterTest {
 
   val testFileName = "csv–file-for-loading"
@@ -40,7 +41,7 @@ class TableWriterTest {
 
     writer.write(outputStream)
 
-    val written = new String(outputStream.toByteArray(), table.charset)
+    val written = new String(outputStream.toByteArray(), table.metadata.charset)
 
     assertEquals(",,,,,\n,foo,,,,\n,bar,,,,\n,,,,,\n,,,,,\n", written)
   }
@@ -51,13 +52,15 @@ class TableWriterTest {
 
   @Test
   def testLoopback: Unit = {
-    val table = new TableReader[TestRowType, TestColType](testFile).read()
+    val (table, errors) = new TableReader[TestRowType, TestColType, SimpleTableMetadata](testFile).read()
+
+    assertTrue(errors.toString, errors.noErrors)
 
     val writer = new TableWriter(table)
 
     writer.write(outputStream)
 
-    val written = new String(outputStream.toByteArray(), table.charset)
+    val written = new String(outputStream.toByteArray(), table.metadata.charset)
 
     assertEquals(testFileContent, written)
   }

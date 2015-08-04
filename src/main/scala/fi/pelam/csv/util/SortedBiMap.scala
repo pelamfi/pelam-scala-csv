@@ -1,21 +1,28 @@
-package fi.pelam.csv
+package fi.pelam.csv.util
 
-import scala.collection.SortedMap
-import scala.collection.mutable
+import scala.collection.{SortedMap, mutable}
 
 /**
- * Bidirectional map supporting multiple values for same key.
+ * Bidirectional map supporting multiple values for a single key.
  *
- * This class is used in [[CellTypes]] to map between rows and columns and their types.
- * Being sorted on the key is useful there
- * because then the columns and rows will be ordered naturally in the reverse map.
+ * This class is used in [[fi.pelam.csv.table.CellTypes table.CellTypes]] to map between
+ * rows and columns and their types.
  *
- * The ordering of values should be the original insertion order.
+ * The iteration order is determined by the keyOrdering implicit.
+ *
+ * The fact that the map is ordered by keys is useful in [[fi.pelam.csv.table.CellTypes table.CellTypes]]
+ * because then the columns and rows will be ordered naturally in both the
+ * forward and reverse maps.
+ *
+ * The ordering of values in reverse map is defined by the key order taking into account
+ * the first key on which each value occurs.
+ *
+ * @note This class uses Scala's SortedMap under the hood.
  */
 case class SortedBiMap[K, V](map: SortedMap[K, V])(implicit keyOrdering: Ordering[K]) extends SortedMap[K, V] {
 
   import SortedBiMap._
-  
+
   lazy val reverse: SortedMap[V, IndexedSeq[K]] = reverseMap(map)
 
   override def updated[B1 >: V](key: K, value: B1): SortedBiMap[K, B1] = SortedBiMap(map.updated(key, value))

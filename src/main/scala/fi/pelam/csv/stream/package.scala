@@ -5,8 +5,8 @@ package fi.pelam.csv
  *
  * See the reader and writer classes for more information.
  *
- * @see [[CsvReader CsvReader]]
- * @see [[CsvReader CsvWriter]]
+ * @see [[fi.pelam.csv.stream.CsvReader CsvReader]]
+ * @see [[fi.pelam.csv.stream.CsvWriter CsvWriter]]
  */
 package object stream {
 

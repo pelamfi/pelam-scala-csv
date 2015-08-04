@@ -1,5 +1,7 @@
 package fi.pelam.csv
 
+import fi.pelam.csv.table.{TableReader, TableWriter}
+
 /**
  * This package contains the whole table oriented API for processing CSV data.
  *

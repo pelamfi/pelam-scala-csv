@@ -1,4 +1,4 @@
-package fi.pelam.csv
+package fi.pelam.csv.util
 
 import org.junit.Assert._
 import org.junit._
@@ -29,12 +29,12 @@ class SortedBiMapTest {
 
   @Test
   def testReverseSimpleValueOrder3() = {
-    assertReverseMapContents("foo->1,3\nbar->2", SortedBiMap(1 -> "foo", 2 -> "bar", 3->"foo"))
+    assertReverseMapContents("foo->1,3\nbar->2", SortedBiMap(1 -> "foo", 2 -> "bar", 3 -> "foo"))
   }
 
   @Test
   def testReverseSimpleValueOrder4() = {
-    assertReverseMapContents("bar->1,3\nfoo->2", SortedBiMap(1 -> "bar", 2 -> "foo", 3->"bar"))
+    assertReverseMapContents("bar->1,3\nfoo->2", SortedBiMap(1 -> "bar", 2 -> "foo", 3 -> "bar"))
   }
 
   @Test

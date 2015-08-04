@@ -1,8 +1,8 @@
-package fi.pelam.csv
+package fi.pelam.csv.stream
 
 import com.google.common.base.Charsets
 import com.google.common.io.{CharStreams, Resources}
-import fi.pelam.csv.cell.{StringCell, CellKey}
+import fi.pelam.csv.cell.{CellKey, StringCell}
 import org.junit.Assert._
 import org.junit.Test
 
@@ -73,7 +73,7 @@ class CsvWriterTest {
     val file = Resources.asByteSource(Resources.getResource("csv–file-for-loading"))
     val csvStringOrig = file.asCharSource(Charsets.UTF_8).read()
 
-    val readOrigCells = new CsvReader(csvStringOrig).raiseOnError.toIndexedSeq
+    val readOrigCells = new CsvReader(csvStringOrig).throwOnError.toIndexedSeq
 
     assertEquals("Initial data cell count sanity check", 180, readOrigCells.size)
 
