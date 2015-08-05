@@ -73,7 +73,7 @@ class TableReaderTest {
     val (table, errors) = new TableReader(input).read()
     assertTrue(errors.toString, errors.noErrors)
     val cells = table.getCells(RowKey(1))
-    assertEquals("Worker\n12,000.00\nTRUE\n", cells.foldLeft("")(_ + _.serializedString + "\n"))
+    assertEquals("Worker\n12,000.00\nTRUE\n", cells.foldLeft("")(_ + _.value + "\n"))
   }
 
   @Test
@@ -135,8 +135,32 @@ class TableReaderTest {
       table.rowTypes.values.toList.slice(0, 6))
 
     assertEquals("Qualifications for all workers should match.", "MSc/MSP,BSc,MBA",
-      table.getSingleCol(Qualifications, Worker).map(_.serializedString).reduce(_ + "," + _))
+      table.getSingleCol(Qualifications, Worker).map(_.value).reduce(_ + "," + _))
 
+  }
+
+  @Test
+  def testFromStringSimple() = {
+    val reader = TableReader.fromStringSimple(
+      inputCsv = "name,number\n" +
+        "foo,1\n" +
+        "bar,2",
+      rowTyper = {
+        case RowKey(0) => "header"
+        case _ => "data"
+      },
+      colTyper = {
+        case ColKey(0) => "name"
+        case ColKey(1) => "number"
+      },
+      cellTypeMap = {
+        case CellType("data", "number") => IntegerCell
+      })
+
+    val table = reader.readOrThrow()
+
+    assertEquals(List("foo", "bar"), table.getSingleCol("name", "data").map(_.value).toList)
+    assertEquals(List(1, 2), table.getSingleCol("number", "data").map(_.value).toList)
   }
 }
 

@@ -6,6 +6,14 @@ import fi.pelam.csv.util.SortedBiMap
 import scala.collection.SortedMap
 
 /**
+ * This class is an immutable container for [[Cell Cells]] with optional row and column types.
+ *
+ * Several methods are provided for geting cells based on row and column types. For example
+ * {{
+ *
+ *
+ * }}
+ *
  * @constructor
  */
 case class Table[RT, CT, M <: TableMetadata] private(
@@ -14,15 +22,7 @@ case class Table[RT, CT, M <: TableMetadata] private(
   colTypes: SortedBiMap[ColKey, CT],
   metadata: M) {
 
-  val rowTypeServices = new AxisServices(rowTypes) {
-    override def getAxisKey(cell: Cell) = cell.rowKey
-    override val name: String = "row"
-  }
-
-  val colTypeServices = new AxisServices(colTypes) {
-    override def getAxisKey(cell: Cell) = cell.colKey
-    override val name: String = "column"
-  }
+  import Table._
 
   val rowCount: Int = cells.size
 
@@ -86,18 +86,19 @@ case class Table[RT, CT, M <: TableMetadata] private(
   /**
    * Throws if the number of columns with given type is not 1
    */
-  def getSingleColByType(colType: CT) = colTypeServices.getSingleKeyByType(colType)
+  def getSingleColByType(colType: CT) = getSingleKeyByType(colTypes.reverse, colType, "column")
 
   /**
    * Throws if the number of rows with given type is not 1
    */
-  def getSingleRowByType(rowType: RT) = rowTypeServices.getSingleKeyByType(rowType)
+  def getSingleRowByType(rowType: RT) = getSingleKeyByType(rowTypes.reverse, rowType, "row")
 
   /**
    * Get cells from single column of colType for each row of rowType.
    *
    * Throws if there are multiple columns with CT
    */
+  // TODO: Switch the argument order for consistency
   def getSingleCol(colType: CT, rowType: RT): IndexedSeq[Cell] = {
     val colKey = getSingleColByType(colType)
 
@@ -150,14 +151,16 @@ object Table {
     colTypes: SortedBiMap[ColKey, CT] = SortedBiMap[ColKey, CT](),
     metadata: M = SimpleTableMetadata()): Table[RT, CT, M] = {
 
-    val maxRow = AxisServices.findKeyRangeEnd(rowTypes.keys)
+    val maxRow = findKeyRangeEnd(rowTypes.keys)
 
-    val maxCol = AxisServices.findKeyRangeEnd(colTypes.keys)
+    val maxCol = findKeyRangeEnd(colTypes.keys)
 
     val builtCells = buildCells(cells, maxRow, maxCol)
 
     Table(builtCells, rowTypes, colTypes, metadata)
   }
+
+  def findKeyRangeEnd(keys: TraversableOnce[AxisKey[_]]) = keys.foldLeft(0)((max, key) => Math.max(max, key.index + 1))
 
   /**
    * This is a helper method to convert a sequence of cells
@@ -193,5 +196,20 @@ object Table {
 
     rowArray.map(_.toIndexedSeq).toIndexedSeq
   }
+
+  /**
+   * Throws if the number of columns/rows with given type is not 1
+   */
+  def getSingleKeyByType[K <: AxisKey[K], T](keysByType: SortedMap[T, IndexedSeq[K]], colType: T, axisName: String): K = {
+    val keys = keysByType(colType)
+    if (keys.size == 0) {
+      sys.error(s"Expected 1 $axisName of type $colType but no $axisName of that type found.")
+    } else if (keys.size > 1) {
+      sys.error(s"Expected 1 $axisName of type $colType but more than 1 found.")
+    } else {
+      keys(0)
+    }
+  }
+
 
 }

@@ -53,4 +53,12 @@ abstract class Cell {
    */
   def serializedString: String
 
+  /**
+   * The data in possibly more refined form than serializedString depending on the subclass
+   * of Cell in question.
+   *
+   * For example IntegerCell returns Int.
+   */
+  def value: Any
+
 }

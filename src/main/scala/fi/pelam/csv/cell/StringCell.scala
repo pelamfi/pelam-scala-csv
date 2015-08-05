@@ -19,6 +19,13 @@ case class StringCell(override val cellKey: CellKey,
   override val serializedString: String)
   extends Cell {
 
+  /**
+   * This cell type does not interpret the data contained in the raw CSV cell it represents
+   * in any way.
+   * @return same as `serializedString`
+   */
+  override def value = serializedString
+
   override def toString() = s"Cell containing '$serializedString' at $cellKey"
 }
 

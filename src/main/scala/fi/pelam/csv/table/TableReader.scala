@@ -1,8 +1,9 @@
 package fi.pelam.csv.table
 
-import java.io.BufferedReader
+import java.io.{BufferedReader, ByteArrayInputStream}
 import java.util.Locale
 
+import fi.pelam.csv.CsvConstants
 import fi.pelam.csv.cell._
 import fi.pelam.csv.stream.CsvReader
 import fi.pelam.csv.util.{Pipeline, SortedBiMap}
@@ -16,6 +17,32 @@ import fi.pelam.csv.util.{Pipeline, SortedBiMap}
  * in a spreadsheet program like format.
  *
  * [[TableWriter]] is the counterpart of this class for writing [[Table]] out to disk for example.
+ *
+ * == Example ==
+ *
+ * {{{
+ *    val reader = TableReader.fromStringSimple(
+ *     inputCsv = "name,number\n" +
+ * "foo,1\n" +
+ * "bar,2",
+ * rowTyper = {
+ * case RowKey(0) => "header"
+ * case _ => "data"
+ * },
+ * colTyper = {
+ * case ColKey(0) => "name"
+ * case ColKey(1) => "number"
+ * },
+ * cellTypeMap = {
+ * case CellType("data", "number") => IntegerCell
+ * })
+ *
+ * val table = reader.readOrThrow()
+ *
+ * table.getSingleCol("name", "data").map(_.value).toList // Will give List("foo","bar")
+ * table.getSingleCol("number", "data").map(_.value).toList) // Will give List(1,2)
+ *
+ * }}}
  *
  * == Stages ==
  *
@@ -185,9 +212,82 @@ class TableReader[RT, CT, M <: TableMetadata](
     // Package in upgraded cells and possible errors
     input.copy(errors = input.errors.add(errors), cells = upgradedCells.toIndexedSeq)
   }
+
+  /**
+   * This method extends the usual read method with exception based error handling, which
+   * may be useful in smaller applications that don't expect errors in input.
+   *
+   * A `RuntimeException` will be thrown when error is encountered.
+   *
+   */
+  def readOrThrow(): ResultTable = {
+    val (table, errors) = read()
+    if (errors.noErrors) {
+      table
+    } else {
+      sys.error(errors.toString)
+    }
+  }
+
 }
 
 object TableReader {
+
+  /**
+   * Alternate constructor for CsvReader providing string input.
+   *
+   * This alternate constructor exists mainly to make tests and code examples shorter.
+   */
+  def fromString[RT, CT, M <: TableMetadata](
+    inputString: String,
+    metadata: M = SimpleTableMetadata(),
+    rowTyper: TableReader.RowTyper[RT] = PartialFunction.empty,
+    colTyper: TableReader.ColTyper[RT, CT] = PartialFunction.empty,
+    cellUpgrader: TableReader.CellUpgrader[RT, CT] = PartialFunction.empty) = {
+
+    new TableReader(() => new ByteArrayInputStream(
+      inputString.getBytes(CsvConstants.defaultCharset)),
+      metadata,
+      rowTyper,
+      colTyper,
+      cellUpgrader)
+  }
+
+  /**
+   * A helper method to build a [[Table]] from a CSV string and
+   * providing simplified row and column typers using only
+   * [[RowKey]] and [[ColKey]] as input.
+   *
+   * This alternate constructor exists mainly to make tests and code examples shorter.
+   */
+  // TODO: Better name, where does this example helper belong?
+  def fromStringSimple[RT, CT, M <: TableMetadata](
+    inputCsv: String,
+    metadata: M = SimpleTableMetadata(),
+    rowTyper: PartialFunction[(RowKey), RT] = PartialFunction.empty,
+    colTyper: PartialFunction[(ColKey), CT] = PartialFunction.empty,
+    cellTypeMap: PartialFunction[CellType[_, _], CellParser] = PartialFunction.empty,
+    cellParsingLocale: Locale = Locale.ROOT) = {
+
+    // TODO: Is this too complex just to read table and assign types
+    val rowTyperWrapped: RowTyper[RT] = {
+      case (cell: Cell) if rowTyper.isDefinedAt(cell.rowKey) => Right(rowTyper(cell.rowKey))
+    }
+
+    val colTyperWrapped: ColTyper[RT, CT] = {
+      case (cell: Cell, _) if colTyper.isDefinedAt(cell.colKey) => Right(colTyper(cell.colKey))
+    }
+
+    val cellUpgrader = defineCellUpgrader[RT, CT](cellParsingLocale, cellTypeMap)
+
+    new TableReader(() => new ByteArrayInputStream(
+      inputCsv.getBytes(CsvConstants.defaultCharset)),
+      metadata,
+      rowTyperWrapped,
+      colTyperWrapped,
+      cellUpgrader)
+  }
+
 
   type RowTyperResult[RT] = Either[TableReadingError, RT]
 
@@ -210,9 +310,9 @@ object TableReader {
    * Idea is to allow specifying more specialized types like [[fi.pelam.csv.cell.IntegerCell the IntegerCell]]
    * for some cell types.
    *
-   * There are two major benefits of more specific cell types. One is that CSV contents get validated
-   * better and another is that getting data from the resulting [[Table]] object later in the client
-   * code will be much simpler as working with strings there can be avoided.
+   * There are two major benefits of more specific cell types. One is that contents of cells get validated
+   * better. The other is that getting data from the resulting [[Table]] object later in the client
+   * code will be simpler as working with strings can be avoided.
    *
    * @tparam RT client specific row type
    * @tparam CT client specific column type
@@ -220,17 +320,18 @@ object TableReader {
   type CellUpgrader[RT, CT] = PartialFunction[(Cell, CellType[RT, CT]), CellUpgraderResult]
 
   /**
-   * Helper method to setup a cell upgrader by using a map only
+   * This is a helper method to setup a simple cell upgrader
+   * from a map of [[CellType CellTypes]] and [[CellParser CellParsers]].
    *
    * @param locale locale to be passed to cell parsers
-   * @param parserMap a map from [[CellTypes]] to [[fi.pelam.csv.cell.CellParser CellParsers]]
+   * @param parserMap a map from [[CellType CellTypes]] to [[fi.pelam.csv.cell.CellParser CellParsers]]
    * @tparam RT client specific row type
    * @tparam CT client specific column type
    * @return a [[CellUpgrader]] to be passed to [[TableReader]]
    */
-  def defineCellUpgrader[RT, CT](locale: Locale, parserMap: Map[CellType[_, _], CellParser]): CellUpgrader[RT, CT] = {
+  def defineCellUpgrader[RT, CT](locale: Locale, parserMap: PartialFunction[CellType[_, _], CellParser]): CellUpgrader[RT, CT] = {
 
-    case (cell, cellType) if parserMap.contains(cellType) => {
+    case (cell, cellType) if parserMap.isDefinedAt(cellType) => {
 
       parserMap(cellType).parse(cell.cellKey, locale, cell.serializedString) match {
         case Left(error) => Left(TableReadingError(error, cell, cellType))

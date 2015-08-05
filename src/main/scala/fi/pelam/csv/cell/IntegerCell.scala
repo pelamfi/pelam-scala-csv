@@ -20,14 +20,14 @@ import java.util.Locale
  * @param value is the integer stored in CSV.
  */
 case class IntegerCell(override val cellKey: CellKey,
-  val numberFormat: NumberFormat, val value: Int)
+  val numberFormat: NumberFormat, override val value: Int)
   extends Cell {
 
   def serializedString: String = {
     numberFormat.format(value)
   }
 
-  override def toString() = s"Cell containing '$serializedString' at $cellKey"
+  override def toString() = s"Cell containing integer $value at $cellKey"
 }
 
 /**
