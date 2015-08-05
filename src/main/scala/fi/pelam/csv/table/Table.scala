@@ -1,73 +1,28 @@
 package fi.pelam.csv.table
 
 import fi.pelam.csv.cell._
+import fi.pelam.csv.util.SortedBiMap
 
 import scala.collection.SortedMap
 
-// TODO: Move object after class in file
-object Table {
-
-  private[csv] def buildCells(initialCells: TraversableOnce[Cell], rowCount: Int = 0, colCount: Int = 0): IndexedSeq[IndexedSeq[Cell]] = {
-
-    val initialCellMap = initialCells.map(cell => cell.cellKey -> cell).toMap
-
-    // Row count is maximum from argument and largest row number seen in cells
-    val finalRowCount = initialCellMap.keys.foldLeft(rowCount)((a, b) => scala.math.max(a, b.rowKey.index + 1))
-
-    // Column count is maximum from argument and largest column number seen in cells
-    val finalColCount = initialCellMap.keys.foldLeft(colCount)((a, b) => scala.math.max(a, b.colKey.index + 1))
-
-    val rowArray = new Array[Array[Cell]](finalRowCount)
-
-    for (rowIndex <- 0 until finalRowCount) {
-
-      val rowKey = RowKey(rowIndex)
-      val colArray = new Array[Cell](finalColCount)
-
-      rowArray(rowIndex) = colArray
-
-      for (colIndex <- 0 until finalColCount) {
-
-        val cellKey = CellKey(rowKey, colIndex)
-        val cell = initialCellMap.get(cellKey).getOrElse(new StringCell(cellKey, ""))
-
-        colArray(colIndex) = cell
-      }
-    }
-
-    rowArray.map(_.toIndexedSeq).toIndexedSeq
-  }
-
-  /**
-   * Main constructor for table. Typically this not used directly, but through [[TableReader]].
-   *
-   * @param cellTypes Object that describes type of each column, row and cell using the client code defined objects.
-   * @param cells The cells to be used in the table in any order.
-   * @tparam RT Client specified object type used for typing rows in CSV data.
-   * @tparam CT Client specified object type used for typing columns in CSV data.
-   * @return constructed Table object
-   */
-  // TODO: Automatically fill in empty cells and never leave nulls in internal arrays
-  def apply[RT, CT, M <: TableMetadata](metadata: M,
-    cellTypes: CellTypes[RT, CT],
-    cells: TraversableOnce[Cell]): Table[RT, CT, M] = {
-
-    val builtCells = buildCells(cells, cellTypes.rowCount, cellTypes.colCount)
-
-    Table(metadata, cellTypes, builtCells)
-  }
-
-}
-
 /**
- * @param cellTypes Object that describes type of each column, row and cell using the client code defined objects.
- * @param cells Fully populated 2D array of [[fi.pelam.csv.cell.Cell]] objects with matching dimensions to the ones specified in [[CellTypes]] instance.
- * @tparam RT Client specified object type used for typing rows in CSV data.
- * @tparam CT Client specified object type used for typing columns in CSV data.
+ * @constructor
  */
-case class Table[RT, CT, M <: TableMetadata] private(metadata: M,
-  cellTypes: CellTypes[RT, CT],
-  cells: IndexedSeq[IndexedSeq[Cell]]) {
+case class Table[RT, CT, M <: TableMetadata] private(
+  cells: IndexedSeq[IndexedSeq[Cell]],
+  rowTypes: SortedBiMap[RowKey, RT],
+  colTypes: SortedBiMap[ColKey, CT],
+  metadata: M) {
+
+  val rowTypeServices = new AxisServices(rowTypes) {
+    override def getAxisKey(cell: Cell) = cell.rowKey
+    override val name: String = "row"
+  }
+
+  val colTypeServices = new AxisServices(colTypes) {
+    override def getAxisKey(cell: Cell) = cell.colKey
+    override val name: String = "column"
+  }
 
   val rowCount: Int = cells.size
 
@@ -76,16 +31,6 @@ case class Table[RT, CT, M <: TableMetadata] private(metadata: M,
   for (row <- cells) {
     require(row.size == colCount, s"Same number of columns required for reach row. ${row.size} vs ${colCount}")
   }
-
-  def rowTypes = cellTypes.rowTypes
-
-  def colTypes = cellTypes.colTypes
-
-  // Refactor to use ones in CellTypes
-
-  def rowsByType: SortedMap[RT, IndexedSeq[RowKey]] = cellTypes.rowsByType
-
-  def colsByType: SortedMap[CT, IndexedSeq[ColKey]] = cellTypes.colsByType
 
   def updatedCells(cells: TraversableOnce[Cell]): Table[RT, CT, M] = {
     var table = this
@@ -141,12 +86,12 @@ case class Table[RT, CT, M <: TableMetadata] private(metadata: M,
   /**
    * Throws if the number of columns with given type is not 1
    */
-  def getSingleColByType(colType: CT) = cellTypes.getSingleColByType(colType)
+  def getSingleColByType(colType: CT) = colTypeServices.getSingleKeyByType(colType)
 
   /**
    * Throws if the number of rows with given type is not 1
    */
-  def getSingleRowByType(rowType: RT) = cellTypes.getSingleRowByType(rowType)
+  def getSingleRowByType(rowType: RT) = rowTypeServices.getSingleKeyByType(rowType)
 
   /**
    * Get cells from single column of colType for each row of rowType.
@@ -183,4 +128,70 @@ case class Table[RT, CT, M <: TableMetadata] private(metadata: M,
     val colKey = getSingleColByType(colType)
     getCell(CellKey(rowKey, colKey))
   }
+}
+
+object Table {
+
+  /**
+   * This is the main constructor for table. Often this is not used directly, but through [[TableReader]].
+   *
+   * @param cells The cells to be used in the table in any order.
+   * @param rowTypes a map that contains types for rows using the client code defined objects.
+   * @param colTypes a map that contains types for columns using the client code defined objects.
+   * @param metadata a user customizable metadata object than can piggyback additional information to this table object.
+   * @tparam RT Client specified object type used for typing rows in CSV data.
+   * @tparam CT Client specified object type used for typing columns in CSV data.
+   * @return constructed Table object
+   */
+  // TODO: Automatically fill in empty cells and never leave nulls in internal arrays
+  def apply[RT, CT, M <: TableMetadata](
+    cells: TraversableOnce[Cell] = IndexedSeq(),
+    rowTypes: SortedBiMap[RowKey, RT] = SortedBiMap[RowKey, RT](),
+    colTypes: SortedBiMap[ColKey, CT] = SortedBiMap[ColKey, CT](),
+    metadata: M = SimpleTableMetadata()): Table[RT, CT, M] = {
+
+    val maxRow = AxisServices.findKeyRangeEnd(rowTypes.keys)
+
+    val maxCol = AxisServices.findKeyRangeEnd(colTypes.keys)
+
+    val builtCells = buildCells(cells, maxRow, maxCol)
+
+    Table(builtCells, rowTypes, colTypes, metadata)
+  }
+
+  /**
+   * This is a helper method to convert a sequence of cells
+   * to a 2 dimensional IndexedSeq.
+   */
+  private[csv] def buildCells(initialCells: TraversableOnce[Cell], rowCount: Int = 0, colCount: Int = 0): IndexedSeq[IndexedSeq[Cell]] = {
+
+    val initialCellMap = initialCells.map(cell => cell.cellKey -> cell).toMap
+
+    // Row count is maximum from argument and largest row number seen in cells
+    val finalRowCount = initialCellMap.keys.foldLeft(rowCount)((a, b) => scala.math.max(a, b.rowKey.index + 1))
+
+    // Column count is maximum from argument and largest column number seen in cells
+    val finalColCount = initialCellMap.keys.foldLeft(colCount)((a, b) => scala.math.max(a, b.colKey.index + 1))
+
+    val rowArray = new Array[Array[Cell]](finalRowCount)
+
+    for (rowIndex <- 0 until finalRowCount) {
+
+      val rowKey = RowKey(rowIndex)
+      val colArray = new Array[Cell](finalColCount)
+
+      rowArray(rowIndex) = colArray
+
+      for (colIndex <- 0 until finalColCount) {
+
+        val cellKey = CellKey(rowKey, colIndex)
+        val cell = initialCellMap.get(cellKey).getOrElse(new StringCell(cellKey, ""))
+
+        colArray(colIndex) = cell
+      }
+    }
+
+    rowArray.map(_.toIndexedSeq).toIndexedSeq
+  }
+
 }

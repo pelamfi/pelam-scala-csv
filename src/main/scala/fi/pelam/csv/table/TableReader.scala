@@ -100,9 +100,7 @@ class TableReader[RT, CT, M <: TableMetadata](
 
     val result = pipeline.run(initial)
 
-    val cellTypes = CellTypes[RT, CT](result.rowTypes, result.colTypes)
-
-    (Table(metadata, cellTypes, result.cells), result.errors)
+    (Table(result.cells, result.rowTypes, result.colTypes, metadata), result.errors)
   }
 
   private[csv] def csvReadingStage(input: State): State = {

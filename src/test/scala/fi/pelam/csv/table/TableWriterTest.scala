@@ -35,7 +35,7 @@ class TableWriterTest {
 
   @Test
   def testWrite: Unit = {
-    val table = TableTest.makeTable().updatedCells(foo, bar)
+    val table = TableTest.table.updatedCells(foo, bar)
 
     val writer = new TableWriter(table)
 
