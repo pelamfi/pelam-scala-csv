@@ -19,8 +19,10 @@ import java.util.Locale
  * @param numberFormat Java number format used for integer data in this cell in CSV.
  * @param value is the integer stored in CSV.
  */
+// TODO: Major concurrency bug, numberFormat is not thread safe http://stackoverflow.com/a/1285353/1148030
 case class IntegerCell(override val cellKey: CellKey,
-  val numberFormat: NumberFormat, override val value: Int)
+  override val value: Int,
+  val numberFormat: NumberFormat)
   extends Cell {
 
   def serializedString: String = {
@@ -42,6 +44,8 @@ case class IntegerCell(override val cellKey: CellKey,
 // TODO: Is there a scaladoc way to refer to cellTypes in TableReader?
 object IntegerCell extends CellParser {
 
+  def defaultFormat = NumberFormat.getInstance(Locale.ROOT)
+
   override def parse(cellKey: CellKey, locale: Locale, input: String): Either[CellParsingError, IntegerCell] = {
 
     // TODO: Refactor, make the numberFormat somehow client code configurable.
@@ -62,7 +66,7 @@ object IntegerCell extends CellParser {
         val intValue = number.intValue()
 
         if (intValue == number) {
-          Right(IntegerCell(cellKey, numberFormat, intValue))
+          Right(IntegerCell(cellKey, intValue, numberFormat))
         } else {
           Left(CellParsingError(s"Expected integer, but value '$input' is decimal"))
         }
