@@ -24,30 +24,30 @@ import fi.pelam.csv.util.{Pipeline, SortedBiMap}
  *   val reader = TableReader.fromStringSimple(
  *
  *     inputCsv = "name,number\n" +
- * "foo,1\n" +
- * "bar,2",
+ *     "foo,1\n" +
+ *     "bar,2",
  *
- * rowTyper = {
- * case RowKey(0) => "header" // First row is the header
- * case _ => "data" // and all other rows are "data".
- * },
+ *     rowTyper = {
+ *       case RowKey(0) => "header" // First row is the header
+ *       case _ => "data" // and all other rows are "data".
+ *     },
  *
- * colTyper = {
- * case ColKey(0) => "name"
- * case ColKey(1) => "number"
- * },
+ *     colTyper = {
+ *       case ColKey(0) => "name"
+ *       case ColKey(1) => "number"
+ *     },
  *
- * cellTypeMap = {
- * case CellType("data", "number") => IntegerCell
- * })
+ *     cellTypeMap = {
+ *       case CellType("data", "number") => IntegerCell
+ *     })
  *
- * val table = reader.readOrThrow()
+ *   val table = reader.readOrThrow()
  *
- * table.getSingleCol("name", "data").map(_.value).toList
- * // Will give List("foo","bar")
+ *   table.getSingleCol("name", "data").map(_.value).toList
+ *   // Will give List("foo","bar")
  *
- * table.getSingleCol("number", "data").map(_.value).toList)
- * // Will give List(1,2)
+ *   table.getSingleCol("number", "data").map(_.value).toList)
+ *   // Will give List(1,2)
  * }}}
  *
  * == Stages ==
