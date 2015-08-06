@@ -6,17 +6,52 @@ import fi.pelam.csv.util.SortedBiMap
 import scala.collection.SortedMap
 
 /**
+ * This class is part of the the higher level API for reading,
+ * writing and processing CSV data.
+ *
+ * [[fi.pelam.csv.stream.CsvReader The simpler stream based API]] is enough for
+ * many scenarios, but if several different sets of data will be pulled from
+ * the same CSV file and the structure of the CSV file is not rigid, this API may
+ * be a better fit.
+ *
  * This class is an immutable container for [[fi.pelam.csv.cell.Cell Cells]] with optional
  * row and column types.
  *
- * Several methods are provided for getting cells based on row and column types. For example
+ * Several methods are provided for getting cells based on row and column types.
+ * For example
+ *
+ * == Example ==
+ * This example constructs a table directly, although usually it is done via a
+ * [[TableReader]]. `String` values are simply used for row and column types.
+ *
  * {{
+ * val table = Table(
+ *   List(StringCell(CellKey(0, 0), "name"),
+ *     StringCell(CellKey(0, 1), "value"),
+ *     StringCell(CellKey(1, 0), "foo"),
+ *     IntegerCell(CellKey(1, 1), 1),
+ *     StringCell(CellKey(2, 0), "bar"),
+ *     IntegerCell(CellKey(2, 1), 2)
+ *   ),
  *
+ *   SortedBiMap(RowKey(0) -> "header",
+ *     RowKey(1) -> "data",
+ *     RowKey(2) -> "data"),
  *
+ *   SortedBiMap(ColKey(0) -> "name",
+ *     ColKey(1) -> "number")
+ *  )
+ *
+ * table.getSingleCol("name", "data").map(_.value).toList
+ * // Will give List("foo","bar")
+ *
+ * table.getSingleCol("number", "data").map(_.value).toList)
+ * // Will give List(1,2)
  * }}
  *
  * @constructor
  */
+// TODO: ScalaDoc for the methods
 case class Table[RT, CT, M <: TableMetadata] private(
   cells: IndexedSeq[IndexedSeq[Cell]],
   rowTypes: SortedBiMap[RowKey, RT],

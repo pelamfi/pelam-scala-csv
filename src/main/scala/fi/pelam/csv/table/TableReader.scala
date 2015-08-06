@@ -9,8 +9,13 @@ import fi.pelam.csv.stream.CsvReader
 import fi.pelam.csv.util.{Pipeline, SortedBiMap}
 
 /**
+ * This class is part of the the higher level API for reading,
+ * writing and processing CSV data.
  *
- * This class is part of the the higher level API for reading, writing and processing CSV data.
+ * [[fi.pelam.csv.stream.CsvReader The simpler stream based API]] is enough for
+ * many scenarios, but if several different sets of data will be pulled from
+ * the same CSV file and the structure of the CSV file is not rigid, this API may
+ * be a better fit.
  *
  * The result of calling `read` method on this class will be an instance of [[Table]] class.
  * The table is an immutable data structure for holding and processing the parsed data

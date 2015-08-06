@@ -61,6 +61,33 @@ class TableTest {
     table.getSingleCol(TestColType.PrevWeek, TestRowType.Worker)
   }
 
+  @Test
+  def testTableScaladocExample = {
+
+    // This test should match the code in the Table class ScalaDoc example.
+
+    val table = Table(
+      List(StringCell(CellKey(0, 0), "name"),
+        StringCell(CellKey(0, 1), "value"),
+        StringCell(CellKey(1, 0), "foo"),
+        IntegerCell(CellKey(1, 1), 1),
+        StringCell(CellKey(2, 0), "bar"),
+        IntegerCell(CellKey(2, 1), 2)
+      ),
+
+      SortedBiMap(RowKey(0) -> "header",
+        RowKey(1) -> "data",
+        RowKey(2) -> "data"),
+
+      SortedBiMap(ColKey(0) -> "name",
+        ColKey(1) -> "number")
+    )
+
+    assertEquals(List("foo","bar"), table.getSingleCol("name", "data").map(_.value).toList)
+
+    assertEquals(List(1,2), table.getSingleCol("number", "data").map(_.value).toList)
+  }
+
 }
 
 object TableTest {
