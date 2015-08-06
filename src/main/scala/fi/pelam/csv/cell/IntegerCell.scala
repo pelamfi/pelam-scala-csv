@@ -4,29 +4,28 @@ import java.text.{NumberFormat, ParseException, ParsePosition}
 import java.util.Locale
 
 /**
- * Basically a sample implementation of a more specialised subtype of [[fi.pelam.csv.cell.Cell]].
+ * Basically this class is a sample implementation of a more specialised subtype of
+ * [[fi.pelam.csv.cell.Cell]].
  *
  * It is expected that any nontrivial client will want to specify its own subtypes
  * of [[fi.pelam.csv.cell.Cell]].
  *
- * The IntegerCell class it self is quite simple, but the companion object is more
+ * This class is quite simple, but the companion object is more
  * interesting as it implements the [[CellParser]] trait and acts as a factory
  * which produces IntegerCell instances (or errors if parsing fails) from String data.
  *
- * @constructor Create a new instance of CSV cell holding an integer. Also see companion object.
- *
  * @param cellKey the location of this cell in a CSV table.
- * @param numberFormat Java number format used for integer data in this cell in CSV.
+ * @param formatter A function used to convert the integer held by this cell into a `String`
+ *                  to be stored in CSV text data.
  * @param value is the integer stored in CSV.
  */
-// TODO: Major concurrency bug, numberFormat is not thread safe http://stackoverflow.com/a/1285353/1148030
 case class IntegerCell(override val cellKey: CellKey,
-  override val value: Int,
-  val numberFormat: NumberFormat)
+  override val value: Int)
+  (implicit val formatter: IntegerCell.Formatter = IntegerCell.defaultFormatter)
   extends Cell {
 
   def serializedString: String = {
-    numberFormat.format(value)
+    formatter(value)
   }
 
   override def toString() = s"Cell containing integer $value at $cellKey"
@@ -41,15 +40,39 @@ case class IntegerCell(override val cellKey: CellKey,
  * by using it in a map passed to [[fi.pelam.csv.table.TableReader.defineCellUpgrader]].
  * to specify which cells should be interpreted as containing integers.
  */
-// TODO: Is there a scaladoc way to refer to cellTypes in TableReader?
 object IntegerCell extends CellParser {
 
-  def defaultFormat = NumberFormat.getInstance(Locale.ROOT)
+  type Formatter = (Integer) => String
+
+  def defaultFormatter = toSynchronizedFormatter(NumberFormat.getInstance(Locale.ROOT))
+
+  /**
+   * This function is a workaround for the Java feature of `NumberFormat`
+   * not being thread safe. http://stackoverflow.com/a/1285353/1148030
+   *
+   * This transformation returns a thread safe Formatter based on the
+   * `NumberFormat` passed in as parameter.
+   */
+  def toSynchronizedFormatter(numberFormat: NumberFormat): Formatter = {
+
+    // Clone to ensure instance is only used in this scope
+    val clonedFormatter = numberFormat.clone().asInstanceOf[NumberFormat]
+
+    val function = { (input: Integer) =>
+      clonedFormatter.synchronized {
+        clonedFormatter.format(input)
+      }
+    }
+
+    function
+  }
 
   override def parse(cellKey: CellKey, locale: Locale, input: String): Either[CellParsingError, IntegerCell] = {
 
     // TODO: Refactor, make the numberFormat somehow client code configurable.
-    val numberFormat: java.text.NumberFormat = NumberFormat.getInstance(locale)
+    // NOTE: This creates a local instance of NumberFormat to workaround
+    // thread safety problem http://stackoverflow.com/a/1285353/1148030
+    val numberFormat: NumberFormat = NumberFormat.getInstance(locale)
 
     try {
 
@@ -66,7 +89,7 @@ object IntegerCell extends CellParser {
         val intValue = number.intValue()
 
         if (intValue == number) {
-          Right(IntegerCell(cellKey, intValue, numberFormat))
+          Right(IntegerCell(cellKey, intValue)(toSynchronizedFormatter(numberFormat)))
         } else {
           Left(CellParsingError(s"Expected integer, but value '$input' is decimal"))
         }
