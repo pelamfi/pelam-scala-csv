@@ -21,33 +21,36 @@ import fi.pelam.csv.util.{Pipeline, SortedBiMap}
  * == Example ==
  *
  * {{{
- *   val reader = TableReader.fromStringSimple(
+ * import fi.pelam.csv.cell._
+ * import fi.pelam.csv.stream._
  *
- *     inputCsv = "name,number\n" +
- *     "foo,1\n" +
- *     "bar,2",
+ * val reader = TableReader.fromStringSimple(
  *
- *     rowTyper = {
- *       case RowKey(0) => "header" // First row is the header
- *       case _ => "data" // and all other rows are "data".
- *     },
+ *   inputCsv = "name,number\n" +
+ *   "foo,1\n" +
+ *   "bar,2",
  *
- *     colTyper = {
- *       case ColKey(0) => "name"
- *       case ColKey(1) => "number"
- *     },
+ *   rowTyper = {
+ *     case RowKey(0) => "header" // First row is the header
+ *     case _ => "data" // and all other rows are "data".
+ *   },
  *
- *     cellTypeMap = {
- *       case CellType("data", "number") => IntegerCell
- *     })
+ *   colTyper = {
+ *     case ColKey(0) => "name"
+ *     case ColKey(1) => "number"
+ *   },
  *
- *   val table = reader.readOrThrow()
+ *   cellTypeMap = {
+ *     case CellType("data", "number") => IntegerCell
+ *   })
  *
- *   table.getSingleCol("name", "data").map(_.value).toList
- *   // Will give List("foo","bar")
+ * val table = reader.readOrThrow()
  *
- *   table.getSingleCol("number", "data").map(_.value).toList)
- *   // Will give List(1,2)
+ * table.getSingleCol("name", "data").map(_.value).toList
+ * // Will give List("foo","bar")
+ *
+ * table.getSingleCol("number", "data").map(_.value).toList)
+ * // Will give List(1,2)
  * }}}
  *
  * == Stages ==
@@ -108,8 +111,7 @@ import fi.pelam.csv.util.{Pipeline, SortedBiMap}
  * @tparam M The type of the `metadata` parameter. Must be a sub type of [[TableMetadata]].
  *           This specifies the character set and separator to use when reading the CSV data from the input stream.
  */
-// TODO: Add code example to ScalaDoc
-// TODO: Add ready made detection heuristics wrappers around this class
+// TODO: Add ready made detection heuristics wrappers for this class
 class TableReader[RT, CT, M <: TableMetadata](
   val openInputStream: () => java.io.InputStream,
   val metadata: M = SimpleTableMetadata(),
