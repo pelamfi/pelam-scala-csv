@@ -5,12 +5,12 @@ import scala.collection.{SortedMap, mutable}
 /**
  * Bidirectional map supporting multiple values for a single key.
  *
- * This class is used in [[fi.pelam.csv.table.CellTypes table.CellTypes]] to map between
+ * This class is used in [[fi.pelam.csv.table.Table Table]] to map between
  * rows and columns and their types.
  *
  * The iteration order is determined by the keyOrdering implicit.
  *
- * The fact that the map is ordered by keys is useful in [[fi.pelam.csv.table.CellTypes table.CellTypes]]
+ * The fact that the map is ordered by keys is useful in [[fi.pelam.csv.table.Table Table]]
  * because then the columns and rows will be ordered naturally in both the
  * forward and reverse maps.
  *

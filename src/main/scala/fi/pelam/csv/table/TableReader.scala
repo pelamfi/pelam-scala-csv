@@ -21,27 +21,33 @@ import fi.pelam.csv.util.{Pipeline, SortedBiMap}
  * == Example ==
  *
  * {{{
- *    val reader = TableReader.fromStringSimple(
+ *   val reader = TableReader.fromStringSimple(
+ *
  *     inputCsv = "name,number\n" +
  * "foo,1\n" +
  * "bar,2",
+ *
  * rowTyper = {
- * case RowKey(0) => "header"
- * case _ => "data"
+ * case RowKey(0) => "header" // First row is the header
+ * case _ => "data" // and all other rows are "data".
  * },
+ *
  * colTyper = {
  * case ColKey(0) => "name"
  * case ColKey(1) => "number"
  * },
+ *
  * cellTypeMap = {
  * case CellType("data", "number") => IntegerCell
  * })
  *
  * val table = reader.readOrThrow()
  *
- * table.getSingleCol("name", "data").map(_.value).toList // Will give List("foo","bar")
- * table.getSingleCol("number", "data").map(_.value).toList) // Will give List(1,2)
+ * table.getSingleCol("name", "data").map(_.value).toList
+ * // Will give List("foo","bar")
  *
+ * table.getSingleCol("number", "data").map(_.value).toList)
+ * // Will give List(1,2)
  * }}}
  *
  * == Stages ==
@@ -256,7 +262,8 @@ object TableReader {
   /**
    * A helper method to build a [[Table]] from a CSV string and
    * providing simplified row and column typers using only
-   * [[RowKey]] and [[ColKey]] as input.
+   * [[fi.pelam.csv.cell.RowKey RowKey]] and
+   * [[fi.pelam.csv.cell.ColKey ColKey]] as input.
    *
    * This alternate constructor exists mainly to make tests and code examples shorter.
    */
@@ -321,7 +328,7 @@ object TableReader {
 
   /**
    * This is a helper method to setup a simple cell upgrader
-   * from a map of [[CellType CellTypes]] and [[CellParser CellParsers]].
+   * from a map of [[CellType CellTypes]] and [[fi.pelam.csv.cell.CellParser CellParsers]].
    *
    * @param locale locale to be passed to cell parsers
    * @param parserMap a map from [[CellType CellTypes]] to [[fi.pelam.csv.cell.CellParser CellParsers]]

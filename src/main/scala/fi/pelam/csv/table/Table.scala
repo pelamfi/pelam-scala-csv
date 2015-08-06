@@ -6,9 +6,10 @@ import fi.pelam.csv.util.SortedBiMap
 import scala.collection.SortedMap
 
 /**
- * This class is an immutable container for [[Cell Cells]] with optional row and column types.
+ * This class is an immutable container for [[fi.pelam.csv.cell.Cell Cells]] with optional
+ * row and column types.
  *
- * Several methods are provided for geting cells based on row and column types. For example
+ * Several methods are provided for getting cells based on row and column types. For example
  * {{
  *
  *
