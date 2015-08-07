@@ -68,16 +68,16 @@ import fi.pelam.csv.util.{Pipeline, SortedBiMap}
  * The table reading is split to stages to allow implementing format detection heuristics
  * in a structured manner.
  *
- * - `csvReadingStage` Parse CSV byte data to cells. Depends on `charset` and `separator` provided
+ *  - `csvReadingStage` Parse CSV byte data to cells. Depends on `charset` and `separator` provided
  * via the `metadata` parameter.
  *
- * - `rowTypeDetectionStage` Detect row types (hard coded or based on cell contents). The `rowTyper` parameter
+ *  - `rowTypeDetectionStage` Detect row types (hard coded or based on cell contents). The `rowTyper` parameter
  * is used in this stage.
  *
- * - `colTypeDetectionStage` Detect column types (hard coded or based on row types and cell contents). The `colTyper` parameter
+ *  - `colTypeDetectionStage` Detect column types (hard coded or based on row types and cell contents). The `colTyper` parameter
  * is used in this stage.
  *
- * - `cellUpgradeStage` Upgrade cells based on cell types, which are combined from row and column types. The `cellUpgrader`
+ *  - `cellUpgradeStage` Upgrade cells based on cell types, which are combined from row and column types. The `cellUpgrader`
  * parameter is used in this stage
  *
  * == CSV format detection heuristics ==
