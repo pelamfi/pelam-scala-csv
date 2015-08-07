@@ -24,7 +24,7 @@ import scala.collection.SortedMap
  * This example constructs a table directly, although usually it is done via a
  * [[TableReader]]. `String` values are simply used for row and column types.
  *
- * {{
+ * {{{
  * val table = Table(
  *   List(StringCell(CellKey(0, 0), "name"),
  *     StringCell(CellKey(0, 1), "value"),
@@ -47,7 +47,7 @@ import scala.collection.SortedMap
  *
  * table.getSingleCol("number", "data").map(_.value).toList)
  * // Will give List(1,2)
- * }}
+ * }}}
  *
  * @constructor
  */
