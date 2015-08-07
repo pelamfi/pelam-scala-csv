@@ -5,9 +5,10 @@ Pelam's Scala CSV Library
 Scala library for reading and writing CSV data with an optional high level
 API.
 
-This project is still under development and APIs may change. It
-is however functional and you can use it. Please send me feedback
-on bugs and features you find useful, problematic of missing.
+This project is still under development and the APIs may change. It
+is however functional and tested with the included test suite so feel free
+to use it. Please send me feedback on bugs and features you find useful,
+problematic or missing.
 
 ScalaDoc
 ========
@@ -15,6 +16,13 @@ ScalaDoc
 
 Main points
 ===========
+To be clear there are other CSV reading libraries and even writing a CSV parser from scratch is not
+very difficult.
+
+However the specialty of this library is the higher level "table oriented" API.
+The higher level API helps in processing complex spreadsheets as well as detecting and handling
+differences in low level CSV syntax which often arise because the CSV is not a standardized or
+very structured format.
 
   * Two levels of APIs for both input and output
 
@@ -24,12 +32,12 @@ Main points
     * Reading a CSV file is done with a Scala Iterator interface
 
 
-  * Second API is richer and is based on a more high level Table object.
-    * Contains some type information on rows and columns
+  * Second higher level API is richer and is based on the Table class.
+    * Supports attaching type information to rows and columns
     * Allows having some regions represented with smarter and custom Cell types 
-      (like your own date cell)
+      (like your own date cell.)
     * Autodetection of CSV format details
-    * Pluggable method for defining Row, Column and Cell types.
+    * Pluggable functions for defining Row, Column and Cell types.
     * Supports management of locales (Office apps change default CSV
       format based on locale.)
 
