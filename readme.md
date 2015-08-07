@@ -2,14 +2,16 @@ Pelam's Scala CSV Library
 =========================
 [![Build Status](https://travis-ci.org/pelamfi/pelam-scala-csv.svg?branch=master)](https://travis-ci.org/pelamfi/pelam-scala-csv)
 
-NOTE: THIS PROJECT IS NOT YET FUNCTIONAL.
-See History section below...
+Scala library for reading and writing CSV data with an optional high level
+API.
 
-Scala library for reading and writing CSV data. 
+This project is still under development and APIs may change. It
+is however functional and you can use it. Please send me feedback
+on bugs and features you find useful, problematic of missing.
 
 ScalaDoc
 ========
-[A recent build of the ScalaDoc is here.](https://s3.amazonaws.com/pelam-scala-csv-doc/pelamfi/pelam-scala-csv/17/17.1/home/travis/build/pelamfi/pelam-scala-csv/build/docs/scaladoc/index.html#fi.pelam.csv.package)
+[A recent build of the ScalaDoc is available here.](https://s3.amazonaws.com/pelam-scala-csv-doc/pelamfi/pelam-scala-csv/17/17.1/home/travis/build/pelamfi/pelam-scala-csv/build/docs/scaladoc/index.html#fi.pelam.csv.package)
 
 Main points
 ===========
@@ -35,7 +37,10 @@ Main points
 License
 =======
 
-TODO, some permissive license
+Pelam's Scala CSV library is distribute under the 
+Apache 2.0 license which is available in the included file [LICENSE.txt](LICENSE.txt)
+and [online](http://www.apache.org/licenses/LICENSE-2.0).
+
 
 Maven coordinates
 =================
