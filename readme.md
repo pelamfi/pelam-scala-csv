@@ -68,6 +68,7 @@ TODO list
   * TODO: Try to reduce dependencies of the final artifact.
   * TODO: Some performance tests and profiling to at least have some idea of possible performance disasters.
   * TODO: Test the streaming api with massive data and document if it works.
+  * TODO: A Gradle task to publish the built scaladoc to S3 into a sensible directory.
 
 History of this project
 =======================
