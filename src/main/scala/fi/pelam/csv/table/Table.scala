@@ -198,7 +198,6 @@ object Table {
    * @tparam CT Client specified object type used for typing columns in CSV data.
    * @return constructed Table object
    */
-  // TODO: Automatically fill in empty cells and never leave nulls in internal arrays
   def apply[RT, CT, M <: TableMetadata](
     cells: TraversableOnce[Cell] = IndexedSeq(),
     rowTypes: SortedBiMap[RowKey, RT] = SortedBiMap[RowKey, RT](),

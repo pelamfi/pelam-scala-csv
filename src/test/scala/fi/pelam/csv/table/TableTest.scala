@@ -106,6 +106,20 @@ class TableTest {
     assertEquals(List(1,2), table.getSingleCol("number", "data").map(_.value).toList)
   }
 
+  @Test
+  def testTableConstructionWithHoles = {
+    val table = Table(
+      List(StringCell(CellKey(0, 0), "a"),
+        StringCell(CellKey(0, 1), "b"),
+        StringCell(CellKey(1, 1), "d")
+      )
+    )
+
+    assertEquals("The cell at 0,0 should be empty string",
+      "'a' 'b' '' 'd'",
+      table.getCells().map("'" + _.value + "'").reduce(_ + " " + _))
+  }
+
 }
 
 object TableTest {
