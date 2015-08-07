@@ -36,7 +36,7 @@ class TableTest {
       bar,
       StringCell(CellKey(3, 1), "x"))
 
-    assertEquals(List(foo, bar), updated.getSingleCol(TestColType.Qualifications, TestRowType.Worker).toList)
+    assertEquals(List(foo, bar), updated.getSingleCol(TestRowType.Worker, TestColType.Qualifications).toList)
   }
 
   @Test
@@ -71,12 +71,12 @@ class TableTest {
       foo,
       StringCell(CellKey(3, 1), "x"))
 
-    assertEquals(List(foo, StringCell(CellKey(2, 1), "")), updated.getSingleCol(TestColType.Qualifications, TestRowType.Worker).toList)
+    assertEquals(List(foo, StringCell(CellKey(2, 1), "")), updated.getSingleCol(TestRowType.Worker, TestColType.Qualifications).toList)
   }
 
   @Test(expected = classOf[RuntimeException])
   def testSingleColWithAmbiguousColumn: Unit = {
-    table.getSingleCol(TestColType.PrevWeek, TestRowType.Worker)
+    table.getSingleCol(TestRowType.Worker, TestColType.PrevWeek)
   }
 
   @Test
@@ -101,9 +101,9 @@ class TableTest {
         ColKey(1) -> "number")
     )
 
-    assertEquals(List("foo","bar"), table.getSingleCol("name", "data").map(_.value).toList)
+    assertEquals(List("foo","bar"), table.getSingleCol("data", "name").map(_.value).toList)
 
-    assertEquals(List(1,2), table.getSingleCol("number", "data").map(_.value).toList)
+    assertEquals(List(1,2), table.getSingleCol("data", "number").map(_.value).toList)
   }
 
   @Test

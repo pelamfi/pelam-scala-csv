@@ -152,8 +152,7 @@ case class Table[RT, CT, M <: TableMetadata] private(
    *
    * Throws if there are multiple columns with CT
    */
-  // TODO: Switch the argument order for consistency
-  def getSingleCol(colType: CT, rowType: RT): IndexedSeq[Cell] = {
+  def getSingleCol(rowType: RT, colType: CT): IndexedSeq[Cell] = {
     val colKey = getSingleColByType(colType)
 
     for (cellKey <- getCellKeys(colKey);

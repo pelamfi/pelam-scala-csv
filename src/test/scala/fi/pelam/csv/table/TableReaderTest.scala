@@ -102,7 +102,7 @@ class TableReaderTest {
 
     assertTrue(errors.toString, errors.noErrors)
 
-    val cells = table.getSingleCol(TestColType.Salary, TestRowType.Worker)
+    val cells = table.getSingleCol(TestRowType.Worker, TestColType.Salary)
 
     // TODO: wrap in locale detection
     // assertEquals(Locale.ROOT, table.metadata.dataLocale)
@@ -153,7 +153,7 @@ class TableReaderTest {
       table.rowTypes.values.toList.slice(0, 6))
 
     assertEquals("Qualifications for all workers should match.", "MSc/MSP,BSc,MBA",
-      table.getSingleCol(Qualifications, Worker).map(_.value).reduce(_ + "," + _))
+      table.getSingleCol(Worker, Qualifications).map(_.value).reduce(_ + "," + _))
 
   }
 
@@ -177,8 +177,8 @@ class TableReaderTest {
 
     val table = reader.readOrThrow()
 
-    assertEquals(List("foo", "bar"), table.getSingleCol("name", "data").map(_.value).toList)
-    assertEquals(List(1, 2), table.getSingleCol("number", "data").map(_.value).toList)
+    assertEquals(List("foo", "bar"), table.getSingleCol("data", "name").map(_.value).toList)
+    assertEquals(List(1, 2), table.getSingleCol("data", "number").map(_.value).toList)
   }
 }
 
