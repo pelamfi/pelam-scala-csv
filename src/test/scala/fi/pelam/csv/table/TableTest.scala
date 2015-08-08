@@ -48,14 +48,16 @@ class TableTest {
       plan1,
       StringCell(CellKey(3, 5), "x"))
 
-    assertEquals(List(history1, history2, plan1), updated.getSingleRow(TestRowType.Day, Set[TestColType](TestColType.PrevWeek, TestColType.ThisWeek)).toList)
+    val requiredColTypes = Set[TestColType](TestColType.PrevWeek, TestColType.ThisWeek)
+
+    assertEquals(List(history1, history2, plan1), updated.getSingleRow(TestRowType.Day, requiredColTypes).toList)
   }
 
 
   @Test(expected = classOf[IllegalArgumentException])
   def testSetCellOutsideBounds: Unit = {
     // Table should not allow cells outside initial bounds.
-    table.updatedCells(StringCell(CellKey(5, 3), "x"))
+    table.updatedCells(StringCell(ellKey(5, 3), "x"))
   }
 
   @Test(expected = classOf[IllegalArgumentException])

@@ -168,27 +168,32 @@ case class Table[RT, CT, M <: TableMetadata] private(
    */
   def getSingleColKeyByType(colType: CT) = getSingleKeyByType(colTypes.reverse, colType, "column")
 
-  /**
-   *
-   */
-  def getSingleRow(rowType: RT, colTypes: Set[CT]): IndexedSeq[Cell] = {
-    getSingleRow(getSingleRowKeyByType(rowType), colTypes)
+  def getSingleRow(rowType: RT, colType: CT): IndexedSeq[Cell] = {
+    getSingleRow(getSingleRowKeyByType(rowType), (ct: CT) => ct == colType)
+  }
+
+  def getSingleCol(rowType: RT, colType: CT): IndexedSeq[Cell] = {
+    getSingleCol((rt: RT) => rt == rowType, getSingleColKeyByType(colType))
   }
 
   /**
    * Get cells from a single column identified by colType for each row having rowType.
    * Throws if there are multiple columns with CT
    */
-  def getSingleCol(rowTypes: Set[RT], colType: CT): IndexedSeq[Cell] = {
-    getSingleCol(rowTypes, getSingleColKeyByType(colType))
+  def getSingleRow(rowType: RT, colTypeMatcher: CT => Boolean): IndexedSeq[Cell] = {
+    getSingleRow(getSingleRowKeyByType(rowType), colTypeMatcher)
   }
 
-  def getSingleRow(rowType: RT, colType: CT): IndexedSeq[Cell] = {
-    getSingleRow(getSingleRowKeyByType(rowType), Set(colType))
+  def getSingleCol(rowTypeMatcher: RT => Boolean, colType: CT): IndexedSeq[Cell] = {
+    getSingleCol(rowTypeMatcher, getSingleColKeyByType(colType))
   }
 
-  def getSingleCol(rowType: RT, colType: CT): IndexedSeq[Cell] = {
-    getSingleCol(Set(rowType), getSingleColKeyByType(colType))
+  def getSingleRow(rowKey: RowKey, colType: CT): IndexedSeq[Cell] = {
+    getSingleRow(rowKey, (ct: CT) => ct == colType)
+  }
+
+  def getSingleCol(rowType: RT, colKey: ColKey): IndexedSeq[Cell] = {
+    getSingleCol((rt: RT) => rt == rowType, colKey)
   }
 
   /**
@@ -197,33 +202,25 @@ case class Table[RT, CT, M <: TableMetadata] private(
    * Example:
    * {{{
    *   // Get the project cells from the 11th row
-   *   table.getSingleRow(RowKey(10), ColumnTypeProject)
+   *   table.getSingleRow(RowKey(10), _ == ColumnTypeProject)
    * }}}
    *
    * @param rowKey identifies the row to target.
-   * @param colType identifies the column type.
+   * @param colTypeMatcher predicate selects columns from target row using column types
    * @return a sequence of zero or more cells on the given row having the specified column type.
    */
-  def getSingleRow(rowKey: RowKey, colType: CT): IndexedSeq[Cell] = {
-    getSingleRow(rowKey, Set(colType))
-  }
-
-  def getSingleCol(rowType: RT, colKey: ColKey): IndexedSeq[Cell] = {
-    getSingleCol(Set(rowType), colKey)
-  }
-
-  def getSingleRow(rowKey: RowKey, requiredColTypes: Set[CT]): IndexedSeq[Cell] = {
+  def getSingleRow(rowKey: RowKey, colTypeMatcher: CT => Boolean): IndexedSeq[Cell] = {
     for (cellKey <- getCellKeys(rowKey);
          colKey = cellKey.colKey;
-         if colTypes.contains(colKey) && requiredColTypes.contains(colTypes(colKey))) yield {
+         if colTypes.contains(colKey) && colTypeMatcher(colTypes(colKey))) yield {
       getCell(cellKey)
     }
   }
 
-  def getSingleCol(requiredRowTypes: Set[RT], colKey: ColKey): IndexedSeq[Cell] = {
+  def getSingleCol(rowTypeMatcher: RT => Boolean, colKey: ColKey): IndexedSeq[Cell] = {
     for (cellKey <- getCellKeys(colKey);
          rowKey = cellKey.rowKey;
-         if colTypes.contains(colKey) && requiredRowTypes.contains(rowTypes(rowKey))) yield {
+         if colTypes.contains(colKey) && rowTypeMatcher(rowTypes(rowKey))) yield {
       getCell(cellKey)
     }
   }
