@@ -101,10 +101,8 @@ final class CsvReader(input: Reader, val separator: Char) extends Iterator[CsvRe
 
   private[this] val internal = new CsvReaderInternal(input, separator)
 
-  private[this] var cell: Option[CellOrError] = None
-
   // Start internal reader so that hasNext works
-  cell = internal.read()
+  private[this] var cell: Option[CellOrError] = internal.read()
 
   override def next(): CellOrError = nextOption.get
 
