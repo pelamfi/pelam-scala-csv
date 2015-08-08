@@ -57,7 +57,7 @@ class TableTest {
   @Test(expected = classOf[IllegalArgumentException])
   def testSetCellOutsideBounds: Unit = {
     // Table should not allow cells outside initial bounds.
-    table.updatedCells(StringCell(ellKey(5, 3), "x"))
+    table.updatedCells(StringCell(CellKey(5, 3), "x"))
   }
 
   @Test(expected = classOf[IllegalArgumentException])
