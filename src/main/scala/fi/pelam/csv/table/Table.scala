@@ -114,52 +114,102 @@ case class Table[RT, CT, M <: TableMetadata] private(
     copy(cells = updatedCells)
   }
 
-  def getCell(key: CellKey) = cells(key.rowIndex)(key.colIndex)
-
-  def getCells(rowKey: RowKey): IndexedSeq[Cell] = {
-    for (i <- 0 until colCount) yield cells(rowKey.index)(i)
-  }
-
   def getCells(): IndexedSeq[Cell] = {
     for (i <- 0 until rowCount;
          j <- 0 until colCount) yield cells(i)(j)
+  }
+
+  def getCell(key: CellKey) = cells(key.rowIndex)(key.colIndex)
+
+  /**
+   * Get a cell from specified row matching the specified column type.
+   * This method throws an error if more than 1 or zero cells match the criteria.
+   *
+   * Example:
+   * {{{
+   *   // Get the user name cell from the 11th row.
+   *   table.getSingleCell(RowKey(10), ColumnTypeUserName)
+   * }}}
+   *
+   * @param rowKey identifies the row to target.
+   * @param colType identifies the column type which must correspond to exactly 1 column.
+   * @return the matching cell object.
+   */
+  def getSingleCell(rowKey: RowKey, colType: CT): Cell = {
+    val colKey = getSingleColKeyByType(colType)
+    getCell(CellKey(rowKey, colKey))
+  }
+
+  def getCells(rowKey: RowKey): IndexedSeq[Cell] = {
+    for (i <- 0 until colCount) yield cells(rowKey.index)(i)
   }
 
   def getCells(colKey: ColKey): IndexedSeq[Cell] = {
     for (i <- 0 until rowCount) yield cells(i)(colKey.index)
   }
 
-  def getCellKeys(colKey: ColKey): IndexedSeq[CellKey] = {
-    for (i <- 0 until rowCount) yield CellKey(i, colKey)
-  }
-
   def getCellKeys(rowKey: RowKey): IndexedSeq[CellKey] = {
     for (i <- 0 until colCount) yield CellKey(rowKey, i)
   }
 
-  /**
-   * Throws if the number of columns with given type is not 1
-   */
-  def getSingleColByType(colType: CT) = getSingleKeyByType(colTypes.reverse, colType, "column")
+  def getCellKeys(colKey: ColKey): IndexedSeq[CellKey] = {
+    for (i <- 0 until rowCount) yield CellKey(i, colKey)
+  }
 
   /**
+   * Find a single row with given type.
    * Throws if the number of rows with given type is not 1
    */
-  def getSingleRowByType(rowType: RT) = getSingleKeyByType(rowTypes.reverse, rowType, "row")
+  def getSingleRowKeyByType(rowType: RT) = getSingleKeyByType(rowTypes.reverse, rowType, "row")
 
   /**
-   * Get cells from single column of colType for each row of rowType.
+   * Find a single column with given type.
+   * Throws if the number of columns with given type is not 1
+   */
+  def getSingleColKeyByType(colType: CT) = getSingleKeyByType(colTypes.reverse, colType, "column")
+
+  /**
    *
+   */
+  def getSingleRow(rowType: RT, colTypes: Set[CT]): IndexedSeq[Cell] = {
+    getSingleRow(getSingleRowKeyByType(rowType), colTypes)
+  }
+
+  /**
+   * Get cells from a single column identified by colType for each row having rowType.
    * Throws if there are multiple columns with CT
    */
-  def getSingleCol(rowType: RT, colType: CT): IndexedSeq[Cell] = {
-    val colKey = getSingleColByType(colType)
+  def getSingleCol(rowTypes: Set[RT], colType: CT): IndexedSeq[Cell] = {
+    getSingleCol(rowTypes, getSingleColKeyByType(colType))
+  }
 
-    for (cellKey <- getCellKeys(colKey);
-         rowKey = cellKey.rowKey;
-         if rowTypes.contains(rowKey) && rowTypes(rowKey) == rowType) yield {
-      getCell(cellKey)
-    }
+  def getSingleRow(rowType: RT, colType: CT): IndexedSeq[Cell] = {
+    getSingleRow(getSingleRowKeyByType(rowType), Set(colType))
+  }
+
+  def getSingleCol(rowType: RT, colType: CT): IndexedSeq[Cell] = {
+    getSingleCol(Set(rowType), getSingleColKeyByType(colType))
+  }
+
+  /**
+   * Get all cells from the specified row matching the specified column type.
+   *
+   * Example:
+   * {{{
+   *   // Get the project cells from the 11th row
+   *   table.getSingleRow(RowKey(10), ColumnTypeProject)
+   * }}}
+   *
+   * @param rowKey identifies the row to target.
+   * @param colType identifies the column type.
+   * @return a sequence of zero or more cells on the given row having the specified column type.
+   */
+  def getSingleRow(rowKey: RowKey, colType: CT): IndexedSeq[Cell] = {
+    getSingleRow(rowKey, Set(colType))
+  }
+
+  def getSingleCol(rowType: RT, colKey: ColKey): IndexedSeq[Cell] = {
+    getSingleCol(Set(rowType), colKey)
   }
 
   def getSingleRow(rowKey: RowKey, requiredColTypes: Set[CT]): IndexedSeq[Cell] = {
@@ -170,17 +220,12 @@ case class Table[RT, CT, M <: TableMetadata] private(
     }
   }
 
-  def getSingleRow(rowType: RT, requiredColTypes: Set[CT]): IndexedSeq[Cell] = {
-    getSingleRow(getSingleRowByType(rowType), requiredColTypes)
-  }
-
-  def getSingleRow(rowKey: RowKey, colType: CT): IndexedSeq[Cell] = {
-    getSingleRow(rowKey, Set[CT](colType))
-  }
-
-  def getSingleCell(rowKey: RowKey, colType: CT): Cell = {
-    val colKey = getSingleColByType(colType)
-    getCell(CellKey(rowKey, colKey))
+  def getSingleCol(requiredRowTypes: Set[RT], colKey: ColKey): IndexedSeq[Cell] = {
+    for (cellKey <- getCellKeys(colKey);
+         rowKey = cellKey.rowKey;
+         if colTypes.contains(colKey) && requiredRowTypes.contains(rowTypes(rowKey))) yield {
+      getCell(cellKey)
+    }
   }
 }
 
@@ -252,7 +297,7 @@ object Table {
   /**
    * Throws if the number of columns/rows with given type is not 1
    */
-  def getSingleKeyByType[K <: AxisKey[K], T](keysByType: SortedMap[T, IndexedSeq[K]], colType: T, axisName: String): K = {
+  private[csv] def getSingleKeyByType[K <: AxisKey[K], T](keysByType: SortedMap[T, IndexedSeq[K]], colType: T, axisName: String): K = {
     val keys = keysByType(colType)
     if (keys.size == 0) {
       sys.error(s"Expected 1 $axisName of type $colType but no $axisName of that type found.")
