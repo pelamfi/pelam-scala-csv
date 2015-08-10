@@ -68,6 +68,14 @@ import scala.collection.SortedMap
  * }}}
  *
  * @constructor
+ *
+ * @param cells All cells in a structure of nested `IndexedSeq`s. The order is first rows, then columns.
+ * @param rowTypes A bidirectional map mapping rows to their row types and vice versa.
+ *                 Multiple rows can have the same type.
+ * @param colTypes A bidirectional map mapping columns to their column types and vice versa.
+ *                 Multiple columns can have the same type.
+ * @param metadata User extensible metadata that is piggybacked in the `Table` instance.
+ *
  */
 case class Table[RT, CT, M <: TableMetadata] private(
   cells: IndexedSeq[IndexedSeq[Cell]],
@@ -77,25 +85,42 @@ case class Table[RT, CT, M <: TableMetadata] private(
 
   import Table._
 
+  /**
+   * The vertical size of this table. The table has strict rectangular form.
+   * Unused cells simply contain empty `StringCell`s.
+   */
   val rowCount: Int = cells.size
 
+  /**
+   * The horizontal size of this table. The table has strict rectangular form.
+   * Unused cells simply contain empty `StringCell`s.
+   */
   val colCount: Int = cells.lift(0).map(_.size).getOrElse(0)
 
+  // Verify table is strictly rectangular
   for (row <- cells) {
     require(row.size == colCount, s"Same number of columns required for reach row. ${row.size} vs ${colCount}")
   }
 
-  // TODO: Optimize away the unnecessary creation of copies of Table.
   /**
    * Return a new table with given cells replacing the previous cells
    * at each the location `cell.cellKey`.
    */
-  def updatedCells(cells: TraversableOnce[Cell]): Table[RT, CT, M] = {
-    var table = this
-    for (cell <- cells) {
-      table = table.updatedCell(cell)
+  def updatedCells(newCells: TraversableOnce[Cell]): Table[RT, CT, M] = {
+
+    var updatedCells = cells
+    for ((rowIndex, rowCells) <- newCells.toTraversable.groupBy(_.rowIndex)) {
+      checkRowInsideTable(rowIndex)
+      var updatedRow = cells(rowIndex)
+      for (cell <- rowCells) {
+        val colIndex = cell.colIndex
+        checkColInsideTable(colIndex)
+        updatedRow = updatedRow.updated(colIndex, cell)
+      }
+      updatedCells = updatedCells.updated(rowIndex, updatedRow)
     }
-    table
+
+    copy(cells = updatedCells)
   }
 
   /**
@@ -106,31 +131,39 @@ case class Table[RT, CT, M <: TableMetadata] private(
    */
   def updatedCells(cells: Cell*): Table[RT, CT, M] = updatedCells(cells)
 
+  private[csv] def checkRowInsideTable(rowIndex: Int) = {
+    if (rowIndex >= rowCount) {
+      throw new IllegalArgumentException(s"Row number ${rowIndex + 1} " +
+        s"is outside the number of rows $rowCount. Mark the row a comment?")
+    }
+  }
+
+  private[csv] def checkColInsideTable(colIndex: Int) = {
+    if (colIndex >= colCount) {
+      throw new IllegalArgumentException(s"Column number ${colIndex + 1} " +
+        s"is outside the number of columns $colCount. Mark the column a comment?")
+    }
+  }
+
   /**
    * Return a new table with given cell replacing the previous cell
    * in the location `cell.cellKey`.
    */
   def updatedCell(cell: Cell): Table[RT, CT, M] = {
-    val key = cell.cellKey
+    val rowIndex = cell.rowIndex
+    val colIndex = cell.colIndex
 
-    if (key.rowIndex >= rowCount) {
-      throw new IllegalArgumentException(s"Row number ${key.rowIndex + 1} " +
-        s"is outside the number of rows $rowCount. Mark the row a comment?")
-    }
+    checkRowInsideTable(rowIndex)
+    checkColInsideTable(colIndex)
 
-    if (key.colIndex >= colCount) {
-      throw new IllegalArgumentException(s"Column number ${key.colIndex + 1} " +
-        s"is outside the number of columns $colCount. Mark the column a comment?")
-    }
-
-    val updatedCells = cells.updated(key.rowIndex, cells(key.rowIndex).updated(key.colIndex, cell))
+    val updatedCells = cells.updated(rowIndex, cells(rowIndex).updated(colIndex, cell))
 
     copy(cells = updatedCells)
   }
 
   /**
    * Get all cells in a single sequence.
-   * The rows are catenated one after the other.
+   * One way to think about this is that the rows are catenated one after the other.
    */
   def getCells(): IndexedSeq[Cell] = {
     for (i <- 0 until rowCount;
@@ -145,7 +178,6 @@ case class Table[RT, CT, M <: TableMetadata] private(
   /**
    * Get a cell from specified row matching the specified column type.
    * This method throws an error if more than 1 or zero cells match the criteria.
-   *
    * Example:
    * {{{
    *   // Get the user name cell from the 11th row.
@@ -191,7 +223,7 @@ case class Table[RT, CT, M <: TableMetadata] private(
 
   /**
    * Gets a selected set of cells from a particular row.
-   * Will pick cells in columns having a column type (`CT`)
+   * The cells will be picked from columns having a column type (`CT`)
    * for which `colTypeMatcher` returns true.
    * Throws an exception if `RT` fits more than one or zero rows.
    * Here is an imaginary example: {{{
@@ -205,7 +237,7 @@ case class Table[RT, CT, M <: TableMetadata] private(
 
   /**
    * Gets a selected set of cells from a particular column.
-   * Will pick cells in rows having a row type (`RT`)
+   * The cells will be picked from rows having a row type (`RT`)
    * for which `rowTypeMatcher` returns true.
    * Throws an exception if `CT` fits more than one or zero columns.
    * Here is an imaginary example: {{{

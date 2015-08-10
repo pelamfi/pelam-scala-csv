@@ -61,6 +61,16 @@ abstract class Cell {
   def colKey = cellKey.colKey
 
   /**
+   * Shortcut to index in [[CellKey.rowKey]]
+   */
+  def rowIndex = cellKey.rowKey.index
+
+  /**
+   * Shortcut to index in [[CellKey.colKey]]
+   */
+  def colIndex = cellKey.colKey.index
+
+  /**
    * The data as it would be represented in CSV file on
    * disk sans quoting.
    *
