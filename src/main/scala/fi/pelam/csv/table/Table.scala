@@ -69,7 +69,6 @@ import scala.collection.SortedMap
  *
  * @constructor
  */
-// TODO: ScalaDoc for the methods
 case class Table[RT, CT, M <: TableMetadata] private(
   cells: IndexedSeq[IndexedSeq[Cell]],
   rowTypes: SortedBiMap[RowKey, RT],
@@ -86,6 +85,11 @@ case class Table[RT, CT, M <: TableMetadata] private(
     require(row.size == colCount, s"Same number of columns required for reach row. ${row.size} vs ${colCount}")
   }
 
+  // TODO: Optimize away the unnecessary creation of copies of Table.
+  /**
+   * Return a new table with given cells replacing the previous cells
+   * at each the location `cell.cellKey`.
+   */
   def updatedCells(cells: TraversableOnce[Cell]): Table[RT, CT, M] = {
     var table = this
     for (cell <- cells) {
@@ -94,8 +98,18 @@ case class Table[RT, CT, M <: TableMetadata] private(
     table
   }
 
+  /**
+   * A convenient form for returning a new table with specified cells updated.
+   * {{{
+   *   val updated = table.updatedCells(StringCell(CellKey(0, 0), "foo"), StringCell(CellKey(1, 0), "bar"),
+   * }}}
+   */
   def updatedCells(cells: Cell*): Table[RT, CT, M] = updatedCells(cells)
 
+  /**
+   * Return a new table with given cell replacing the previous cell
+   * in the location `cell.cellKey`.
+   */
   def updatedCell(cell: Cell): Table[RT, CT, M] = {
     val key = cell.cellKey
 
@@ -114,11 +128,18 @@ case class Table[RT, CT, M <: TableMetadata] private(
     copy(cells = updatedCells)
   }
 
+  /**
+   * Get all cells in a single sequence.
+   * The rows are catenated one after the other.
+   */
   def getCells(): IndexedSeq[Cell] = {
     for (i <- 0 until rowCount;
          j <- 0 until colCount) yield cells(i)(j)
   }
 
+  /**
+   * Get cell at specific row, column address.
+   */
   def getCell(key: CellKey) = cells(key.rowIndex)(key.colIndex)
 
   /**
@@ -140,20 +161,122 @@ case class Table[RT, CT, M <: TableMetadata] private(
     getCell(CellKey(rowKey, colKey))
   }
 
+  /**
+   * Get all cells from the specified row.
+   */
   def getCells(rowKey: RowKey): IndexedSeq[Cell] = {
-    for (i <- 0 until colCount) yield cells(rowKey.index)(i)
+    cells(rowKey.index)
   }
 
+  /**
+   * Get all cells from the specified column
+   */
   def getCells(colKey: ColKey): IndexedSeq[Cell] = {
     for (i <- 0 until rowCount) yield cells(i)(colKey.index)
   }
 
+  /**
+   * Get cell keys corresponding to all cells on the specified row.
+   */
   def getCellKeys(rowKey: RowKey): IndexedSeq[CellKey] = {
     for (i <- 0 until colCount) yield CellKey(rowKey, i)
   }
 
+  /**
+   * Get cell keys corresponding to all cells on the specified column.
+   */
   def getCellKeys(colKey: ColKey): IndexedSeq[CellKey] = {
     for (i <- 0 until rowCount) yield CellKey(i, colKey)
+  }
+
+  /**
+   * Gets a selected set of cells from a particular row.
+   * Will pick cells in columns having a column type (`CT`)
+   * for which `colTypeMatcher` returns true.
+   * Throws an exception if `RT` fits more than one or zero rows.
+   * Here is an imaginary example: {{{
+   *   // Gets the extra notes on projects and clients
+   *   table.getSingleRow(ExtraNotesRow, Set(ProjectColumn, ClientColumn))
+   * }}}
+   */
+  def getSingleRow(rowType: RT, colTypeMatcher: CT => Boolean): IndexedSeq[Cell] = {
+    getSingleRow(getSingleRowKeyByType(rowType), colTypeMatcher)
+  }
+
+  /**
+   * Gets a selected set of cells from a particular column.
+   * Will pick cells in rows having a row type (`RT`)
+   * for which `rowTypeMatcher` returns true.
+   * Throws an exception if `CT` fits more than one or zero columns.
+   * Here is an imaginary example: {{{
+   *   // Gets the street address for two types of addresses
+   *   table.getSingleCol(Set(HomeAddressRow, BillingAddressRow), StreetAddressColumn)
+   * }}}
+   */
+  def getSingleCol(rowTypeMatcher: RT => Boolean, colType: CT): IndexedSeq[Cell] = {
+    getSingleCol(rowTypeMatcher, getSingleColKeyByType(colType))
+  }
+
+  /**
+   * Otherwise same as `getSingleRow(RT, colTypeMatcher)`, but
+   * a single bare column type is specified instead of the more general
+   * predicate form.
+   */
+  def getSingleRow(rowType: RT, colType: CT): IndexedSeq[Cell] = {
+    getSingleRow(getSingleRowKeyByType(rowType), (ct: CT) => ct == colType)
+  }
+
+  /**
+   * Otherwise same as `getSingleCol(rowTypeMatcher, CT)`, but
+   * a single bare row type is specified instead of the more general
+   * predicate form.
+   */
+  def getSingleCol(rowType: RT, colType: CT): IndexedSeq[Cell] = {
+    getSingleCol((rt: RT) => rt == rowType, getSingleColKeyByType(colType))
+  }
+
+  /**
+   * Otherwise same as `getSingleRow(RT, colTypeMatcher)`, but
+   * row is addressed directly with `RowKey` (row index) and
+   * a single bare column type is specified instead of the more general
+   * predicate form.
+   */
+  def getSingleRow(rowKey: RowKey, colType: CT): IndexedSeq[Cell] = {
+    getSingleRow(rowKey, (ct: CT) => ct == colType)
+  }
+
+  /**
+   * Otherwise same as `getSingleCol(rowTypeMatcher, CT)`, but
+   * the column is addressed directly with `colKey` (column index) and
+   * a single bare row type is specified instead of the more general
+   * predicate form.
+   */
+  def getSingleCol(rowType: RT, colKey: ColKey): IndexedSeq[Cell] = {
+    getSingleCol((rt: RT) => rt == rowType, colKey)
+  }
+
+  /**
+   * Otherwise same as `getSingleRow(RT, colTypeMatcher)`, but
+   * row is addressed directly with `RowKey` (row index).
+   */
+  def getSingleRow(rowKey: RowKey, colTypeMatcher: CT => Boolean): IndexedSeq[Cell] = {
+    for (cellKey <- getCellKeys(rowKey);
+         colKey = cellKey.colKey;
+         if colTypes.contains(colKey) && colTypeMatcher(colTypes(colKey))) yield {
+      getCell(cellKey)
+    }
+  }
+
+  /**
+   * Otherwise same as `getSingleCol(rowTypeMatcher, CT)`, but
+   * the column is addressed directly with `colKey` (column index).
+   */
+  def getSingleCol(rowTypeMatcher: RT => Boolean, colKey: ColKey): IndexedSeq[Cell] = {
+    for (cellKey <- getCellKeys(colKey);
+         rowKey = cellKey.rowKey;
+         if colTypes.contains(colKey) && rowTypeMatcher(rowTypes(rowKey))) yield {
+      getCell(cellKey)
+    }
   }
 
   /**
@@ -168,62 +291,6 @@ case class Table[RT, CT, M <: TableMetadata] private(
    */
   def getSingleColKeyByType(colType: CT) = getSingleKeyByType(colTypes.reverse, colType, "column")
 
-  def getSingleRow(rowType: RT, colType: CT): IndexedSeq[Cell] = {
-    getSingleRow(getSingleRowKeyByType(rowType), (ct: CT) => ct == colType)
-  }
-
-  def getSingleCol(rowType: RT, colType: CT): IndexedSeq[Cell] = {
-    getSingleCol((rt: RT) => rt == rowType, getSingleColKeyByType(colType))
-  }
-
-  /**
-   * Get cells from a single column identified by colType for each row having rowType.
-   * Throws if there are multiple columns with CT
-   */
-  def getSingleRow(rowType: RT, colTypeMatcher: CT => Boolean): IndexedSeq[Cell] = {
-    getSingleRow(getSingleRowKeyByType(rowType), colTypeMatcher)
-  }
-
-  def getSingleCol(rowTypeMatcher: RT => Boolean, colType: CT): IndexedSeq[Cell] = {
-    getSingleCol(rowTypeMatcher, getSingleColKeyByType(colType))
-  }
-
-  def getSingleRow(rowKey: RowKey, colType: CT): IndexedSeq[Cell] = {
-    getSingleRow(rowKey, (ct: CT) => ct == colType)
-  }
-
-  def getSingleCol(rowType: RT, colKey: ColKey): IndexedSeq[Cell] = {
-    getSingleCol((rt: RT) => rt == rowType, colKey)
-  }
-
-  /**
-   * Get all cells from the specified row matching the specified column type.
-   *
-   * Example:
-   * {{{
-   *   // Get the project cells from the 11th row
-   *   table.getSingleRow(RowKey(10), _ == ColumnTypeProject)
-   * }}}
-   *
-   * @param rowKey identifies the row to target.
-   * @param colTypeMatcher predicate selects columns from target row using column types
-   * @return a sequence of zero or more cells on the given row having the specified column type.
-   */
-  def getSingleRow(rowKey: RowKey, colTypeMatcher: CT => Boolean): IndexedSeq[Cell] = {
-    for (cellKey <- getCellKeys(rowKey);
-         colKey = cellKey.colKey;
-         if colTypes.contains(colKey) && colTypeMatcher(colTypes(colKey))) yield {
-      getCell(cellKey)
-    }
-  }
-
-  def getSingleCol(rowTypeMatcher: RT => Boolean, colKey: ColKey): IndexedSeq[Cell] = {
-    for (cellKey <- getCellKeys(colKey);
-         rowKey = cellKey.rowKey;
-         if colTypes.contains(colKey) && rowTypeMatcher(rowTypes(rowKey))) yield {
-      getCell(cellKey)
-    }
-  }
 }
 
 object Table {
@@ -256,10 +323,7 @@ object Table {
 
   def findKeyRangeEnd(keys: TraversableOnce[AxisKey[_]]) = keys.foldLeft(0)((max, key) => Math.max(max, key.index + 1))
 
-  /**
-   * This is a helper method to convert a sequence of cells
-   * to a 2 dimensional IndexedSeq.
-   */
+  // This is a helper method to convert a sequence of cells to a 2 dimensional IndexedSeq.
   private[csv] def buildCells(initialCells: TraversableOnce[Cell], rowCount: Int = 0, colCount: Int = 0): IndexedSeq[IndexedSeq[Cell]] = {
 
     val initialCellMap = initialCells.map(cell => cell.cellKey -> cell).toMap
@@ -291,9 +355,7 @@ object Table {
     rowArray.map(_.toIndexedSeq).toIndexedSeq
   }
 
-  /**
-   * Throws if the number of columns/rows with given type is not 1
-   */
+  // A helper method that throws if the number of columns/rows with given type is not 1.
   private[csv] def getSingleKeyByType[K <: AxisKey[K], T](keysByType: SortedMap[T, IndexedSeq[K]], colType: T, axisName: String): K = {
     val keys = keysByType(colType)
     if (keys.size == 0) {
