@@ -321,7 +321,8 @@ object Table {
     Table(builtCells, rowTypes, colTypes, metadata)
   }
 
-  def findKeyRangeEnd(keys: TraversableOnce[AxisKey[_]]) = keys.foldLeft(0)((max, key) => Math.max(max, key.index + 1))
+  // Helper method to find maximum key values from a sequence of cells.
+  private[csv] def findKeyRangeEnd(keys: TraversableOnce[AxisKey[_]]) = keys.foldLeft(0)((max, key) => Math.max(max, key.index + 1))
 
   // This is a helper method to convert a sequence of cells to a 2 dimensional IndexedSeq.
   private[csv] def buildCells(initialCells: TraversableOnce[Cell], rowCount: Int = 0, colCount: Int = 0): IndexedSeq[IndexedSeq[Cell]] = {
