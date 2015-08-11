@@ -42,6 +42,7 @@ package fi.pelam.csv.cell
  * column and row numbering.
  */
 case class CellKey(rowIndex: Int, colIndex: Int) extends Ordered[CellKey] {
+  import CellKey._
 
   /**
    * Method for advancing one row.
@@ -63,8 +64,11 @@ case class CellKey(rowIndex: Int, colIndex: Int) extends Ordered[CellKey] {
    */
   val colKey = ColKey(colIndex)
 
-  // TODO: Remove superficial method?
-  def indices = (rowIndex, colIndex)
+  /**
+   * This is equivalent to `CellKey.unapply(cellKey).get`.
+   * @return the `(rowIndex, colIndex)` tuple.
+   */
+  def indices: IndicesTuple = (rowIndex, colIndex)
 
   /**
    * Example: {{{
@@ -78,9 +82,8 @@ case class CellKey(rowIndex: Int, colIndex: Int) extends Ordered[CellKey] {
    * See section on ordering at class top level documentation.
    */
   override def compare(that: CellKey): Int = {
-    // http://stackoverflow.com/a/19348339/1148030
-    import scala.math.Ordered.orderingToOrdered
-    (this.rowIndex, this.colIndex) compare(that.rowIndex, that.colIndex)
+    // Original idea from http://stackoverflow.com/a/19348339/1148030
+    indicesTupleOrdering.compare(this.indices, that.indices)
   }
 }
 
@@ -90,4 +93,8 @@ object CellKey {
   def apply(rowIndex: Int, colKey: ColKey): CellKey = CellKey(rowIndex, colKey.index)
 
   def apply(rowKey: RowKey, colKey: ColKey): CellKey = CellKey(rowKey.index, colKey.index)
+
+  type IndicesTuple = (Int, Int)
+
+  private val indicesTupleOrdering = implicitly(Ordering[IndicesTuple])
 }
