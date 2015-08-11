@@ -42,8 +42,8 @@ class TableReaderTest {
     assertFalse(errors.noErrors)
 
     assertEquals(
-      "Unknown row type. Cell containing '1' at Row 1, Column A (0)\n" +
-        "Unknown row type. Cell containing '' at Row 3, Column A (0)\n",
+      "Unknown row type. The error is related to the StringCell with value '1' at Row 1, Column A (0).\n" +
+        "Unknown row type. The error is related to the StringCell with value '' at Row 3, Column A (0).\n",
       errors.errors.foldLeft("")(_ + _.toString() + "\n"))
   }
 
@@ -121,8 +121,8 @@ class TableReaderTest {
 
     assertEquals(
       "Error parsing cell content: Expected integer, but input 'injected-error-should-be-number' could not be " +
-        "fully parsed with locale 'fi'. CellType(Worker,Salary) Cell containing " +
-        "'injected-error-should-be-number' at Row 3, Column E (4)", errors.errors(0).toString())
+        "fully parsed with locale 'fi'. CellType(Worker,Salary) The error is related to the StringCell with value " +
+        "'injected-error-should-be-number' at Row 3, Column E (4).", errors.errors(0).toString())
 
     assertEquals(1, errors.errors.size)
   }

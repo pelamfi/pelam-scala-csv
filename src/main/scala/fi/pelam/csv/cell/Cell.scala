@@ -89,4 +89,5 @@ abstract class Cell {
    */
   def value: Any
 
+  override def toString() = this.getClass().getSimpleName() + s" with value '$value' at $cellKey"
 }

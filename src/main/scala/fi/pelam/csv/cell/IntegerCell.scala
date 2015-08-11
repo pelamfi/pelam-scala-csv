@@ -45,8 +45,6 @@ case class IntegerCell(override val cellKey: CellKey,
   def serializedString: String = {
     formatter(value)
   }
-
-  override def toString() = s"Cell containing integer $value at $cellKey"
 }
 
 /**

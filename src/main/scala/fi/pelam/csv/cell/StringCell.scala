@@ -44,7 +44,7 @@ case class StringCell(override val cellKey: CellKey,
    */
   override def value = serializedString
 
-  override def toString() = s"Cell containing '$serializedString' at $cellKey"
+
 }
 
 object StringCell extends CellParser {

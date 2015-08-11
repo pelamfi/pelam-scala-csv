@@ -190,7 +190,7 @@ class TableReader[RT, CT, M <: TableMetadata](
 
       if (rowTyper.isDefinedAt(cell) && !input.rowTypes.contains(cell.rowKey)) {
         rowTyper(cell) match {
-          case Left(error) => input.addError(error.addedDetails(cell))
+          case Left(error) => input.addError(error.relatedCellAdded(cell))
           case Right(rowType) => input.defineRowType(cell.rowKey, rowType)
         }
       } else {
@@ -207,7 +207,7 @@ class TableReader[RT, CT, M <: TableMetadata](
 
       if (colTyper.isDefinedAt(cell, initialInput.rowTypes) && !input.colTypes.contains(cell.colKey)) {
         colTyper(cell, initialInput.rowTypes) match {
-          case Left(error) => input.addError(error.addedDetails(cell))
+          case Left(error) => input.addError(error.relatedCellAdded(cell))
           case Right(colType) => input.defineColType(cell.colKey, colType)
         }
       } else {
@@ -229,7 +229,7 @@ class TableReader[RT, CT, M <: TableMetadata](
                          upgradeResult <- upgrader(cell, cellType)) yield upgradeResult
 
       upgrade match {
-        case Some(Left(tableReadingError)) => Left(tableReadingError.addedDetails(cell))
+        case Some(Left(tableReadingError)) => Left(tableReadingError.relatedCellAdded(cell))
         case Some(Right(upgradedCell)) => Right(upgradedCell)
         case None => Right(cell)
       }

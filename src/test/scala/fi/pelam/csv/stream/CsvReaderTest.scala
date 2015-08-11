@@ -216,10 +216,10 @@ class CsvReaderTest {
 
     val parsed = new CsvReader("Comment,1\nComment,2\n", ',').throwOnError.toIndexedSeq
 
-    val expected = "Cell containing 'Comment' at Row 1, Column A (0)\n" +
-      "Cell containing '1' at Row 1, Column B (1)\n" +
-      "Cell containing 'Comment' at Row 2, Column A (0)\n" +
-      "Cell containing '2' at Row 2, Column B (1)\n"
+    val expected = "StringCell with value 'Comment' at Row 1, Column A (0)\n" +
+      "StringCell with value '1' at Row 1, Column B (1)\n" +
+      "StringCell with value 'Comment' at Row 2, Column A (0)\n" +
+      "StringCell with value '2' at Row 2, Column B (1)\n"
 
     assertEquals(expected, parsed.foldLeft("")(_ + _ + "\n"))
   }
