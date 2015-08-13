@@ -45,7 +45,7 @@ very structured format.
 License
 =======
 
-Pelam's Scala CSV library is distribute under the 
+Pelam's Scala CSV library is distributed under the 
 Apache 2.0 license which is available in the included file [LICENSE.txt](LICENSE.txt)
 and [online](http://www.apache.org/licenses/LICENSE-2.0).
 
