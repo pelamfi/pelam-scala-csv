@@ -46,7 +46,7 @@ case class FormatDetectingReader[RT, CT, M <: TableMetadata] private[csv] (
 
       val (result: ResultTable, errors: TableReadingErrors) = reader.read()
 
-      if (errors < currentErrors) {
+      if (errors > currentErrors) {
         // New better result
         copy(currentResult = Some(result), currentErrors = errors)(readerMaker)
       } else {

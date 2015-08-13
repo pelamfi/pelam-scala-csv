@@ -47,7 +47,7 @@ class FormatDetectingReaderTest {
 
     for (dataLocale <- locales) {
       for (cellTypeLocale <- locales) {
-        reader = reader.evaluateMetadataCombination(LocaleTableMetadata(Locale.ROOT, Locale.ROOT))
+        reader = reader.evaluateMetadataCombination(LocaleTableMetadata(dataLocale, cellTypeLocale))
       }
     }
 

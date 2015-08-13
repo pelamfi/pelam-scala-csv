@@ -25,10 +25,27 @@ class TableReadingErrorsTest {
   import TableReadingErrorsTest._
 
   @Test
+  def testCompareStageNumber: Unit = {
+    assertTrue("Later stage is better.", TableReadingErrors(1, IndexedSeq(errorFoo)) > TableReadingErrors(0, IndexedSeq(errorFoo)))
+  }
+
+  @Test
+  def testCompareStageNumberDifferentErrors: Unit = {
+    assertTrue("Readching later stage is better even if there are more errors",
+      TableReadingErrors(1, IndexedSeq(errorFoo, errorBar)) > TableReadingErrors(0, IndexedSeq(errorFoo)))
+  }
+
+  @Test
+  def testCompareDifferentErrors: Unit = {
+    assertTrue("Readching later stage is better even if there are more errors",
+      TableReadingErrors(1, IndexedSeq(errorFoo)) > TableReadingErrors(1, IndexedSeq(errorFoo, errorBar)))
+  }
+
+  @Test
   def testToString: Unit = {
-    assertEquals("No reading has been attempted yet. Last stage was -1.", TableReadingErrors.initial.toString)
-    assertEquals("Some error occured. The error is related to the StringCell with value 'foocell' at Row 2, Column C (2). Last stage was 100.", TableReadingErrors(100, IndexedSeq(errorFoo)).toString)
-    assertEquals("2 errors in stage 100. The first error is: Some error occured. The error is related to the StringCell with value 'foocell' at Row 2, Column C (2).", TableReadingErrors(100, IndexedSeq(errorFoo, errorBar)).toString)
+    assertEquals("No reading has been attempted yet. Stage number is 0.", TableReadingErrors.initial.toString)
+    assertEquals("Some error occured. The error is related to the StringCell with value 'foocell' at Row 2, Column C (2). Stage number is 100.", TableReadingErrors(100, IndexedSeq(errorFoo)).toString)
+    assertEquals("2 errors in stage number 100. The first error is: Some error occured. The error is related to the StringCell with value 'foocell' at Row 2, Column C (2).", TableReadingErrors(100, IndexedSeq(errorFoo, errorBar)).toString)
   }
 }
 

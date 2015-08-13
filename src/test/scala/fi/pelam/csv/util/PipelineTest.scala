@@ -23,7 +23,9 @@ import org.junit.Assert._
 
 class PipelineTest {
 
-  case class State(override val success: Boolean = true, value: Int = 0) extends SuccessState
+  case class State(override val success: Boolean = true, value: Int = 0, override val stageNumber: Int = 0) extends LastStageResult[State] {
+    override def stageNumberIncremented(): State = copy(stageNumber = stageNumber + 1)
+  }
 
   @Test
   def testRun: Unit = {
@@ -34,7 +36,7 @@ class PipelineTest {
       finalState <- Pipeline.Stage((state: State) => state.copy(value = state.value + 100))
     ) yield finalState
 
-    assertEquals(State(true, 111), pipeline.run(State()))
+    assertEquals(State(true, 111, 3), pipeline.run(State()))
   }
 
   @Test
@@ -51,7 +53,7 @@ class PipelineTest {
       finalState <- Pipeline.Stage((state: State) => state.copy(value = state.value + 1000))
     ) yield finalState
 
-    assertEquals(State(true, 1111), pipeline2.run(State()))
+    assertEquals(State(true, 1111, 4), pipeline2.run(State()))
   }
 
   @Test
@@ -62,7 +64,7 @@ class PipelineTest {
       finalState <- Pipeline.Stage((state: State) => state.copy(value = state.value + 100))
     ) yield finalState.copy(value = finalState.value * 2)
 
-    assertEquals(State(true, 222), pipeline.run(State()))
+    assertEquals(State(true, 222, 3), pipeline.run(State()))
   }
 
   @Test
@@ -74,7 +76,7 @@ class PipelineTest {
       finalState <- Pipeline.Stage((state: State) => state.copy(value = state.value + 100))
     ) yield finalState
 
-    assertEquals(State(false, 11), pipeline.run(State()))
+    assertEquals(State(false, 11, 2), pipeline.run(State()))
   }
 
   @Test
@@ -85,7 +87,7 @@ class PipelineTest {
       finalState <- Pipeline.Stage((state: State) => state.copy(value = state.value + 100))
     ) yield finalState.copy(value = finalState.value * 2)
 
-    assertEquals(State(false, 11), pipeline.run(State()))
+    assertEquals("Final map is not run", State(false, 11, 2), pipeline.run(State()))
   }
 
 }
