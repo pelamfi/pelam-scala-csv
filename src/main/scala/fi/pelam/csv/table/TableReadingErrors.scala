@@ -18,7 +18,6 @@
 
 package fi.pelam.csv.table
 
-// TODO: Unit tests and a nice toString
 /**
  * Captures errors that happen inside [[TableReader]]. The set of errors
  * is ordered in increasing badness order. This ordering is used in format detection
