@@ -21,6 +21,9 @@ package fi.pelam.csv.table
 import fi.pelam.csv.cell._
 import fi.pelam.csv.util.{LastStageResult, SortedBiMap}
 
+/**
+ * This is class is an internal class used to thread state through stages in [[TableReader]].
+ */
 case class TableReadingState[RT, CT](cells: IndexedSeq[Cell] = IndexedSeq(),
   rowTypes: TableReader.RowTypes[RT] = SortedBiMap[RowKey, RT](),
   colTypes: TableReader.ColTypes[CT] = SortedBiMap[ColKey, CT](),
