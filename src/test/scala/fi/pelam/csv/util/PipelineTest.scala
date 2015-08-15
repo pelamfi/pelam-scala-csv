@@ -23,7 +23,11 @@ import org.junit.Assert._
 
 class PipelineTest {
 
-  case class State(override val success: Boolean = true, value: Int = 0, override val stageNumber: Int = 0) extends LastStageResult[State] {
+  case class State(override val success: Boolean = true,
+    value: Int = 0,
+    override val stageNumber: Int = 0)
+    extends LastStageResult[State] {
+
     override def stageNumberIncremented(): State = copy(stageNumber = stageNumber + 1)
   }
 
