@@ -35,6 +35,24 @@ import org.junit.Test
 class FormatDetectingReaderTest {
   import TableReaderTest._
 
+  /*
+  @Test
+  def newDesignTest(): Unit = {
+    val locales = List(localeFi, Locale.ROOT)
+
+    val (tableOption, errors) =
+      for (reader <- FormatDetectingReader();
+           dataLocale <- FormatVariable(locales);
+           cellTypeLocale <- FormatVariable(locales)) {
+
+      val metadata = LocaleTableMetadata(dataLocale, cellTypeLocale)
+      new TableReader(rowAndColTypesFiDataEn, metadata, rowTyper(cellTypeLocale), colTyper(cellTypeLocale),
+        cellUpgrader(dataLocale))
+    }
+
+
+  }*/
+
   @Test
   def testEvaluateMetadataCombination {
 
