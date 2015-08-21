@@ -81,6 +81,7 @@ import fi.pelam.csv.cell.StringCell
  *
  * @constructor Create a new reader while specifying the separator character.
  */
+// TODO: User AbstractIterator to reduce class file size... see comment on AbstractIterator
 final class CsvReader(input: Reader, val separator: Char) extends Iterator[CsvReader.CellOrError] {
 
   import CsvReader._
