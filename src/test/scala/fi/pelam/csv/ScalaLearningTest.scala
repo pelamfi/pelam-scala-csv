@@ -20,24 +20,66 @@ package fi.pelam.csv
 
 import org.junit.Test
 
+trait Combinations[S] {
+  def flatMap(inner: S => Combinations[S]): Combinations[S]
+  def map(mapFunc: S => S): Combinations[S]
+  def run(combination: Int): S
+
+  def run(): Seq[S] = {
+    var s = List[S]()
+    for (i <- Seq(1,2,3)) {
+      s = s :+ run(i)
+    }
+    s
+  }
+}
+
+case class Flatmapped[S](items: IndexedSeq[S], inner: S => Combinations[S]) extends Combinations[S] {
+  override def flatMap(inner: (S) => Combinations[S]): Combinations[S] = Flatmapped(items, inner)
+
+  override def map(mapFunc: (S) => S): Combinations[S] = Mapped(this, mapFunc)
+
+  override def run(combination: Int): S = {
+    inner(items(combination % items.size)).run(combination / items.size)
+  }
+}
+
+case class Mapped[S](outer: Combinations[S], mapFunc: S => S) extends Combinations[S] {
+  override def flatMap(inner: (S) => Combinations[S]): Combinations[S] = ???
+
+  override def map(mapFunc: (S) => S): Combinations[S] = Mapped(this, mapFunc)
+
+  override def run(combination: Int): S = {
+    mapFunc(outer.run(combination))
+  }
+}
+
+case class Items[S](items: IndexedSeq[S]) extends Combinations[S] {
+  override def flatMap(inner: S => Combinations[S]): Combinations[S] = {
+    Flatmapped(items, inner)
+  }
+
+  override def map(mapFunc: S => S): Combinations[S] = {
+    Mapped(this, mapFunc)
+  }
+
+  override def run(combination: Int): S = {
+    items(combination)
+  }
+}
+
 class ScalaLearningTest {
 
   @Test
-  def testForImplicit(): Unit = {
-    case class Foo[S](v: S){
-      def flatMap(inner: S => Foo[S]): Foo[S] = {
-        null
-      }
+  def testForCombinationGeneration(): Unit = {
 
-      def map(mapFunc: S => S) = {
-        null
-      }
+
+    val r = for (x <- Items(IndexedSeq("a", "b"));
+         y <- Items(IndexedSeq("c", "d"))) yield {
+      x + y
     }
 
-    val r = for (x <- Foo(1);
-         y <- Foo(2)) yield {
-      y
-    }
+    println(r.run())
   }
 
 }
