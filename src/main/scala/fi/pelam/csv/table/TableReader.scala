@@ -147,7 +147,7 @@ class TableReader[RT, CT, M <: TableMetadata](
 
   type State = TableReadingState[RT, CT]
 
-  private[csv] val pipeline = for (_ <- Pipeline.Stage(csvReadingStage);
+  private[csv] def pipeline = for (_ <- Pipeline.Stage(csvReadingStage);
                       _ <- Pipeline.Stage(rowTypeDetectionStage);
                       _ <- Pipeline.Stage(colTypeDetectionStage);
                       x <- Pipeline.Stage(cellUpgradeStage)) yield x
