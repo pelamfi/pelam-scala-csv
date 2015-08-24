@@ -63,10 +63,9 @@ class FormatDetectingReaderTest {
 
     val locales = List(localeFi, Locale.ROOT)
 
-    for (dataLocale <- locales) {
-      for (cellTypeLocale <- locales) {
-        reader = reader.evaluateMetadataCombination(LocaleTableMetadata(dataLocale, cellTypeLocale))
-      }
+    for (dataLocale <- locales;
+         cellTypeLocale <- locales) {
+      reader = reader.evaluateMetadataCombination(LocaleTableMetadata(dataLocale, cellTypeLocale))
     }
 
     assertTrue("Should be no errors, but got " + reader.currentErrors, reader.noErrors)
@@ -75,4 +74,5 @@ class FormatDetectingReaderTest {
 
     assertEquals(Locale.ROOT, table.metadata.dataLocale)
   }
+
 }
