@@ -75,4 +75,47 @@ class FormatDetectingReaderTest {
     assertEquals(Locale.ROOT, table.metadata.dataLocale)
   }
 
+
+  /*
+  @Test
+  def newDesignTest2(): Unit = {
+    val locales = List(localeFi, Locale.ROOT)
+
+    val (tableOption, errors) =
+      for (reader <- FormatDetectingReader();
+           dataLocale <- locales; // This is possible at least with implicits...
+           cellTypeLocale <- locales) {
+
+      val metadata = LocaleTableMetadata(dataLocale, cellTypeLocale)
+      new TableReader(rowAndColTypesFiDataEn, metadata, rowTyper(cellTypeLocale), colTyper(cellTypeLocale),
+        cellUpgrader(dataLocale))
+    }
+  }*/
+
+
+  @Test
+  def testEvaluateMetadataCombinationGenerateMetadatasFirst {
+    val locales = List(localeFi, Locale.ROOT)
+
+    val metadatas = for (
+      dataLocale <- locales;
+      cellTypeLocale <- locales) yield {
+        LocaleTableMetadata(dataLocale, cellTypeLocale)
+      }
+
+    val initialReader = FormatDetectingReader({ (metadata: LocaleTableMetadata) =>
+      new TableReader(rowAndColTypesFiDataEn, metadata, rowTyper(metadata.cellTypeLocale), colTyper(metadata.cellTypeLocale),
+        cellUpgrader(metadata.dataLocale))
+    })
+
+    val reader = metadatas.foldLeft(initialReader)(_.evaluateMetadataCombination(_))
+
+    assertTrue("Should be no errors, but got " + reader.currentErrors, reader.noErrors)
+
+    val table = reader.currentResult.get
+
+    assertEquals(Locale.ROOT, table.metadata.dataLocale)
+  }
+
+
 }
