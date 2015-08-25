@@ -33,7 +33,8 @@ trait LastStageResult[T <: LastStageResult[T]] {
    * This is used in error handling schemes to compare how far in the pipeline
    * the computation got before errors.
    *
-   * Specifically this feature is used by [[fi.pelam.csv.table.FormatDetectingReader]].
+   * Specifically this feature is used by [[fi.pelam.csv.table.TableReaderEvaluator]]
+   * in the ordering of [[fi.pelam.csv.table.TableReadingErrors]].
    */
   val stageNumber: Int
 

@@ -23,32 +23,29 @@ package fi.pelam.csv.table
  *
  * @param currentResult
  * @param currentErrors
- * @param readerMaker
  * @tparam RT
  * @tparam CT
  * @tparam M
  */
-case class FormatDetectingReader[RT, CT, M <: TableMetadata] private[csv] (
+case class TableReaderEvaluator[RT, CT, M <: TableMetadata] private[csv] (
   currentResult: Option[Table[RT, CT, M]],
   currentErrors: TableReadingErrors
-  )(readerMaker: FormatDetectingReader.ReaderMaker[RT, CT, M]){
+  ){
 
   type ResultTable = Table[RT, CT, M]
 
   type Reader = TableReader[RT, CT, M]
 
-  def evaluateMetadataCombination(metadataCombination: M): FormatDetectingReader[RT, CT, M] = {
+  def evaluateReader(reader: TableReader[RT, CT, M]): TableReaderEvaluator[RT, CT, M] = {
     if (noErrors) {
       // Don't read table over and over again if we already have a solution without errors.
       this
     } else {
-      val reader: Reader = readerMaker(metadataCombination)
-
       val (result: ResultTable, errors: TableReadingErrors) = reader.read()
 
       if (errors > currentErrors) {
         // New better result
-        copy(currentResult = Some(result), currentErrors = errors)(readerMaker)
+        copy(currentResult = Some(result), currentErrors = errors)
       } else {
         this
       }
@@ -59,11 +56,8 @@ case class FormatDetectingReader[RT, CT, M <: TableMetadata] private[csv] (
 
 }
 
-object FormatDetectingReader {
-  def apply[RT, CT, M <: TableMetadata](readerMaker: FormatDetectingReader.ReaderMaker[RT, CT, M]): FormatDetectingReader[RT, CT, M] = {
-    FormatDetectingReader(None, TableReadingErrors.initial)(readerMaker)
+object TableReaderEvaluator {
+  def apply[RT, CT, M <: TableMetadata](): TableReaderEvaluator[RT, CT, M] = {
+    TableReaderEvaluator(None, TableReadingErrors.initial)
   }
-
-  type ReaderMaker[RT, CT, M <: TableMetadata] = (M) => TableReader[RT, CT, M]
-
 }
