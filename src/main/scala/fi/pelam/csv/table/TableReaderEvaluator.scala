@@ -22,7 +22,7 @@ package fi.pelam.csv.table
  * This class models a process where several differently constructed [[TableReader]] instances
  * are tried and the result from the one with least, preferably zero, errors is picked.
  *
- * @param currentResult initialized by default into empty value.
+ * @param currentResult initialized by default to `None`
  * @param currentErrors initialized by default into value that is "worse" than any actual error produced by [[TableReader]].
 
  * @tparam RT The client specific row type.
@@ -47,7 +47,7 @@ case class TableReaderEvaluator[RT, CT, M <: TableMetadata] private[csv] (
    *
    * If zero errors solution has already been reached, the nothing is done.
    */
-  def evaluateReader(reader: TableReader[RT, CT, M]): TableReaderEvaluator[RT, CT, M] = {
+  def evaluateReader(reader: Reader): TableReaderEvaluator[RT, CT, M] = {
     if (noErrors) {
       // Don't read table over and over again if we already have a solution without errors.
       this
