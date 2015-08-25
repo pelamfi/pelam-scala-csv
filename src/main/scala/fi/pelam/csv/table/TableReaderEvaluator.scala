@@ -19,23 +19,34 @@
 package fi.pelam.csv.table
 
 /**
- * @constructor
+ * This class models a process where several differently constructed [[TableReader]] instances
+ * are tried and the result from the one with least, preferably zero, errors is picked.
  *
- * @param currentResult
- * @param currentErrors
- * @tparam RT
- * @tparam CT
- * @tparam M
+ * @param currentResult initialized by default into empty value.
+ * @param currentErrors initialized by default into value that is "worse" than any actual error produced by [[TableReader]].
+
+ * @tparam RT The client specific row type.
+ *
+ * @tparam CT The client specific column type.
+ *
+ * @tparam M The type of the `metadata` parameter. Must be a sub type of [[TableMetadata]].
+ *           This specifies the character set and separator to use when reading the CSV data from the input stream.
+ *
  */
 case class TableReaderEvaluator[RT, CT, M <: TableMetadata] private[csv] (
-  currentResult: Option[Table[RT, CT, M]],
-  currentErrors: TableReadingErrors
+  currentResult: Option[Table[RT, CT, M]] = None,
+  currentErrors: TableReadingErrors = TableReadingErrors.initial
   ){
 
   type ResultTable = Table[RT, CT, M]
 
   type Reader = TableReader[RT, CT, M]
 
+  /**
+   * With this method candidate `TableReader` instances are evaluated into updated copy of this instance.
+   *
+   * If zero errors solution has already been reached, the nothing is done.
+   */
   def evaluateReader(reader: TableReader[RT, CT, M]): TableReaderEvaluator[RT, CT, M] = {
     if (noErrors) {
       // Don't read table over and over again if we already have a solution without errors.
@@ -54,10 +65,4 @@ case class TableReaderEvaluator[RT, CT, M <: TableMetadata] private[csv] (
 
   def noErrors = currentErrors.noErrors
 
-}
-
-object TableReaderEvaluator {
-  def apply[RT, CT, M <: TableMetadata](): TableReaderEvaluator[RT, CT, M] = {
-    TableReaderEvaluator(None, TableReadingErrors.initial)
-  }
 }
