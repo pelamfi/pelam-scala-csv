@@ -18,6 +18,9 @@
 
 package fi.pelam.csv.table
 
+import java.nio.charset.{StandardCharsets, Charset}
+
+import fi.pelam.csv.CsvConstants
 import org.junit.Test
 import org.junit.Assert._
 import java.io.ByteArrayInputStream
@@ -34,10 +37,41 @@ import org.junit.Test
 
 class TableReaderEvaluatorTest {
   import TableReaderTest._
+  import TableReaderEvaluatorTest._
 
   @Test
-  def testEvaluateMetadataCombination {
-    val locales = List(localeFi, Locale.ROOT)
+  def testDetectSeparatorAndCharset {
+    val readers = for (
+      separator <- List(CsvConstants.defaultSeparatorChar, ';');
+      charset <- List(StandardCharsets.UTF_8, StandardCharsets.ISO_8859_1);
+      dataLocale <- locales;
+      cellTypeLocale <- locales) yield {
+      val metadata = LocaleTableMetadata(separator = separator,
+        charset = charset,
+        dataLocale = dataLocale,
+        cellTypeLocale = cellTypeLocale)
+
+      new TableReader(() => new ByteArrayInputStream(semicolonLatin1Csv), metadata,
+        rowTyper(metadata.cellTypeLocale), colTyper(metadata.cellTypeLocale),
+        cellUpgrader(metadata.dataLocale))
+    }
+
+    val initialEvaluator = TableReaderEvaluator[TestRowType, TestColType, LocaleTableMetadata]()
+
+    val finalEvaluator = readers.foldLeft(initialEvaluator)(_.evaluateReader(_))
+
+    assertTrue("Should be no errors, but got " + finalEvaluator.errors, finalEvaluator.noErrors)
+
+    val metadata = finalEvaluator.metadata.get
+
+    assertEquals("English (or ROOT) locale should have been detected for numeric data.", Locale.ROOT, metadata.dataLocale)
+    assertEquals("Finnish locale for cell type strings should have been detected", localeFi, metadata.cellTypeLocale)
+    assertEquals("Non standard separator should have veen detected", ';', metadata.separator)
+    assertEquals("Unusual charset should have been detected", StandardCharsets.ISO_8859_1, metadata.charset)
+  }
+
+  @Test
+  def testDetectLocales {
 
     val readers = for (dataLocale <- locales;
          cellTypeLocale <- locales) yield {
@@ -51,11 +85,26 @@ class TableReaderEvaluatorTest {
 
     val finalEvaluator = readers.foldLeft(initialEvaluator)(_.evaluateReader(_))
 
-    assertTrue("Should be no errors, but got " + finalEvaluator.currentErrors, finalEvaluator.noErrors)
+    assertTrue("Should be no errors, but got " + finalEvaluator.errors, finalEvaluator.noErrors)
 
-    val table = finalEvaluator.currentResult.get
+    val metadata = finalEvaluator.metadata.get
 
-    assertEquals(Locale.ROOT, table.metadata.dataLocale)
+    assertEquals("English (or ROOT) locale should have been detected for numeric data.", Locale.ROOT, metadata.dataLocale)
+    assertEquals("Finnish locale for cell type strings should have been detected", localeFi, metadata.cellTypeLocale)
+    assertEquals("Standard separator expected", CsvConstants.defaultSeparatorChar, metadata.separator)
+    assertEquals("Usual charset expected", CsvConstants.defaultCharset, metadata.charset)
   }
 
+}
+
+object TableReaderEvaluatorTest {
+  import TableReaderTest._
+
+  val locales = List(localeFi, Locale.ROOT)
+
+  // Create CSV in different format
+  val semicolonLatin1Csv = rowAndColTypesFiDataEn
+    .replace(',', ';')
+    .replaceAll("\"12;000.00\"", "\"12,000.00\"") // hack wrongly replaced separator
+    .getBytes(StandardCharsets.ISO_8859_1)
 }

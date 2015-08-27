@@ -35,9 +35,9 @@ case class TableReadingState[RT, CT](cells: IndexedSeq[Cell] = IndexedSeq(),
 
   def defineColType(col: ColKey, colType: CT): TableReadingState[RT, CT] = copy(colTypes = colTypes.updated(col, colType))
 
-  def addErrors(moreErrors: Iterator[TableReadingError]): TableReadingState[RT, CT] = copy(errors = errors.add(moreErrors))
+  def addErrors(moreErrors: Iterator[TableReadingError]): TableReadingState[RT, CT] = copy(errors = errors.addError(moreErrors))
 
-  def addError(error: TableReadingError): TableReadingState[RT, CT] = copy(errors = errors.add(error))
+  def addError(error: TableReadingError): TableReadingState[RT, CT] = copy(errors = errors.addError(error))
 
   override def stageNumberIncremented() = copy(errors = errors.copy(stageNumber + 1))
 

@@ -136,12 +136,14 @@ import fi.pelam.csv.util.{Pipeline, SortedBiMap}
  */
 // TODO: Add ready made detection heuristics wrappers for this class
 class TableReader[RT, CT, M <: TableMetadata](
-  val openInputStream: () => java.io.InputStream,
-  val metadata: M = SimpleTableMetadata(),
+  val openStream: () => java.io.InputStream,
+  val tableMetadata: M = SimpleTableMetadata(),
   val rowTyper: TableReader.RowTyper[RT] = PartialFunction.empty,
   val colTyper: TableReader.ColTyper[RT, CT] = PartialFunction.empty,
   val cellUpgrader: TableReader.CellUpgrader[RT, CT] = PartialFunction.empty
   ) {
+
+  override def toString() = s"TablerReader(tableMetadata = $tableMetadata)"
 
   type ResultTable = Table[RT, CT, M]
 
@@ -158,17 +160,17 @@ class TableReader[RT, CT, M <: TableMetadata](
 
     val result = pipeline.run(initial)
 
-    (Table(result.cells, result.rowTypes, result.colTypes, metadata), result.errors)
+    (Table(result.cells, result.rowTypes, result.colTypes, tableMetadata), result.errors)
   }
 
   private[csv] def csvReadingStage(input: State): State = {
-    val inputStream = openInputStream()
+    val inputStream = openStream()
 
     try {
 
-      val inputReader: java.io.Reader = new BufferedReader(new java.io.InputStreamReader(inputStream, metadata.charset), 1024)
+      val inputReader: java.io.Reader = new BufferedReader(new java.io.InputStreamReader(inputStream, tableMetadata.charset), 1024)
 
-      val csvReader = new CsvReader(inputReader, separator = metadata.separator)
+      val csvReader = new CsvReader(inputReader, separator = tableMetadata.separator)
 
       val (lefts, rights) = csvReader.partition(_.isLeft)
 
@@ -176,7 +178,7 @@ class TableReader[RT, CT, M <: TableMetadata](
       val cells = rights.map(either => either.right.get)
 
       // Package StringCells and possible errors to output state
-      input.copy(errors = input.errors.add(errors), cells = cells.toIndexedSeq)
+      input.copy(errors = input.errors.addError(errors), cells = cells.toIndexedSeq)
 
     } finally {
       inputStream.close()
@@ -241,7 +243,7 @@ class TableReader[RT, CT, M <: TableMetadata](
     val upgradedCells = rights.map(either => either.right.get)
 
     // Package in upgraded cells and possible errors
-    input.copy(errors = input.errors.add(errors), cells = upgradedCells.toIndexedSeq)
+    input.copy(errors = input.errors.addError(errors), cells = upgradedCells.toIndexedSeq)
   }
 
   /**

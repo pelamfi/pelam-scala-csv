@@ -43,7 +43,7 @@ class TableReadingErrorsTest {
 
   @Test
   def testToString: Unit = {
-    assertEquals("No reading has been attempted yet. Stage number is 0.", TableReadingErrors.initial.toString)
+    assertEquals("No reading has been attempted yet. Stage number is 0.", TableReadingErrors.initialValue.toString)
     assertEquals("Some error occured. The error is related to the StringCell with value 'foocell' at Row 2, Column C (2). Stage number is 100.", TableReadingErrors(100, IndexedSeq(errorFoo)).toString)
     assertEquals("2 errors in stage number 100. The first error is: Some error occured. The error is related to the StringCell with value 'foocell' at Row 2, Column C (2).", TableReadingErrors(100, IndexedSeq(errorFoo, errorBar)).toString)
   }

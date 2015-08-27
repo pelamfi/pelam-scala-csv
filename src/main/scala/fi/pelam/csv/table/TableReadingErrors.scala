@@ -19,27 +19,28 @@
 package fi.pelam.csv.table
 
 /**
- * Captures errors that happen inside [[TableReader]]. The set of errors
- * is ordered in increasing badness order. This ordering is used in format detection
+ * Captures errors that happen inside [[TableReader]]. This class is ordered in
+ * increasing success orderd. This ordering is used in format detection
  * heuristics to pick the solution that produces best (least badness) results.
  *
- * @param stageNumber The number of stage in TableReader. Before any stages are run this is zero. After the first stage this is 1 etc.
+ * @param stageNumber The number of stage reached in TableReader. Before any stages are run this is zero. After the first stage this is 1 etc.
  * @param errors List of errors. All errors are from same stage, because TableReader stops after first stage that produces errors.
  */
 case class TableReadingErrors(stageNumber: Int = 0, errors: IndexedSeq[TableReadingError] = IndexedSeq()) extends Ordered[TableReadingErrors] {
 
   import TableReadingErrors._
 
-  def add(moreErrors: TraversableOnce[TableReadingError]): TableReadingErrors = {
+  def addError(moreErrors: TraversableOnce[TableReadingError]): TableReadingErrors = {
     copy(errors = errors ++ moreErrors.toIndexedSeq)
   }
 
-  def add(error: TableReadingError): TableReadingErrors = copy(errors = errors :+ error)
+  def addError(error: TableReadingError): TableReadingErrors = copy(errors = errors :+ error)
 
   def noErrors = errors.isEmpty
 
-  // Order errors in increasing goodness. Earlier the stage, the worse the situation.
-  // If stage is same, less errors is better.
+  // Order these status objects in increasing goodness.
+  // The later the the stage reached, the better the situation.
+  // If the stage reached is same, least errors is best.
   private def orderingTuple: OrderingTuple = (stageNumber, -errors.size)
 
   override def compare(that: TableReadingErrors): Int = {
@@ -63,7 +64,7 @@ object TableReadingErrors {
    * Special initial value which is worse than any result from any real stage.
    * This value can be used as an initial value in format detection heuristics.
    */
-  val initial = TableReadingErrors(0, IndexedSeq(TableReadingError("No reading has been attempted yet.")))
+  val initialValue = TableReadingErrors(0, IndexedSeq(TableReadingError("No reading has been attempted yet.")))
 
   private type OrderingTuple = (Int, Int)
 

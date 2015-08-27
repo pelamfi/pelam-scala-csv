@@ -22,8 +22,8 @@ package fi.pelam.csv.table
  * This class models a process where several differently constructed [[TableReader]] instances
  * are tried and the result from the one with least, preferably zero, errors is picked.
  *
- * @param currentResult initialized by default to `None`
- * @param currentErrors initialized by default into value that is "worse" than any actual error produced by [[TableReader]].
+ * @param table initialized by default to `None`
+ * @param errors initialized by default into value that is "worse" than any actual error produced by [[TableReader]].
 
  * @tparam RT The client specific row type.
  *
@@ -34,9 +34,11 @@ package fi.pelam.csv.table
  *
  */
 case class TableReaderEvaluator[RT, CT, M <: TableMetadata] private[csv] (
-  currentResult: Option[Table[RT, CT, M]] = None,
-  currentErrors: TableReadingErrors = TableReadingErrors.initial
+  table: Option[Table[RT, CT, M]] = None,
+  errors: TableReadingErrors = TableReadingErrors.initialValue
   ){
+
+  val metadata: Option[M] = table.map(_.metadata)
 
   type ResultTable = Table[RT, CT, M]
 
@@ -52,17 +54,17 @@ case class TableReaderEvaluator[RT, CT, M <: TableMetadata] private[csv] (
       // Don't read table over and over again if we already have a solution without errors.
       this
     } else {
-      val (result: ResultTable, errors: TableReadingErrors) = reader.read()
+      val (newTable: ResultTable, newErrors: TableReadingErrors) = reader.read()
 
-      if (errors > currentErrors) {
+      if (errors < newErrors) {
         // New better result
-        copy(currentResult = Some(result), currentErrors = errors)
+        copy(table = Some(newTable), errors = newErrors)
       } else {
         this
       }
     }
   }
 
-  def noErrors = currentErrors.noErrors
+  def noErrors = errors.noErrors
 
 }
