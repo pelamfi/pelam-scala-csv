@@ -56,24 +56,10 @@ trait TableMetadata {
    * The separator for columns. Typically this is comma.
    */
   val separator: Char = CsvConstants.defaultSeparatorChar
-
 }
 
-/**
- * Simplest implementation of [[TableMetadata]].
- */
-case class SimpleMetadata(
-  override val charset: Charset = CsvConstants.defaultCharset,
-  override val separator: Char = CsvConstants.defaultSeparatorChar) extends TableMetadata
 
-// TODO: Move to separate file
-/**
- * @param dataLocale
- * @param cellTypeLocale
- */
-case class LocaleMetadata(dataLocale: Locale,
-  cellTypeLocale: Locale,
-  override val charset: Charset = CsvConstants.defaultCharset,
-  override val separator: Char = CsvConstants.defaultSeparatorChar) extends TableMetadata {
 
-}
+
+
+
