@@ -46,7 +46,7 @@ class TableReaderEvaluatorTest {
       charset <- List(StandardCharsets.UTF_8, StandardCharsets.ISO_8859_1);
       cellTypeLocale <- locales;
       dataLocale <- locales) yield {
-      val metadata = LocaleTableMetadata(separator = separator,
+      val metadata = LocaleMetadata(separator = separator,
         charset = charset,
         dataLocale = dataLocale,
         cellTypeLocale = cellTypeLocale)
@@ -56,7 +56,7 @@ class TableReaderEvaluatorTest {
         cellUpgrader(metadata.dataLocale))
     }
 
-    val initialEvaluator = TableReaderEvaluator[TestRowType, TestColType, LocaleTableMetadata]()
+    val initialEvaluator = TableReaderEvaluator[TestRowType, TestColType, LocaleMetadata]()
 
     val finalEvaluator = readers.foldLeft(initialEvaluator)(_.evaluateReader(_))
 
@@ -75,13 +75,13 @@ class TableReaderEvaluatorTest {
 
     val readers = for (cellTypeLocale <- locales;
          dataLocale <- locales) yield {
-      val metadata = LocaleTableMetadata(dataLocale, cellTypeLocale)
+      val metadata = LocaleMetadata(dataLocale, cellTypeLocale)
 
       new TableReader(rowAndColTypesFiDataEn, metadata, rowTyper(metadata.cellTypeLocale), colTyper(metadata.cellTypeLocale),
           cellUpgrader(metadata.dataLocale))
     }
 
-    val initialEvaluator = TableReaderEvaluator[TestRowType, TestColType, LocaleTableMetadata]()
+    val initialEvaluator = TableReaderEvaluator[TestRowType, TestColType, LocaleMetadata]()
 
     val finalEvaluator = readers.foldLeft(initialEvaluator)(_.evaluateReader(_))
 

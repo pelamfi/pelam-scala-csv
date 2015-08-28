@@ -125,7 +125,7 @@ class TableTest {
 }
 
 object TableTest {
-  val table: Table[TestRowType, TestColType, SimpleTableMetadata] = Table(
+  val table: Table[TestRowType, TestColType, SimpleMetadata] = Table(
     List[Cell](),
     SortedBiMap[RowKey, TestRowType](RowKey(0) -> TestRowType.CommentRow,
       RowKey(1) -> TestRowType.Worker,
@@ -137,7 +137,7 @@ object TableTest {
       ColKey(3) -> TestColType.PrevWeek,
       ColKey(4) -> TestColType.ThisWeek,
       ColKey(5) -> TestColType.CommentCol),
-    SimpleTableMetadata())
+    SimpleMetadata())
 
   val foo = StringCell(CellKey(1, 1), "foo")
   val bar = StringCell(CellKey(2, 1), "bar")

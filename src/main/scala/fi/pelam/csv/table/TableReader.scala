@@ -137,7 +137,7 @@ import fi.pelam.csv.util.{Pipeline, SortedBiMap}
 // TODO: Add ready made detection heuristics wrappers for this class
 class TableReader[RT, CT, M <: TableMetadata](
   val openStream: () => java.io.InputStream,
-  val tableMetadata: M = SimpleTableMetadata(),
+  val tableMetadata: M = SimpleMetadata(),
   val rowTyper: TableReader.RowTyper[RT] = PartialFunction.empty,
   val colTyper: TableReader.ColTyper[RT, CT] = PartialFunction.empty,
   val cellUpgrader: TableReader.CellUpgrader[RT, CT] = PartialFunction.empty
@@ -273,7 +273,7 @@ object TableReader {
    */
   def fromString[RT, CT, M <: TableMetadata](
     inputString: String,
-    metadata: M = SimpleTableMetadata(),
+    metadata: M = SimpleMetadata(),
     rowTyper: TableReader.RowTyper[RT] = PartialFunction.empty,
     colTyper: TableReader.ColTyper[RT, CT] = PartialFunction.empty,
     cellUpgrader: TableReader.CellUpgrader[RT, CT] = PartialFunction.empty) = {
@@ -297,7 +297,7 @@ object TableReader {
   // TODO: Better name, where does this example helper belong?
   def fromStringSimple[RT, CT, M <: TableMetadata](
     inputCsv: String,
-    metadata: M = SimpleTableMetadata(),
+    metadata: M = SimpleMetadata(),
     rowTyper: PartialFunction[(RowKey), RT] = PartialFunction.empty,
     colTyper: PartialFunction[(ColKey), CT] = PartialFunction.empty,
     cellTypeMap: PartialFunction[CellType[_, _], CellParser] = PartialFunction.empty,

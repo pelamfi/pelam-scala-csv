@@ -62,7 +62,7 @@ trait TableMetadata {
 /**
  * Simplest implementation of [[TableMetadata]].
  */
-case class SimpleTableMetadata(
+case class SimpleMetadata(
   override val charset: Charset = CsvConstants.defaultCharset,
   override val separator: Char = CsvConstants.defaultSeparatorChar) extends TableMetadata
 
@@ -71,7 +71,7 @@ case class SimpleTableMetadata(
  * @param dataLocale
  * @param cellTypeLocale
  */
-case class LocaleTableMetadata(dataLocale: Locale,
+case class LocaleMetadata(dataLocale: Locale,
   cellTypeLocale: Locale,
   override val charset: Charset = CsvConstants.defaultCharset,
   override val separator: Char = CsvConstants.defaultSeparatorChar) extends TableMetadata {

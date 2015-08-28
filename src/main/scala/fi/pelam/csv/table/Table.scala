@@ -348,7 +348,7 @@ object Table {
     cells: TraversableOnce[Cell] = IndexedSeq(),
     rowTypes: SortedBiMap[RowKey, RT] = SortedBiMap[RowKey, RT](),
     colTypes: SortedBiMap[ColKey, CT] = SortedBiMap[ColKey, CT](),
-    metadata: M = SimpleTableMetadata()): Table[RT, CT, M] = {
+    metadata: M = SimpleMetadata()): Table[RT, CT, M] = {
 
     val maxRow = findKeyRangeEnd(rowTypes.keys)
 
