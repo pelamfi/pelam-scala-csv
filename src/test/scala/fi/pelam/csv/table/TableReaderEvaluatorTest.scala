@@ -44,8 +44,8 @@ class TableReaderEvaluatorTest {
     val readers = for (
       separator <- List(CsvConstants.defaultSeparatorChar, ';');
       charset <- List(StandardCharsets.UTF_8, StandardCharsets.ISO_8859_1);
-      dataLocale <- locales;
-      cellTypeLocale <- locales) yield {
+      cellTypeLocale <- locales;
+      dataLocale <- locales) yield {
       val metadata = LocaleTableMetadata(separator = separator,
         charset = charset,
         dataLocale = dataLocale,
@@ -73,8 +73,8 @@ class TableReaderEvaluatorTest {
   @Test
   def testDetectLocales {
 
-    val readers = for (dataLocale <- locales;
-         cellTypeLocale <- locales) yield {
+    val readers = for (cellTypeLocale <- locales;
+         dataLocale <- locales) yield {
       val metadata = LocaleTableMetadata(dataLocale, cellTypeLocale)
 
       new TableReader(rowAndColTypesFiDataEn, metadata, rowTyper(metadata.cellTypeLocale), colTyper(metadata.cellTypeLocale),
