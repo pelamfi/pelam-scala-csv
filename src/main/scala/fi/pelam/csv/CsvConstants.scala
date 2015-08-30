@@ -101,7 +101,8 @@ object CsvConstants {
    * appropriately by client code.
    */
   val commonCharsets: IndexedSeq[Charset] = IndexedSeq(
-    StandardCharsets.UTF_8,
+    // UTF-8
+    defaultCharset,
     // Typical modern windows charset.
     StandardCharsets.UTF_16LE,
     // The grand old one.
@@ -126,7 +127,11 @@ object CsvConstants {
    * provided in this class will most likely have to be overridden
    * appropriately by client code.
    */
-  val commonSeparators: IndexedSeq[Char] = IndexedSeq(',', ';', '\t')
+  val commonSeparators: IndexedSeq[Char] = IndexedSeq(
+    // Comma
+    defaultSeparatorChar,
+    ';',
+    '\t')
 
 
 }
