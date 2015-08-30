@@ -44,7 +44,10 @@ class DetectingTableReaderTest {
   def testDetectLocales {
     val detectingReader = DetectingTableReader(
       tableReaderMaker = { metadata: LocaleMetadata =>
-        new TableReader(rowAndColTypesFiDataEn, metadata, rowTyper(metadata.cellTypeLocale), colTyper(metadata.cellTypeLocale),
+        new TableReader(rowAndColTypesFiDataEn,
+          metadata,
+          rowTyper(metadata.cellTypeLocale),
+          colTyper(metadata.cellTypeLocale),
           cellUpgrader(metadata.dataLocale))
       },
       locales = locales
@@ -62,6 +65,30 @@ class DetectingTableReaderTest {
     assertEquals("Usual charset expected", CsvConstants.defaultCharset, metadata.charset)
   }
 
+  @Test
+  def testDetectSeparatorAndCharset {
+    val detectingReader = DetectingTableReader(
+      tableReaderMaker = { metadata: LocaleMetadata =>
+        new TableReader(() => new ByteArrayInputStream(semicolonLatin1Csv),
+          metadata,
+          rowTyper(metadata.cellTypeLocale),
+          colTyper(metadata.cellTypeLocale),
+          cellUpgrader(metadata.dataLocale))
+      },
+      locales = locales
+    )
+
+    val (table, errors) = detectingReader.read()
+
+    assertTrue("Should be no errors, but got " + errors, errors.noErrors)
+
+    val metadata = table.metadata
+
+    assertEquals("English (or ROOT) locale should have been detected for numeric data.", Locale.ROOT, metadata.dataLocale)
+    assertEquals("Finnish locale for cell type strings should have been detected", localeFi, metadata.cellTypeLocale)
+    assertEquals("Non standard separator should have veen detected", ';', metadata.separator)
+    assertEquals("Unusual charset should have been detected", StandardCharsets.ISO_8859_1, metadata.charset)
+  }
 
 }
 
