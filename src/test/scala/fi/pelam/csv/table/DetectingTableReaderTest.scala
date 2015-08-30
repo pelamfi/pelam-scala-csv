@@ -42,9 +42,7 @@ class DetectingTableReaderTest {
 
   @Test
   def testDetectLocales {
-    val initialMetadata = LocaleMetadata()
-
-    val detectingReader = new DetectingTableReader(initialMetadata = initialMetadata,
+    val detectingReader = new DetectingTableReader(initialMetadata = LocaleMetadata(),
       tableReaderMaker = { metadata: LocaleMetadata =>
         new TableReader(rowAndColTypesFiDataEn, metadata, rowTyper(metadata.cellTypeLocale), colTyper(metadata.cellTypeLocale),
           cellUpgrader(metadata.dataLocale))

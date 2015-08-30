@@ -30,5 +30,16 @@ import fi.pelam.csv.CsvConstants
 case class LocaleMetadata(override val dataLocale: Locale = Locale.ROOT,
   override val cellTypeLocale: Locale = Locale.ROOT,
   override val charset: Charset = CsvConstants.defaultCharset,
-  override val separator: Char = CsvConstants.defaultSeparatorChar) extends LocaleTableMetadata {
+  override val separator: Char = CsvConstants.defaultSeparatorChar) extends LocaleTableMetadata[LocaleMetadata] {
+
+  /**
+   * This is a polymorphic way of accessing the concrete case class copy.
+   */
+  override def withFormatParameters(separator: Char,
+    charset: Charset,
+    cellTypeLocale: Locale,
+    dataLocale: Locale): LocaleMetadata = {
+
+    copy(separator = separator, charset = charset, cellTypeLocale = cellTypeLocale, dataLocale = dataLocale)
+  }
 }

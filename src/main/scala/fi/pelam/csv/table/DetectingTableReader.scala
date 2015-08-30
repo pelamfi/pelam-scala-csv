@@ -37,7 +37,7 @@ import fi.pelam.csv.cell._
   * @tparam M The type of the `metadata` parameter. Must be a sub type of [[TableMetadata]].
   *           This specifies the character set and separator to use when reading the CSV data from the input stream.
  */
-class DetectingTableReader[RT, CT, M <: LocaleTableMetadata](
+class DetectingTableReader[RT, CT, M <: LocaleTableMetadata[M]](
   val initialMetadata: M,
   val tableReaderMaker: (M) => TableReader[RT, CT, M],
   val locales: Seq[Locale] = CsvConstants.commonLocales,
@@ -48,9 +48,34 @@ class DetectingTableReader[RT, CT, M <: LocaleTableMetadata](
   type ResultTable = Table[RT, CT, M]
 
   def read(): (ResultTable, TableReadingErrors) = {
+    val readers = for (
+      separator <- List(CsvConstants.defaultSeparatorChar, ';');
+      charset <- List(StandardCharsets.UTF_8, StandardCharsets.ISO_8859_1);
+      cellTypeLocale <- locales;
+      dataLocale <- locales) yield {
 
+        // http://stackoverflow.com/questions/8801818/polymorphic-updates-in-an-immutable-class-hierarchy
+        // This is the cleanest way I can think of now...
+        val metadata = initialMetadata.withFormatParameters(separator, charset, cellTypeLocale, dataLocale)
+
+        tableReaderMaker(metadata)
+      }
+
+    val initialEvaluator = TableReaderEvaluator[RT, CT, M]()
+
+    val finalEvaluator = readers.foldLeft(initialEvaluator)(_.evaluateReader(_))
+
+    val resultOption = finalEvaluator.result
+
+    resultOption.getOrElse(defaultRead())
+  }
+
+  /**
+   * If there are no paramter combinations to evaluate, this is
+   * used as the return value.
+   */
+  private def defaultRead() = {
     tableReaderMaker(initialMetadata).read()
-
   }
 
 }

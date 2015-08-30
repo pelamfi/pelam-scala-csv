@@ -18,9 +18,10 @@
 
 package fi.pelam.csv.table
 
+import java.nio.charset.Charset
 import java.util.Locale
 
-trait LocaleTableMetadata extends TableMetadata {
+trait LocaleTableMetadata[T <: LocaleTableMetadata[T]] extends TableMetadata {
   /**
    * Locale used in cell and column type names stored in CSV cells.
    */
@@ -32,4 +33,9 @@ trait LocaleTableMetadata extends TableMetadata {
    * used in diffent locales by spreadsheet progrms.
    */
   val dataLocale: Locale = Locale.ROOT
+
+  /**
+   * This is a polymorphic way of accessing the concrete case class copy.
+   */
+  def withFormatParameters(separator: Char, charset: Charset, cellTypeLocale: Locale, dataLocale: Locale): T
 }

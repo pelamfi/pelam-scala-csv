@@ -67,4 +67,6 @@ case class TableReaderEvaluator[RT, CT, M <: TableMetadata] private[csv] (
 
   def noErrors = errors.noErrors
 
+  def result: Option[(ResultTable, TableReadingErrors)] = table.map((_, errors))
+
 }
