@@ -134,7 +134,6 @@ import fi.pelam.csv.util.{Pipeline, SortedBiMap}
  * @tparam M The type of the `metadata` parameter. Must be a sub type of [[TableMetadata]].
  *           This specifies the character set and separator to use when reading the CSV data from the input stream.
  */
-// TODO: Add ready made detection heuristics wrappers for this class
 class TableReader[RT, CT, M <: TableMetadata](
   val openStream: () => java.io.InputStream,
   val tableMetadata: M = SimpleMetadata(),
