@@ -38,7 +38,7 @@ import org.junit.Test
 
 class DetectingTableReaderTest {
   import TableReaderTest._
-  import TableReaderEvaluatorTest._
+  import DetectingTableReaderTest._
 
   @Test
   def testDetectLocales {
@@ -55,14 +55,29 @@ class DetectingTableReaderTest {
 
     val (table, errors) = detectingReader.read()
 
-    assertTrue("Should be no errors, but got " + errors, errors.noErrors)
+    assertResultTypeLocaleFiDataEn(table, errors)
+  }
 
-    val metadata = table.metadata
+  @Test
+  def testCustomMetadata {
+    val detectingReader = new DetectingTableReader(
+      initialMetadata = LocaleMetadataCustom("foo"),
+      tableReaderMaker = { metadata: LocaleMetadataCustom =>
+        new TableReader(rowAndColTypesFiDataEn,
+          // Check that metadata can be replaced here
+          metadata.copy(piggybacked = metadata.piggybacked + metadata.cellTypeLocale),
+          rowTyper(metadata.cellTypeLocale),
+          colTyper(metadata.cellTypeLocale),
+          cellUpgrader(metadata.dataLocale))
+      },
+      locales = locales
+    )
 
-    assertEquals("English (or ROOT) locale should have been detected for numeric data.", Locale.ROOT, metadata.dataLocale)
-    assertEquals("Finnish locale for cell type strings should have been detected", localeFi, metadata.cellTypeLocale)
-    assertEquals("Standard separator expected", CsvConstants.defaultSeparatorChar, metadata.separator)
-    assertEquals("Usual charset expected", CsvConstants.defaultCharset, metadata.charset)
+    val (table, errors) = detectingReader.read()
+
+    assertEquals("Piggybacked data is passed along the chain", "foofi", table.metadata.piggybacked)
+
+    assertResultTypeLocaleFiDataEn(table, errors)
   }
 
   @Test
@@ -102,4 +117,33 @@ object DetectingTableReaderTest {
     .replace(',', ';')
     .replaceAll("\"12;000.00\"", "\"12,000.00\"") // hack wrongly replaced separator
     .getBytes(StandardCharsets.ISO_8859_1)
+
+  def assertResultTypeLocaleFiDataEn[M <: LocaleTableMetadata[M]](
+    table: Table[TestRowType, TestColType, M],
+    errors: TableReadingErrors): Unit = {
+
+    assertTrue("Should be no errors, but got " + errors, errors.noErrors)
+
+    val metadata = table.metadata
+
+    assertEquals("English (or ROOT) locale should have been detected for numeric data.", Locale.ROOT, metadata.dataLocale)
+    assertEquals("Finnish locale for cell type strings should have been detected", localeFi, metadata.cellTypeLocale)
+    assertEquals("Standard separator expected", CsvConstants.defaultSeparatorChar, metadata.separator)
+    assertEquals("Usual charset expected", CsvConstants.defaultCharset, metadata.charset)
+  }
+
+  case class LocaleMetadataCustom(val piggybacked: String,
+    override val dataLocale: Locale = Locale.ROOT,
+    override val cellTypeLocale: Locale = Locale.ROOT,
+    override val charset: Charset = CsvConstants.defaultCharset,
+    override val separator: Char = CsvConstants.defaultSeparatorChar) extends LocaleTableMetadata[LocaleMetadataCustom] {
+
+    override def withFormatParameters(separator: Char,
+      charset: Charset,
+      cellTypeLocale: Locale,
+      dataLocale: Locale): LocaleMetadataCustom = {
+
+      copy(separator = separator, charset = charset, cellTypeLocale = cellTypeLocale, dataLocale = dataLocale)
+    }
+  }
 }
