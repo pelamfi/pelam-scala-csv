@@ -32,6 +32,8 @@ dependencies {
 
     // Used for reading resource in tests.
     testCompile 'com.google.guava:guava:16.0'
+    testCompile 'org.scalatest:scalatest_2.11:2.2.2'
+    testCompile 'org.mockito:mockito-all:1.10.8'
 }
 
 idea {
