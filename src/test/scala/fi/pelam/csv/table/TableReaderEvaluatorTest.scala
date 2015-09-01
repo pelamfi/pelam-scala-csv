@@ -55,21 +55,21 @@ class TableReaderEvaluatorTest {
 
   val error2 = TableReadingError("bar")
 
-  val badErrors = TableReadingErrors(2, IndexedSeq(error1))
+  val badErrorsStage2 = TableReadingErrors(2, IndexedSeq(error1))
 
-  val worseErrorsSameStage = TableReadingErrors(2, IndexedSeq(error1, error2))
+  val worseErrorsStage2 = TableReadingErrors(2, IndexedSeq(error1, error2))
 
-  val worseErrorsEarlierStage = TableReadingErrors(1, IndexedSeq(error1))
+  val worseErrorsStage1 = TableReadingErrors(1, IndexedSeq(error1, error2))
 
   @Test
   def testBetterThanInitialResult: Unit = {
     val initialEvaluator = TableReaderEvaluator[TestRowType, TestColType, SimpleMetadata]()
 
-    when(mockReader.read()).thenReturn((table1, worseErrorsSameStage))
+    when(mockReader.read()).thenReturn((table1, worseErrorsStage2))
 
     val finalEvaluator = initialEvaluator.evaluateReader(mockReader)
 
-    assertEquals(Some((table1, worseErrorsSameStage)), finalEvaluator.result)
+    assertEquals(Some((table1, worseErrorsStage2)), finalEvaluator.result)
   }
 
 
@@ -77,21 +77,64 @@ class TableReaderEvaluatorTest {
   def testSecondWorseResult: Unit = {
     val initialEvaluator = TableReaderEvaluator[TestRowType, TestColType, SimpleMetadata]()
 
-    when(mockReader.read()).thenReturn((table1, badErrors))
+    when(mockReader.read()).thenReturn((table1, badErrorsStage2))
 
     val secondEvaluator = initialEvaluator.evaluateReader(mockReader)
 
     verify(mockReader, times(1)).read()
 
-    // This is not even evaluated
-    when(mockReader.read()).thenReturn((table2, worseErrorsSameStage))
-
-    verify(mockReader, times(1)).read()
+    // This is evaluated, but result is ignored due to less errors from earlier
+    when(mockReader.read()).thenReturn((table2, worseErrorsStage2))
 
     val finalEvaluator = secondEvaluator.evaluateReader(mockReader)
 
-    assertEquals(Some((table1, badErrors)), finalEvaluator.result)
+    verify(mockReader, times(2)).read()
+
+    assertEquals(Some((table1, badErrorsStage2)), finalEvaluator.result)
+  }
+
+  @Test
+  def testSecondResultDifferentStage: Unit = {
+    val initialEvaluator = TableReaderEvaluator[TestRowType, TestColType, SimpleMetadata]()
+
+    when(mockReader.read()).thenReturn((table1, worseErrorsStage1))
+
+    val secondEvaluator = initialEvaluator.evaluateReader(mockReader)
+
+    verify(mockReader, times(1)).read()
+
+    // This is taken, because later stage is better
+    when(mockReader.read()).thenReturn((table2, worseErrorsStage2))
+
+    val finalEvaluator = secondEvaluator.evaluateReader(mockReader)
+
+    verify(mockReader, times(2)).read()
+
+    assertEquals(Some((table2, worseErrorsStage2)), finalEvaluator.result)
 
   }
+
+  @Test
+  def testNoErrors: Unit = {
+    val initialEvaluator = TableReaderEvaluator[TestRowType, TestColType, SimpleMetadata]()
+
+    when(mockReader.read()).thenReturn((table1, noErrors))
+
+    val secondEvaluator = initialEvaluator.evaluateReader(mockReader)
+
+    verify(mockReader, times(1)).read()
+
+    when(mockReader.read()).thenReturn((table2, worseErrorsStage2))
+
+    val finalEvaluator = secondEvaluator.evaluateReader(mockReader)
+
+    // Read was not called, because already error free result
+    verify(mockReader, times(1)).read()
+
+    assertEquals(Some((table1, noErrors)), finalEvaluator.result)
+
+  }
+
+
 }
 
