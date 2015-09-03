@@ -40,6 +40,7 @@ class DetectingTableReaderTest {
 
   import TableReaderTest._
   import DetectingTableReaderTest._
+  import fi.pelam.csv.util.TableReaderImplicits._
 
   @Test
   def testDetectLocales {

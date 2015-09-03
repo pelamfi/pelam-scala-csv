@@ -33,6 +33,7 @@ import org.junit.Test
 class TableReaderTest {
 
   import TableReaderTest._
+  import fi.pelam.csv.util.TableReaderImplicits._
 
   @Test
   def testReadFailNoRowId: Unit = {
@@ -224,10 +225,6 @@ object TableReaderTest {
     locale,
     Map(CellType(TestRowType.Worker, TestColType.Salary) -> IntegerCell)
   )
-
-  implicit def opener(string: String): () => java.io.InputStream = {
-    () => new ByteArrayInputStream(string.getBytes(StandardCharsets.UTF_8))
-  }
 
   implicit def opener(byteSource: ByteSource): () => java.io.InputStream = {
     () => byteSource.openStream()
