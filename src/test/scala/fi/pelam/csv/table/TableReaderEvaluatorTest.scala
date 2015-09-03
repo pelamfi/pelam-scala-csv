@@ -18,28 +18,13 @@
 
 package fi.pelam.csv.table
 
-import java.nio.charset.{StandardCharsets, Charset}
-
-import fi.pelam.csv.CsvConstants
-import org.junit.Test
-import org.junit.Assert._
-import java.io.ByteArrayInputStream
-import java.util.Locale
-
-import com.google.common.base.Charsets
-import com.google.common.io.{ByteSource, Resources}
 import fi.pelam.csv.cell._
-import fi.pelam.csv.table.Locales.localeFi
-import fi.pelam.csv.table.TestColType._
-import fi.pelam.csv.table.TestRowType._
 import org.junit.Assert._
 import org.junit.Test
-import org.mockito.Matchers._
-import org.mockito.Mockito.{verify, when, times}
+import org.mockito.Mockito.{times, verify, when}
 import org.scalatest.mock.MockitoSugar._
 
 class TableReaderEvaluatorTest {
-  import TableReaderTest._
 
   val mockReader = mock[TableReader[TestRowType, TestColType, SimpleMetadata]]
 
