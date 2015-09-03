@@ -27,7 +27,6 @@ import org.junit.Assert._
 import java.io.ByteArrayInputStream
 import java.util.Locale
 
-import com.google.common.base.Charsets
 import com.google.common.io.{ByteSource, Resources}
 import fi.pelam.csv.cell._
 import fi.pelam.csv.table.Locales.localeFi
@@ -35,8 +34,10 @@ import fi.pelam.csv.table.TestColType._
 import fi.pelam.csv.table.TestRowType._
 import org.junit.Assert._
 import org.junit.Test
+import fi.pelam.csv.cell._
 
 class DetectingTableReaderTest {
+
   import TableReaderTest._
   import DetectingTableReaderTest._
 
@@ -105,6 +106,46 @@ class DetectingTableReaderTest {
     assertEquals("Unusual charset should have been detected", StandardCharsets.ISO_8859_1, metadata.charset)
   }
 
+  @Test
+  def testFromCodeExample() = {
+    // TODO: Add this as a code sample
+
+    val reader = DetectingTableReader(
+
+      tableReaderMaker = { (m: LocaleMetadata) => new TableReader[String, String, LocaleMetadata](
+          openStream = () => new ByteArrayInputStream(("header;name;number\n" +
+          "data;foo;1,234.0\n" +
+          "data;bar;1,234,567.89").getBytes(StandardCharsets.ISO_8859_1)),
+
+        tableMetadata = m,
+
+        rowTyper = {
+          case StringCell(CellKey(_, 0), rowType) => Right(rowType)
+        },
+
+        // Column type is specified by the first row.
+        // Type names are checked and error is generated for unknown
+        // columns. This strictness is what enables the correct
+        // detection of CSV format.
+        colTyper = {
+          case (StringCell(CellKey(0, _), "header"), _) => Right("header")
+          case (StringCell(CellKey(0, _), "name"), _) => Right("name")
+          case (StringCell(CellKey(0, _), "number"), _) => Right("number")
+          case _ => Left(TableReadingError("Unknown column type"))
+        },
+
+        cellUpgrader = TableReader.defineCellUpgrader(m.dataLocale, {
+          case CellType("data", "number") => DoubleCell
+        }))
+      }
+    )
+
+    val table = reader.readOrThrow()
+
+    assertEquals(List("foo", "bar"), table.getSingleCol("data", "name").map(_.value).toList)
+    assertEquals(List(1234, 1234567.89), table.getSingleCol("data", "number").map(_.value).toList)
+
+  }
 }
 
 object DetectingTableReaderTest {
