@@ -25,26 +25,29 @@ import java.util.Locale
 import fi.pelam.csv.cell._
 
 /**
-  * This CSV format detection heuristic tries to read the input CSV
-  * with varying parameters until a `Table` is produced with no errors or
-  * all combinations are exhausted. In the latter case
-  * the `Table` that was produced with least errors is returned.
-  *
-  * For simpler usage you can skip `initialMetadata` in the constructor
-  * by using [[.apply()]] defined in the companion object.
-  *
-  * @param initialMetadata base metadata instance. Copies with different format parameters will be created from this
-  *                        using [[LocaleTableMetadata.withFormatParameters()]].
-  * @param tableReaderMaker
-  * @param locales
-  * @param charsets
-  * @param separators
-  * @tparam RT The client specific row type.
-  *
-  * @tparam CT The client specific column type.
-  *
-  * @tparam M The type of the `metadata` parameter. Must be a sub type of [[TableMetadata]].
-  *           This specifies the character set and separator to use when reading the CSV data from the input stream.
+ * This CSV format detection heuristic tries to read the input CSV
+ * with varying parameters until a `Table` is produced with no errors or
+ * all combinations are exhausted. In the latter case
+ * the `Table` with least errors is returned.
+ *
+ * For simpler usage you can skip `initialMetadata` in the constructor
+ * by using [[.apply()]] defined in the companion object.
+ *
+ * {{{
+ * ADD SAMPLE HERE FROM TEST SUITE
+ * }}}
+ *
+ * @param initialMetadata base metadata instance. Copies with different format parameters will be created from this
+ *                        using [[LocaleTableMetadata.withFormatParameters()]].
+ * @param tableReaderMaker user provided method that constructs a [[TableReader]] using
+ *                         locales, separator and charset specified by [[LocaleTableMetadata]] parameter.
+ * @param locales List of locales to try. Default is [[CsvConstants.commonLocales]].
+ * @param charsets List of charsets to try. Default is [[CsvConstants.commonCharsets]].
+ * @param separators List of separators to try. Default is [[CsvConstants.commonSeparators]].
+ * @tparam RT The client specific row type.
+ * @tparam CT The client specific column type.
+ * @tparam M The type of the `metadata` parameter. Must be a sub type of [[TableMetadata]].
+ *           This specifies the character set and separator to use when reading the CSV data from the input stream.
  */
 // TODO: Scaladoc example, document parameters.
 class DetectingTableReader[RT, CT, M <: LocaleTableMetadata[M]] (
@@ -87,6 +90,21 @@ class DetectingTableReader[RT, CT, M <: LocaleTableMetadata[M]] (
     tableReaderMaker(initialMetadata).read()
   }
 
+  /**
+   * This method extends the usual read method with exception based error handling, which
+   * may be useful in smaller applications that don't expect errors in input.
+   *
+   * A `RuntimeException` will be thrown when error is encountered.
+   *
+   */
+  def readOrThrow(): ResultTable = {
+    val (table, errors) = read()
+    if (errors.noErrors) {
+      table
+    } else {
+      sys.error(errors.toString)
+    }
+  }
 }
 
 object DetectingTableReader {
@@ -95,13 +113,13 @@ object DetectingTableReader {
    * Custom constructor for using concrete class [[LocaleMetadata]]
    * instead of client defined [[LocaleTableMetadata]] subtype.
    *
-   * @param tableReaderMaker
-   * @param locales
-   * @param charsets
-   * @param separators
-   * @tparam RT
-   * @tparam CT
-   * @return
+   * @param tableReaderMaker user provided method that constructs a [[TableReader]] using
+   *                         locales, separator and charset specified by [[LocaleTableMetadata]] parameter.
+   * @param locales List of locales to try. Default is [[CsvConstants.commonLocales]].
+   * @param charsets List of charsets to try. Default is [[CsvConstants.commonCharsets]].
+   * @param separators List of separators to try. Default is [[CsvConstants.commonSeparators]].
+   * @tparam RT The client specific row type.
+   * @tparam CT The client specific column type.
    */
   def apply[RT, CT](
     tableReaderMaker: (LocaleMetadata) => TableReader[RT, CT, LocaleMetadata],
