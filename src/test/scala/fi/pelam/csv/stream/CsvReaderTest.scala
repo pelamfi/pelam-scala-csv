@@ -18,8 +18,8 @@
 
 package fi.pelam.csv.stream
 
-import com.google.common.base.Charsets
 import com.google.common.io.Resources
+import java.nio.charset.StandardCharsets
 import fi.pelam.csv.cell.{CellKey, StringCell}
 import org.junit.Assert._
 import org.junit.Test
@@ -228,7 +228,7 @@ class CsvReaderTest {
   def testLargeFile: Unit = {
     val file = Resources.asByteSource(Resources.getResource("csv–file-for-loading"))
 
-    val csvString = file.asCharSource(Charsets.UTF_8).read()
+    val csvString = file.asCharSource(StandardCharsets.UTF_8).read()
 
     val cells = new CsvReader(csvString).toIndexedSeq
 
