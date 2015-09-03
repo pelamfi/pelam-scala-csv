@@ -19,9 +19,9 @@
 package fi.pelam.csv.table
 
 import java.io.ByteArrayInputStream
+import java.nio.charset.StandardCharsets
 import java.util.Locale
 
-import com.google.common.base.Charsets
 import com.google.common.io.{ByteSource, Resources}
 import fi.pelam.csv.cell._
 import fi.pelam.csv.table.Locales.localeFi
@@ -158,11 +158,11 @@ class TableReaderTest {
   }
 
   @Test
-  def testFromStringSimple() = {
-    val reader = TableReader.fromStringSimple(
-      inputCsv = "name,number\n" +
+  def testCodeExample() = {
+    val reader = TableReader(
+      openStream = () => new ByteArrayInputStream(("name,number\n" +
         "foo,1\n" +
-        "bar,2",
+        "bar,2").getBytes(StandardCharsets.UTF_8)),
       rowTyper = {
         case RowKey(0) => "header"
         case _ => "data"
@@ -226,7 +226,7 @@ object TableReaderTest {
   )
 
   implicit def opener(string: String): () => java.io.InputStream = {
-    () => new ByteArrayInputStream(string.getBytes(Charsets.UTF_8))
+    () => new ByteArrayInputStream(string.getBytes(StandardCharsets.UTF_8))
   }
 
   implicit def opener(byteSource: ByteSource): () => java.io.InputStream = {

@@ -18,7 +18,7 @@
 
 package fi.pelam.csv.table
 
-import java.io.{BufferedReader, ByteArrayInputStream}
+import java.io.{InputStream, BufferedReader, ByteArrayInputStream}
 import java.util.Locale
 
 import fi.pelam.csv.CsvConstants
@@ -46,12 +46,14 @@ import fi.pelam.csv.util.{Pipeline, SortedBiMap}
  * {{{
  * import fi.pelam.csv.cell._
  * import fi.pelam.csv.stream._
+ * import java.nio.charset.StandardCharsets
+ * import java.io.ByteArrayInputStream
  *
- * val reader = TableReader.fromStringSimple(
+ * val reader = TableReader(
  *
- *   inputCsv = "name,number\n" +
- *   "foo,1\n" +
- *   "bar,2",
+ *   inputCsv = () => new ByteArrayInputStream(("name,number\n" +
+ *     "foo,1\n" +
+ *     "bar,2").getBytes(StandardCharsets.UTF_8)),
  *
  *   rowTyper = {
  *     case RowKey(0) => "header" // First row is the header
@@ -96,7 +98,7 @@ import fi.pelam.csv.util.{Pipeline, SortedBiMap}
  * is used in this stage.
  *
  *  - `cellUpgradeStage` Upgrade cells based on cell types, which are combined from row and column types. The `cellUpgrader`
- * parameter is used in this stage
+ * parameter is used in this stage.
  *
  * == CSV format detection heuristics ==
  *
@@ -294,9 +296,9 @@ object TableReader {
    * This alternate constructor exists mainly to make tests and code examples shorter.
    */
   // TODO: Better name, where does this example helper belong?
-  def fromStringSimple[RT, CT, M <: TableMetadata](
-    inputCsv: String,
-    metadata: M = SimpleMetadata(),
+  def apply[RT, CT, M <: TableMetadata](
+    openStream: () => InputStream,
+    tableMetadata: M = SimpleMetadata(),
     rowTyper: PartialFunction[(RowKey), RT] = PartialFunction.empty,
     colTyper: PartialFunction[(ColKey), CT] = PartialFunction.empty,
     cellTypeMap: PartialFunction[CellType[_, _], CellParser] = PartialFunction.empty,
@@ -313,9 +315,8 @@ object TableReader {
 
     val cellUpgrader = defineCellUpgrader[RT, CT](cellParsingLocale, cellTypeMap)
 
-    new TableReader(() => new ByteArrayInputStream(
-      inputCsv.getBytes(CsvConstants.defaultCharset)),
-      metadata,
+    new TableReader(openStream,
+      tableMetadata,
       rowTyperWrapped,
       colTyperWrapped,
       cellUpgrader)
