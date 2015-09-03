@@ -27,13 +27,15 @@ import fi.pelam.csv.cell._
 import fi.pelam.csv.table.Locales.localeFi
 import fi.pelam.csv.table.TestColType._
 import fi.pelam.csv.table.TestRowType._
+import fi.pelam.csv.util.TableReaderImplicits
 import org.junit.Assert._
 import org.junit.Test
 
 class TableReaderTest {
 
   import TableReaderTest._
-  import fi.pelam.csv.util.TableReaderImplicits._
+  val imp = new TableReaderImplicits[TestRowType, TestColType]
+  import imp._
 
   @Test
   def testReadFailNoRowId: Unit = {
@@ -164,10 +166,10 @@ class TableReaderTest {
       openStream = () => new ByteArrayInputStream(("name,number\n" +
         "foo,1\n" +
         "bar,2").getBytes(StandardCharsets.UTF_8)),
-      rowTyper = {
+      rowTyper = cellKeyMapToRowTyper({
         case RowKey(0) => "header"
         case _ => "data"
-      },
+      }),
       colTyper = {
         case ColKey(0) => "name"
         case ColKey(1) => "number"

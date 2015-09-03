@@ -17,6 +17,7 @@
  */
 package fi.pelam.csv.table
 
+import fi.pelam.csv.util.TableReaderImplicits
 import org.junit.Test
 import org.junit.Assert._
 import java.nio.charset.{StandardCharsets, Charset}
@@ -40,7 +41,8 @@ class DetectingTableReaderTest {
 
   import TableReaderTest._
   import DetectingTableReaderTest._
-  import fi.pelam.csv.util.TableReaderImplicits._
+  val imp = new TableReaderImplicits[TestRowType, TestColType]
+  import imp._
 
   @Test
   def testDetectLocales {

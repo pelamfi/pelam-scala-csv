@@ -299,15 +299,10 @@ object TableReader {
   def apply[RT, CT, M <: TableMetadata](
     openStream: () => InputStream,
     tableMetadata: M = SimpleMetadata(),
-    rowTyper: PartialFunction[(RowKey), RT] = PartialFunction.empty,
+    rowTyper: TableReader.RowTyper[RT] = PartialFunction.empty,
     colTyper: PartialFunction[(ColKey), CT] = PartialFunction.empty,
     cellTypeMap: PartialFunction[CellType[_, _], CellParser] = PartialFunction.empty,
     cellParsingLocale: Locale = Locale.ROOT) = {
-
-    // TODO: Is this too complex just to read table and assign types
-    val rowTyperWrapped: RowTyper[RT] = {
-      case (cell: Cell) if rowTyper.isDefinedAt(cell.rowKey) => Right(rowTyper(cell.rowKey))
-    }
 
     val colTyperWrapped: ColTyper[RT, CT] = {
       case (cell: Cell, _) if colTyper.isDefinedAt(cell.colKey) => Right(colTyper(cell.colKey))
@@ -317,7 +312,7 @@ object TableReader {
 
     new TableReader(openStream,
       tableMetadata,
-      rowTyperWrapped,
+      rowTyper,
       colTyperWrapped,
       cellUpgrader)
   }

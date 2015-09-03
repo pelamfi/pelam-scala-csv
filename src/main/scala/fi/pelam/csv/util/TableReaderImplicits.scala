@@ -21,6 +21,8 @@ package fi.pelam.csv.util
 import java.io.ByteArrayInputStream
 
 import fi.pelam.csv.CsvConstants
+import fi.pelam.csv.cell.{Cell, RowKey}
+import fi.pelam.csv.table.{TableMetadata, TableReader}
 
 /**
  * A set of implicit functions that map various things used as parameters for
@@ -29,12 +31,21 @@ import fi.pelam.csv.CsvConstants
  * Idea is to allow various simpler ways of configuring the `TableReader`.
  *
  */
-object TableReaderImplicits {
+// TODO: Move this object to .table package due to circular deps
+class TableReaderImplicits[RT, CT] {
 
   implicit def stringToStream(string: String): () => java.io.InputStream = {
     () => new ByteArrayInputStream(string.getBytes(CsvConstants.defaultCharset))
   }
 
+  implicit def cellKeyMapToRowTyper[RT](rowTyper: PartialFunction[(RowKey), RT]): TableReader.RowTyper[RT] = {
+
+    val rowTyperWrapped: TableReader.RowTyper[RT] = {
+      case (cell: Cell) if rowTyper.isDefinedAt(cell.rowKey) => Right(rowTyper(cell.rowKey))
+    }
+
+    rowTyperWrapped
+  }
 
 
 }
