@@ -31,7 +31,7 @@ import fi.pelam.csv.util.TableReaderImplicits
 import org.junit.Assert._
 import org.junit.Test
 
-class TableReaderExampleTest {
+class TableReaderExample {
   import TableReaderTest._
 
   @Test

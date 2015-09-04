@@ -108,45 +108,6 @@ class DetectingTableReaderTest {
     assertEquals("Unusual charset should have been detected", StandardCharsets.ISO_8859_1, metadata.charset)
   }
 
-  @Test
-  def testFromCodeExample() = {
-    // TODO: Add this as a code sample
-
-    val validColTypes = Set("header", "name", "number")
-
-    val reader = DetectingTableReader[String, String](
-
-      tableReaderMaker = { (metadata) => new TableReader(
-          openStream = "header;name;number\n" +
-          "data;foo;1,234.0\n" +
-          "data;bar;1,234,567.89",
-
-        tableMetadata = metadata,
-
-        rowTyper = makeRowTyper({
-          case (CellKey(_, 0), rowType) => rowType
-        }),
-
-        // Column type is specified by the first row.
-        // Type names are checked and error is generated for unknown
-        // column types by errorOnUndefinedCol.
-        // This strictness is what enables the correct detection of CSV format.
-        colTyper = errorOnUndefinedCol(makeColTyper({
-          case (CellKey(0, _), colType) if validColTypes.contains(colType) => colType
-        })),
-
-        cellUpgrader = TableReader.defineCellUpgrader(metadata.dataLocale, {
-          case CellType("data", "number") => DoubleCell
-        }))
-      }
-    )
-
-    val table = reader.readOrThrow()
-
-    assertEquals(List("foo", "bar"), table.getSingleCol("data", "name").map(_.value).toList)
-    assertEquals(List(1234, 1234567.89), table.getSingleCol("data", "number").map(_.value).toList)
-
-  }
 }
 
 object DetectingTableReaderTest {
