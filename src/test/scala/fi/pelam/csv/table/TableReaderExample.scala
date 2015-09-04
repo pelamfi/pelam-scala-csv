@@ -38,7 +38,7 @@ class TableReaderExample {
   def testCodeExample() = {
     import TableReaderConfig._
 
-    val reader = TableReader[String, String, SimpleMetadata](
+    val reader = new TableReader[String, String, SimpleMetadata](
       openStream = "name,number\n" +
         "foo,1\n" +
         "bar,2",

@@ -287,31 +287,6 @@ object TableReader {
       cellUpgrader)
   }
 
-  /**
-   * A helper method to build a [[Table]] from a CSV string and
-   * providing simplified row and column typers using only
-   * [[fi.pelam.csv.cell.RowKey RowKey]] and
-   * [[fi.pelam.csv.cell.ColKey ColKey]] as input.
-   *
-   * This alternate constructor exists mainly to make tests and code examples shorter.
-   */
-  // TODO: Better name, where does this example helper belong?
-  def apply[RT, CT, M <: TableMetadata](
-    openStream: () => InputStream,
-    tableMetadata: M = SimpleMetadata(),
-    rowTyper: TableReader.RowTyper[RT] = PartialFunction.empty,
-    colTyper: TableReader.ColTyper[RT, CT] = PartialFunction.empty,
-    cellUpgrader: TableReader.CellUpgrader[RT, CT] = PartialFunction.empty,
-    cellParsingLocale: Locale = Locale.ROOT) = {
-
-    new TableReader(openStream,
-      tableMetadata,
-      rowTyper,
-      colTyper,
-      cellUpgrader)
-  }
-
-
   type RowTyperResult[RT] = Either[TableReadingError, RT]
 
   type RowTyper[RT] = PartialFunction[(Cell), RowTyperResult[RT]]
