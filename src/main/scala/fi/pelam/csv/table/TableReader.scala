@@ -267,26 +267,6 @@ class TableReader[RT, CT, M <: TableMetadata](
 
 object TableReader {
 
-  /**
-   * Alternate constructor for CsvReader providing string input.
-   *
-   * This alternate constructor exists mainly to make tests and code examples shorter.
-   */
-  def fromString[RT, CT, M <: TableMetadata](
-    inputString: String,
-    metadata: M = SimpleMetadata(),
-    rowTyper: TableReader.RowTyper[RT] = PartialFunction.empty,
-    colTyper: TableReader.ColTyper[RT, CT] = PartialFunction.empty,
-    cellUpgrader: TableReader.CellUpgrader[RT, CT] = PartialFunction.empty) = {
-
-    new TableReader(() => new ByteArrayInputStream(
-      inputString.getBytes(CsvConstants.defaultCharset)),
-      metadata,
-      rowTyper,
-      colTyper,
-      cellUpgrader)
-  }
-
   type RowTyperResult[RT] = Either[TableReadingError, RT]
 
   type RowTyper[RT] = PartialFunction[(Cell), RowTyperResult[RT]]
