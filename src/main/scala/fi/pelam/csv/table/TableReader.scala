@@ -341,27 +341,4 @@ object TableReader {
    * @tparam CT client specific column type
    */
   type CellUpgrader[RT, CT] = PartialFunction[(Cell, CellType[RT, CT]), CellUpgraderResult]
-
-  /**
-   * This is a helper method to setup a simple cell upgrader
-   * for [[fi.pelam.csv.table.TableReader]] from a map of
-   * [[CellType CellTypes]] to [[fi.pelam.csv.cell.CellParser CellParsers]].
-   *
-   * @param locale locale to be passed to cell parsers
-   * @param parserMap a map from [[CellType CellTypes]] to [[fi.pelam.csv.cell.CellParser CellParsers]]
-   * @tparam RT client specific row type
-   * @tparam CT client specific column type
-   * @return a [[CellUpgrader]] to be passed to [[TableReader]]
-   */
-  def makeCellUpgrader[RT, CT](locale: Locale, parserMap: PartialFunction[CellType[_, _], CellParser]): CellUpgrader[RT, CT] = {
-
-    case (cell, cellType) if parserMap.isDefinedAt(cellType) => {
-
-      parserMap(cellType).parse(cell.cellKey, locale, cell.serializedString) match {
-        case Left(error) => Left(TableReadingError(error, cell, cellType))
-        case Right(cell) => Right(cell)
-      }
-    }
-
-  }
 }

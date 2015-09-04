@@ -91,7 +91,8 @@ object TableReaderImplicits {
 
   /**
    * This is a helper method to setup a simple cell upgrader
-   * from a map of [[CellType CellTypes]] and [[CellParser CellParsers]].
+   * for [[fi.pelam.csv.table.TableReader]] from a map of
+   * [[CellType CellTypes]] to [[fi.pelam.csv.cell.CellParser CellParsers]].
    *
    * @param locale locale to be passed to cell parsers
    * @param parserMap a map from [[CellType CellTypes]] to [[fi.pelam.csv.cell.CellParser CellParsers]]
