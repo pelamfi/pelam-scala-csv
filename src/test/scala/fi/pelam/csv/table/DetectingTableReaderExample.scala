@@ -69,9 +69,11 @@ class DetectingTableReaderExample {
           case (CellKey(0, _), colType) if validColTypes.contains(colType) => colType
         })),
 
-        cellUpgrader = TableReader.defineCellUpgrader(metadata.dataLocale, {
+        cellUpgrader = makeCellUpgrader({
           case CellType("data", "number") => DoubleCell
-        }))
+        },
+        metadata.dataLocale
+        ))
       }
     )
 

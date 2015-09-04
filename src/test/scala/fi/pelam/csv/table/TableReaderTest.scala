@@ -32,8 +32,8 @@ import org.junit.Assert._
 import org.junit.Test
 
 class TableReaderTest {
-  import fi.pelam.csv.util.TableReaderImplicits._
   import TableReaderTest._
+  import fi.pelam.csv.util.TableReaderImplicits._
 
   @Test
   def testReadFailNoRowId: Unit = {
@@ -160,6 +160,8 @@ class TableReaderTest {
 }
 
 object TableReaderTest {
+  import fi.pelam.csv.util.TableReaderImplicits._
+
   val headerAndCommentsOnly = "ColumnHeader,CommentCol,CommentCol,CommentCol,CommentCol\n" +
     "CommentRow,1,2,3,4\n" +
     "CommentRow\n" +
@@ -197,9 +199,8 @@ object TableReaderTest {
     }
   }
 
-  def cellUpgrader(locale: Locale) = TableReader.defineCellUpgrader[TestRowType, TestColType](
-    locale,
-    Map(CellType(TestRowType.Worker, TestColType.Salary) -> IntegerCell)
+  def cellUpgrader(locale: Locale) = makeCellUpgrader[TestRowType, TestColType](
+    Map(CellType(TestRowType.Worker, TestColType.Salary) -> IntegerCell), locale
   )
 
   implicit def opener(byteSource: ByteSource): () => java.io.InputStream = {

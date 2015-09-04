@@ -301,10 +301,8 @@ object TableReader {
     tableMetadata: M = SimpleMetadata(),
     rowTyper: TableReader.RowTyper[RT] = PartialFunction.empty,
     colTyper: TableReader.ColTyper[RT, CT] = PartialFunction.empty,
-    cellTypeMap: PartialFunction[CellType[_, _], CellParser] = PartialFunction.empty,
+    cellUpgrader: TableReader.CellUpgrader[RT, CT] = PartialFunction.empty,
     cellParsingLocale: Locale = Locale.ROOT) = {
-
-    val cellUpgrader = defineCellUpgrader[RT, CT](cellParsingLocale, cellTypeMap)
 
     new TableReader(openStream,
       tableMetadata,
@@ -354,7 +352,7 @@ object TableReader {
    * @tparam CT client specific column type
    * @return a [[CellUpgrader]] to be passed to [[TableReader]]
    */
-  def defineCellUpgrader[RT, CT](locale: Locale, parserMap: PartialFunction[CellType[_, _], CellParser]): CellUpgrader[RT, CT] = {
+  def makeCellUpgrader[RT, CT](locale: Locale, parserMap: PartialFunction[CellType[_, _], CellParser]): CellUpgrader[RT, CT] = {
 
     case (cell, cellType) if parserMap.isDefinedAt(cellType) => {
 

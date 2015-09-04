@@ -23,6 +23,22 @@ import java.io.ByteArrayInputStream
 import fi.pelam.csv.CsvConstants
 import fi.pelam.csv.cell.{CellKey, ColKey, Cell, RowKey}
 import fi.pelam.csv.table.{TableReadingError, TableMetadata, TableReader}
+import java.io.{InputStream, BufferedReader, ByteArrayInputStream}
+import java.util.Locale
+
+import fi.pelam.csv.CsvConstants
+import fi.pelam.csv.cell._
+import fi.pelam.csv.stream.CsvReader
+import fi.pelam.csv.util.{Pipeline, SortedBiMap}
+import java.io.{InputStream, BufferedReader, ByteArrayInputStream}
+import java.util.Locale
+
+import fi.pelam.csv.CsvConstants
+import fi.pelam.csv.cell._
+import fi.pelam.csv.stream.CsvReader
+import fi.pelam.csv.util.{Pipeline, SortedBiMap}
+import fi.pelam.csv.cell._
+import fi.pelam.csv.table._
 
 /**
  * A set of implicit functions that map various things used as parameters for
@@ -31,8 +47,8 @@ import fi.pelam.csv.table.{TableReadingError, TableMetadata, TableReader}
  * Idea is to allow various simpler ways of configuring the `TableReader`.
  *
  */
-// TODO: Move this object to .table package due to circular deps
-object TableReaderImplicits{
+// TODO: Move this object to .table package due to circular deps, give better name
+object TableReaderImplicits {
 
   implicit def stringToStream(string: String): () => java.io.InputStream = {
     () => new ByteArrayInputStream(string.getBytes(CsvConstants.defaultCharset))
@@ -72,6 +88,27 @@ object TableReaderImplicits{
     colTyperWrapped
   }*/
 
+
+  /**
+   * This is a helper method to setup a simple cell upgrader
+   * from a map of [[CellType CellTypes]] and [[CellParser CellParsers]].
+   *
+   * @param locale locale to be passed to cell parsers
+   * @param parserMap a map from [[CellType CellTypes]] to [[fi.pelam.csv.cell.CellParser CellParsers]]
+   * @tparam RT client specific row type
+   * @tparam CT client specific column type
+   * @return a [[TableReader.CellUpgrader]] to be passed to [[TableReader]]
+   */
+  def makeCellUpgrader[RT, CT](parserMap: PartialFunction[CellType[_, _], CellParser], locale: Locale = Locale.ROOT): TableReader.CellUpgrader[RT, CT] = {
+    case (cell, cellType) if parserMap.isDefinedAt(cellType) => {
+
+      parserMap(cellType).parse(cell.cellKey, locale, cell.serializedString) match {
+        case Left(error) => Left(TableReadingError(error, cell, cellType))
+        case Right(cell) => Right(cell)
+      }
+    }
+
+  }
 
 
 }

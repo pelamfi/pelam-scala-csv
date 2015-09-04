@@ -53,9 +53,9 @@ class TableReaderExample {
         case (CellKey(_, 1), _) => "number"
       }),
 
-      cellTypeMap = {
+      cellUpgrader = makeCellUpgrader({
         case CellType("data", "number") => IntegerCell
-      })
+      }))
 
     val table = reader.readOrThrow()
 
