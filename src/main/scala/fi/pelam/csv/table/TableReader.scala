@@ -300,20 +300,16 @@ object TableReader {
     openStream: () => InputStream,
     tableMetadata: M = SimpleMetadata(),
     rowTyper: TableReader.RowTyper[RT] = PartialFunction.empty,
-    colTyper: PartialFunction[(ColKey), CT] = PartialFunction.empty,
+    colTyper: TableReader.ColTyper[RT, CT] = PartialFunction.empty,
     cellTypeMap: PartialFunction[CellType[_, _], CellParser] = PartialFunction.empty,
     cellParsingLocale: Locale = Locale.ROOT) = {
-
-    val colTyperWrapped: ColTyper[RT, CT] = {
-      case (cell: Cell, _) if colTyper.isDefinedAt(cell.colKey) => Right(colTyper(cell.colKey))
-    }
 
     val cellUpgrader = defineCellUpgrader[RT, CT](cellParsingLocale, cellTypeMap)
 
     new TableReader(openStream,
       tableMetadata,
       rowTyper,
-      colTyperWrapped,
+      colTyper,
       cellUpgrader)
   }
 

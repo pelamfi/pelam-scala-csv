@@ -41,8 +41,7 @@ class DetectingTableReaderTest {
 
   import TableReaderTest._
   import DetectingTableReaderTest._
-  val imp = new TableReaderImplicits[TestRowType, TestColType]
-  import imp._
+  import fi.pelam.csv.util.TableReaderImplicits._
 
   @Test
   def testDetectLocales {
@@ -50,8 +49,8 @@ class DetectingTableReaderTest {
       tableReaderMaker = { metadata: LocaleMetadata =>
         new TableReader(rowAndColTypesFiDataEn,
           metadata,
-          rowTyper(metadata.cellTypeLocale),
-          colTyper(metadata.cellTypeLocale),
+          testRowTyper(metadata.cellTypeLocale),
+          testColTyper(metadata.cellTypeLocale),
           cellUpgrader(metadata.dataLocale))
       },
       locales = locales
@@ -70,8 +69,8 @@ class DetectingTableReaderTest {
         new TableReader(rowAndColTypesFiDataEn,
           // Check that metadata can be replaced here
           metadata.copy(piggybacked = metadata.piggybacked + metadata.cellTypeLocale),
-          rowTyper(metadata.cellTypeLocale),
-          colTyper(metadata.cellTypeLocale),
+          testRowTyper(metadata.cellTypeLocale),
+          testColTyper(metadata.cellTypeLocale),
           cellUpgrader(metadata.dataLocale))
       },
       locales = locales
@@ -90,8 +89,8 @@ class DetectingTableReaderTest {
       tableReaderMaker = { metadata: LocaleMetadata =>
         new TableReader(() => new ByteArrayInputStream(semicolonLatin1Csv),
           metadata,
-          rowTyper(metadata.cellTypeLocale),
-          colTyper(metadata.cellTypeLocale),
+          testRowTyper(metadata.cellTypeLocale),
+          testColTyper(metadata.cellTypeLocale),
           cellUpgrader(metadata.dataLocale))
       },
       locales = locales
@@ -113,31 +112,30 @@ class DetectingTableReaderTest {
   def testFromCodeExample() = {
     // TODO: Add this as a code sample
 
-    val reader = DetectingTableReader(
+    val validColTypes = Set("header", "name", "number")
 
-      tableReaderMaker = { (m: LocaleMetadata) => new TableReader[String, String, LocaleMetadata](
-          openStream = () => new ByteArrayInputStream(("header;name;number\n" +
+    val reader = DetectingTableReader[String, String](
+
+      tableReaderMaker = { (metadata) => new TableReader(
+          openStream = "header;name;number\n" +
           "data;foo;1,234.0\n" +
-          "data;bar;1,234,567.89").getBytes(StandardCharsets.ISO_8859_1)),
+          "data;bar;1,234,567.89",
 
-        tableMetadata = m,
+        tableMetadata = metadata,
 
-        rowTyper = {
-          case StringCell(CellKey(_, 0), rowType) => Right(rowType)
-        },
+        rowTyper = makeRowTyper({
+          case (CellKey(_, 0), rowType) => rowType
+        }),
 
         // Column type is specified by the first row.
         // Type names are checked and error is generated for unknown
-        // columns. This strictness is what enables the correct
-        // detection of CSV format.
-        colTyper = {
-          case (StringCell(CellKey(0, _), "header"), _) => Right("header")
-          case (StringCell(CellKey(0, _), "name"), _) => Right("name")
-          case (StringCell(CellKey(0, _), "number"), _) => Right("number")
-          case _ => Left(TableReadingError("Unknown column type"))
-        },
+        // column types by errorOnUndefinedCol.
+        // This strictness is what enables the correct detection of CSV format.
+        colTyper = errorOnUndefinedCol(makeColTyper({
+          case (CellKey(0, _), colType) if validColTypes.contains(colType) => colType
+        })),
 
-        cellUpgrader = TableReader.defineCellUpgrader(m.dataLocale, {
+        cellUpgrader = TableReader.defineCellUpgrader(metadata.dataLocale, {
           case CellType("data", "number") => DoubleCell
         }))
       }

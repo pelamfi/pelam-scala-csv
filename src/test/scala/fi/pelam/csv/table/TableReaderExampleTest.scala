@@ -1,0 +1,67 @@
+/*
+ * This file is part of pelam-scala-csv
+ *
+ * Copyright © Peter Lamberg 2015 (pelam-scala-csv@pelam.fi)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package fi.pelam.csv.table
+
+import java.io.ByteArrayInputStream
+import java.nio.charset.StandardCharsets
+import java.util.Locale
+
+import com.google.common.io.{ByteSource, Resources}
+import fi.pelam.csv.cell._
+import fi.pelam.csv.table.Locales.localeFi
+import fi.pelam.csv.table.TestColType._
+import fi.pelam.csv.table.TestRowType._
+import fi.pelam.csv.util.TableReaderImplicits
+import org.junit.Assert._
+import org.junit.Test
+
+class TableReaderExampleTest {
+  import TableReaderTest._
+
+  @Test
+  def testCodeExample() = {
+    import fi.pelam.csv.util.TableReaderImplicits._
+
+    val reader = TableReader[String, String, SimpleMetadata](
+      openStream = "name,number\n" +
+        "foo,1\n" +
+        "bar,2",
+
+      rowTyper = makeRowTyper({
+        case (CellKey(0, _), _) => "header"
+        case _ => "data"
+      }),
+
+      colTyper = makeColTyper({
+        case (CellKey(_, 0), _) => "name"
+        case (CellKey(_, 1), _) => "number"
+      }),
+
+      cellTypeMap = {
+        case CellType("data", "number") => IntegerCell
+      })
+
+    val table = reader.readOrThrow()
+
+    assertEquals(List("foo", "bar"), table.getSingleCol("data", "name").map(_.value).toList)
+    assertEquals(List(1, 2), table.getSingleCol("data", "number").map(_.value).toList)
+  }
+
+
+}
