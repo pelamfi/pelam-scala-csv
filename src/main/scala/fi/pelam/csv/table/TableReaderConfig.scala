@@ -1,6 +1,6 @@
 /*
  * This file is part of pelam-scala-csv
- *
+ *   
  * Copyright © Peter Lamberg 2015 (pelam-scala-csv@pelam.fi)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,55 +16,39 @@
  * limitations under the License.
  */
 
-package fi.pelam.csv.util
+package fi.pelam.csv.table
 
 import java.io.ByteArrayInputStream
-
-import fi.pelam.csv.CsvConstants
-import fi.pelam.csv.cell.{CellKey, ColKey, Cell, RowKey}
-import fi.pelam.csv.table.{TableReadingError, TableMetadata, TableReader}
-import java.io.{InputStream, BufferedReader, ByteArrayInputStream}
 import java.util.Locale
 
 import fi.pelam.csv.CsvConstants
-import fi.pelam.csv.cell._
-import fi.pelam.csv.stream.CsvReader
-import fi.pelam.csv.util.{Pipeline, SortedBiMap}
-import java.io.{InputStream, BufferedReader, ByteArrayInputStream}
-import java.util.Locale
-
-import fi.pelam.csv.CsvConstants
-import fi.pelam.csv.cell._
-import fi.pelam.csv.stream.CsvReader
-import fi.pelam.csv.util.{Pipeline, SortedBiMap}
-import fi.pelam.csv.cell._
-import fi.pelam.csv.table._
+import fi.pelam.csv.cell.{Cell, CellKey, CellParser}
 
 /**
- * A set of implicit functions that map various things used as parameters for
+ * A set of functions that map various things used as parameters for
  * [[fi.pelam.csv.table.TableReader]].
  *
  * Idea is to allow various simpler ways of configuring the `TableReader`.
  *
  */
-// TODO: Move this object to .table package due to circular deps, give better name
-object TableReaderImplicits {
+// TODO: Document methods with examples
+object TableReaderConfig {
 
   implicit def stringToStream(string: String): () => java.io.InputStream = {
     () => new ByteArrayInputStream(string.getBytes(CsvConstants.defaultCharset))
   }
 
-  implicit def errorOnUndefinedRow[RT](typer: TableReader.RowTyper[RT]): TableReader.RowTyper[RT] = {
+  def errorOnUndefinedRow[RT](typer: TableReader.RowTyper[RT]): TableReader.RowTyper[RT] = {
     case cell if typer.isDefinedAt(cell) => typer(cell)
     case _ => Left(TableReadingError(s"Undefined row type"))
   }
 
-  implicit def errorOnUndefinedCol[RT, CT](typer: TableReader.ColTyper[RT, CT]): TableReader.ColTyper[RT, CT] = {
+  def errorOnUndefinedCol[RT, CT](typer: TableReader.ColTyper[RT, CT]): TableReader.ColTyper[RT, CT] = {
     case cell if typer.isDefinedAt(cell) => typer(cell)
     case _ => Left(TableReadingError(s"Undefined column type"))
   }
 
-  implicit def makeRowTyper[RT](rowTyper: PartialFunction[(CellKey, String), RT]): TableReader.RowTyper[RT] = {
+  def makeRowTyper[RT](rowTyper: PartialFunction[(CellKey, String), RT]): TableReader.RowTyper[RT] = {
 
     val rowTyperWrapped: TableReader.RowTyper[RT] = {
       case (cell: Cell) if rowTyper.isDefinedAt(cell.cellKey, cell.serializedString) => Right(rowTyper(cell.cellKey, cell.serializedString))
@@ -73,21 +57,12 @@ object TableReaderImplicits {
     rowTyperWrapped
   }
 
-  implicit def makeColTyper[RT, CT](colTyper: PartialFunction[(CellKey, String), CT]) = {
+  def makeColTyper[RT, CT](colTyper: PartialFunction[(CellKey, String), CT]) = {
     val colTyperWrapped: TableReader.ColTyper[RT, CT] = {
       case (cell: Cell, _) if colTyper.isDefinedAt(cell.cellKey, cell.serializedString) => Right(colTyper(cell.cellKey, cell.serializedString))
     }
     colTyperWrapped
   }
-
-  /*
-  implicit def makeColTyper[RT, CT](colTyper: PartialFunction[(CellKey, String), TableReader.ColTyperResult[CT]]) = {
-    val colTyperWrapped: TableReader.ColTyper[RT, CT] = {
-      case (cell: Cell, _) if colTyper.isDefinedAt(cell.cellKey, cell.serializedString) => colTyper(cell.cellKey, cell.serializedString)
-    }
-    colTyperWrapped
-  }*/
-
 
   /**
    * This is a helper method to setup a simple cell upgrader

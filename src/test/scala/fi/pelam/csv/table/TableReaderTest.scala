@@ -27,13 +27,13 @@ import fi.pelam.csv.cell._
 import fi.pelam.csv.table.Locales.localeFi
 import fi.pelam.csv.table.TestColType._
 import fi.pelam.csv.table.TestRowType._
-import fi.pelam.csv.util.TableReaderImplicits
+import TableReaderConfig._
 import org.junit.Assert._
 import org.junit.Test
 
 class TableReaderTest {
   import TableReaderTest._
-  import fi.pelam.csv.util.TableReaderImplicits._
+  import TableReaderConfig._
 
   @Test
   def testReadFailNoRowId: Unit = {
@@ -160,7 +160,7 @@ class TableReaderTest {
 }
 
 object TableReaderTest {
-  import fi.pelam.csv.util.TableReaderImplicits._
+  import TableReaderConfig._
 
   val headerAndCommentsOnly = "ColumnHeader,CommentCol,CommentCol,CommentCol,CommentCol\n" +
     "CommentRow,1,2,3,4\n" +

@@ -27,7 +27,7 @@ import fi.pelam.csv.cell._
 import fi.pelam.csv.table.Locales.localeFi
 import fi.pelam.csv.table.TestColType._
 import fi.pelam.csv.table.TestRowType._
-import fi.pelam.csv.util.TableReaderImplicits
+import TableReaderConfig._
 import org.junit.Assert._
 import org.junit.Test
 
@@ -36,7 +36,7 @@ class TableReaderExample {
 
   @Test
   def testCodeExample() = {
-    import fi.pelam.csv.util.TableReaderImplicits._
+    import TableReaderConfig._
 
     val reader = TableReader[String, String, SimpleMetadata](
       openStream = "name,number\n" +

@@ -17,7 +17,7 @@
  */
 
 package fi.pelam.csv.table
-import fi.pelam.csv.util.TableReaderImplicits
+import TableReaderConfig._
 import org.junit.Test
 import org.junit.Assert._
 import java.nio.charset.{StandardCharsets, Charset}
@@ -40,7 +40,7 @@ import fi.pelam.csv.cell._
 class DetectingTableReaderExample {
   import TableReaderTest._
   import DetectingTableReaderTest._
-  import fi.pelam.csv.util.TableReaderImplicits._
+  import TableReaderConfig._
 
   @Test
   def testFromCodeExample() = {
