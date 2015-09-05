@@ -22,6 +22,7 @@ package fi.pelam.csv.util
  * A trait that captures whether some state in the previous stage of some computation
  * is considered successful. This is used by [[Pipeline]].
  */
+// TODO: Better name
 trait LastStageResult[T <: LastStageResult[T]] {
 
   val success: Boolean
@@ -39,7 +40,7 @@ trait LastStageResult[T <: LastStageResult[T]] {
   val stageNumber: Int
 
   /**
-   * [[Pipeline]] uses this to update stage number automatically.
+   * [[fi.pelam.csv.util.Pipeline]] uses this to update stage number automatically.
    *
    * @return Otherwise identical object, but with stage number incremented.
    */

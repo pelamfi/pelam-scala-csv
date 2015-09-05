@@ -31,14 +31,14 @@ import fi.pelam.csv.cell._
  * the `Table` with least errors is returned.
  *
  * For simpler usage you can skip `initialMetadata` in the constructor
- * by using [[.apply()]] defined in the companion object.
+ * by using [[fi.pelam.csv.table.DetectingTableReader.apply]] defined in the companion object.
  *
  * {{{
  * ADD SAMPLE HERE FROM TEST SUITE
  * }}}
  *
  * @param initialMetadata base metadata instance. Copies with different format parameters will be created from this
- *                        using [[LocaleTableMetadata.withFormatParameters()]].
+ *                        using [[LocaleTableMetadata.withFormatParameters]].
  * @param tableReaderMaker user provided method that constructs a [[TableReader]] using
  *                         locales, separator and charset specified by [[LocaleTableMetadata]] parameter.
  * @param locales List of locales to try. Default is [[CsvConstants.commonLocales]].

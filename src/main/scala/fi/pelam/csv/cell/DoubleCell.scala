@@ -54,7 +54,7 @@ case class DoubleCell(override val cellKey: CellKey,
  * which produces DoubleCell instances (or errors if parsing fails) from String data.
  *
  * This companion object can be used used to upgrade cells in TableReader in an easy way
- * by using it in a map passed to [[fi.pelam.csv.util.TableReaderImplicits.makeCellUpgrader]].
+ * by using it in a map passed to [[fi.pelam.csv.table.TableReaderConfig.makeCellUpgrader]].
  * to specify which cells should be interpreted as containing integers.
  */
 object DoubleCell extends CellParser {
