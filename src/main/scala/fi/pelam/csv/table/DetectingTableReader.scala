@@ -204,7 +204,7 @@ object DetectingTableReader {
     tableReaderMaker: (LocaleMetadata) => TableReader[RT, CT, LocaleMetadata],
     locales: Seq[Locale] = CsvConstants.commonLocales,
     charsets: Seq[Charset] = CsvConstants.commonCharsets,
-    separators: Seq[Char] = CsvConstants.commonSeparators)` = {
+    separators: Seq[Char] = CsvConstants.commonSeparators) = {
 
     new DetectingTableReader(initialMetadata = LocaleMetadata(),
       tableReaderMaker = tableReaderMaker,
