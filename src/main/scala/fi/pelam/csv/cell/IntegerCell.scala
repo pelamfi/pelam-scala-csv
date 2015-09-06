@@ -21,6 +21,9 @@ package fi.pelam.csv.cell
 import java.text.{NumberFormat, ParseException, ParsePosition}
 import java.util.Locale
 
+import fi.pelam.csv.util.FormatterUtil
+import fi.pelam.csv.util.FormatterUtil.Formatter
+
 // @formatter:off IntelliJ 14.1 (Scala plugin) formatter messes up Scaladoc
 /**
  * Basically this class is a sample implementation of a more specialised subtype of
@@ -41,7 +44,7 @@ import java.util.Locale
 // @formatter:on IntelliJ 14.1 (Scala plugin) formatter messes up Scaladoc
 case class IntegerCell(override val cellKey: CellKey,
   override val value: Int)
-  (implicit val formatter: IntegerCell.Formatter = IntegerCell.defaultFormatter)
+  (implicit val formatter: Formatter[Int] = IntegerCell.defaultFormatter)
   extends Cell {
 
   def serializedString: String = {
@@ -59,31 +62,9 @@ case class IntegerCell(override val cellKey: CellKey,
  * to specify which cells should be interpreted as containing integers.
  */
 object IntegerCell extends CellParser {
+  import fi.pelam.csv.util.FormatterUtil._
 
-  type Formatter = (Integer) => String
-
-  def defaultFormatter = toSynchronizedFormatter(NumberFormat.getInstance(Locale.ROOT))
-
-  /**
-   * This function is a workaround for the Java feature of `NumberFormat`
-   * not being thread safe. http://stackoverflow.com/a/1285353/1148030
-   *
-   * This transformation returns a thread safe Formatter based on the
-   * `NumberFormat` passed in as parameter.
-   */
-  def toSynchronizedFormatter(numberFormat: NumberFormat): Formatter = {
-
-    // Clone to ensure instance is only used in this scope
-    val clonedFormatter = numberFormat.clone().asInstanceOf[NumberFormat]
-
-    val function = { (input: Integer) =>
-      clonedFormatter.synchronized {
-        clonedFormatter.format(input)
-      }
-    }
-
-    function
-  }
+  def defaultFormatter = toSynchronizedFormatter[Int](NumberFormat.getInstance(Locale.ROOT))
 
   override def parse(cellKey: CellKey, locale: Locale, input: String): Either[CellParsingError, IntegerCell] = {
 

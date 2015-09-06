@@ -21,6 +21,10 @@ package fi.pelam.csv.cell
 import java.text.{NumberFormat, ParseException, ParsePosition}
 import java.util.Locale
 
+import fi.pelam.csv.util.FormatterUtil
+import FormatterUtil._
+
+
 // @formatter:off IntelliJ 14.1 (Scala plugin) formatter messes up Scaladoc
 /**
  * Basically this class is a sample implementation of a more specialised subtype of
@@ -61,30 +65,9 @@ case class DoubleCell(override val cellKey: CellKey,
  */
 object DoubleCell extends CellParser {
 
-  type Formatter = (Double) => String
+  type Formatter = FormatterUtil.Formatter[Double]
 
-  def defaultFormatter = toSynchronizedFormatter(NumberFormat.getInstance(Locale.ROOT))
-
-  /**
-   * This function is a workaround for the Java feature of `NumberFormat`
-   * not being thread safe. http://stackoverflow.com/a/1285353/1148030
-   *
-   * This transformation returns a thread safe Formatter based on the
-   * `NumberFormat` passed in as parameter.
-   */
-  def toSynchronizedFormatter(numberFormat: NumberFormat): Formatter = {
-
-    // Clone to ensure instance is only used in this scope
-    val clonedFormatter = numberFormat.clone().asInstanceOf[NumberFormat]
-
-    val function = { (input: Double) =>
-      clonedFormatter.synchronized {
-        clonedFormatter.format(input)
-      }
-    }
-
-    function
-  }
+  def defaultFormatter = toSynchronizedFormatter[Double](NumberFormat.getInstance(Locale.ROOT))
 
   override def parse(cellKey: CellKey, locale: Locale, input: String): Either[CellParsingError, DoubleCell] = {
 
