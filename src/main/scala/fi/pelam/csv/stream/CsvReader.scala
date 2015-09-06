@@ -23,6 +23,8 @@ import java.io.{Reader, StringReader}
 import fi.pelam.csv.CsvConstants
 import fi.pelam.csv.cell.StringCell
 
+import scala.collection.AbstractIterator
+
 /**
  * This class is part of the lower level API for processing CSV data.
  * This is a CSV parser that produces the data through the
@@ -82,8 +84,7 @@ import fi.pelam.csv.cell.StringCell
  *
  * @constructor Create a new reader while specifying the separator character.
  */
-// TODO: User AbstractIterator to reduce class file size... see comment on AbstractIterator
-final class CsvReader(input: Reader, val separator: Char) extends Iterator[CsvReader.CellOrError] {
+final class CsvReader(input: Reader, val separator: Char) extends AbstractIterator[CsvReader.CellOrError] {
 
   import CsvReader._
 
