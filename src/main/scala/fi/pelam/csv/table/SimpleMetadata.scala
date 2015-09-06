@@ -16,12 +16,15 @@
  * limitations under the License.
  */
 
-package fi.pelam.csv.util
+package fi.pelam.csv.table
+
+import java.nio.charset.Charset
+
+import fi.pelam.csv.CsvConstants
 
 /**
- * A trait that captures whether some state in some computation
- * is considered successful so far. This is used by [[Pipeline]].
+ * Simplest implementation of [[TableMetadata]].
  */
-trait SuccessState {
-  val success: Boolean
-}
+case class SimpleMetadata(
+  override val charset: Charset = CsvConstants.defaultCharset,
+  override val separator: Char = CsvConstants.defaultSeparatorChar) extends TableMetadata

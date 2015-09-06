@@ -19,8 +19,8 @@
 package fi.pelam.csv.table
 
 import java.io.ByteArrayOutputStream
+import java.nio.charset.StandardCharsets
 
-import com.google.common.base.Charsets
 import com.google.common.io.{ByteSource, Resources}
 import org.junit.Assert._
 import org.junit.Test
@@ -32,7 +32,7 @@ object TableWriterTest {
 
   lazy val testFile = Resources.asByteSource(Resources.getResource(testFileName))
 
-  val testFileCharset = Charsets.UTF_8
+  val testFileCharset = StandardCharsets.UTF_8
 
   // Added \n because table writer ensures there is traling newline
   lazy val testFileContent = readTestFile(testFileName) + "\n"
@@ -70,7 +70,7 @@ class TableWriterTest {
 
   @Test
   def testLoopback: Unit = {
-    val (table, errors) = new TableReader[TestRowType, TestColType, SimpleTableMetadata](testFile).read()
+    val (table, errors) = new TableReader[TestRowType, TestColType, SimpleMetadata](testFile).read()
 
     assertTrue(errors.toString, errors.noErrors)
 

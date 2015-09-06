@@ -31,9 +31,10 @@ package fi.pelam
  *  - [[fi.pelam.csv.table.TableReader Second API]] is richer and is based on a more high level Table object.
  *  - Contains some type information on rows and columns
  *  - Allows having some regions represented with smarter and custom Cell types (like your own date cell)
- *  - Autodetection of CSV format details
- *  - Pluggable method for defining Row, Column and Cell types.
- *  - Supports management of locales (Office apps change default CSV format based on locale.)
+ *  - Autodetection of CSV format details using [[fi.pelam.csv.table.DetectingTableReader DetectingTableReader]].
+ *  - Pluggable partial functions for defining Row, Column and Cell types in [[fi.pelam.csv.table.TableReader TableReader]].
+ *  - Supports management of locales (Office apps change formatting of data in CSV based on locale.)
+ *  using [[fi.pelam.csv.table.LocaleTableMetadata LocaleTableMetadata]]
  *
  */
 // TODO: Link more classes in this package scaladoc

@@ -61,7 +61,7 @@ import fi.pelam.csv.cell.StringCell
  *   println(cell)
  * }
  *
- * // Running the code above will print:
+ * // Running the code above will print the cells from first column:
  * Cell containing '1' at Row 1, Column B (1)
  * Cell containing '2' at Row 2, Column B (1)
  * Cell containing '3' at Row 3, Column B (1)
@@ -70,7 +70,8 @@ import fi.pelam.csv.cell.StringCell
  *
  * @note A note on closing the input stream. The
  *       [[http://docs.oracle.com/javase/8/docs/api/java/io/Reader.html java.io.Reader]] is closed only if the
- *       CSV data exhausted. In error and other situations it is the responsibility of the caller to close the stream.
+ *       CSV data exhausted. In the case of an error and in the case of stopping to call the `read`
+ *       method before the input ends it is the responsibility of the caller to close the stream.
  *
  * @see [[fi.pelam.csv.table.TableReader TableReader for a friendlier non streaming API.]]
  *

@@ -18,7 +18,8 @@
 
 package fi.pelam.csv.stream
 
-import com.google.common.base.Charsets
+import java.nio.charset.StandardCharsets
+
 import com.google.common.io.{CharStreams, Resources}
 import fi.pelam.csv.cell.{CellKey, StringCell}
 import org.junit.Assert._
@@ -89,7 +90,7 @@ class CsvWriterTest {
   @Test
   def loopbackTest: Unit = {
     val file = Resources.asByteSource(Resources.getResource("csv–file-for-loading"))
-    val csvStringOrig = file.asCharSource(Charsets.UTF_8).read()
+    val csvStringOrig = file.asCharSource(StandardCharsets.UTF_8).read()
 
     val readOrigCells = new CsvReader(csvStringOrig).throwOnError.toIndexedSeq
 

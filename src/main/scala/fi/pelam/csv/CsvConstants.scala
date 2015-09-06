@@ -18,13 +18,13 @@
 
 package fi.pelam.csv
 
-import java.nio.charset.StandardCharsets
+import java.nio.charset.{Charset, StandardCharsets}
+import java.util.Locale
 
 /**
  * This object contains some common CSV data related constants.
  */
 object CsvConstants {
-
   /**
    * Default separator in CSV is the comma as in "Comma Separated Values".
    *
@@ -56,5 +56,82 @@ object CsvConstants {
    * a good place to start with for anything.
    */
   val defaultCharset = StandardCharsets.UTF_8
+
+  /**
+   * Constant for `commonLocales`.
+   */
+  val localeFi: Locale = Locale.forLanguageTag("FI")
+
+  /**
+   * Pretty much ad hoc list of locales that could be common. If you
+   * have a better idea what should be here, let me know!
+   *
+   * Idea is that this contains a small set of guesses that together
+   * would cover a large fraction of real world cases. Full coverage
+   * is not feasible so only locales with presumed relatively large
+   * user base should be included.
+   *
+   * This is list is the default set of attempted locales in
+   * [[fi.pelam.csv.table.DetectingTableReader]].
+   *
+   * If this library is used in some rare context, then the defaults
+   * provided in this class will most likely have to be overridden
+   * appropriately by client code.
+   */
+  val commonLocales: IndexedSeq[Locale] = IndexedSeq(
+    Locale.ROOT,
+    Locale.FRENCH,
+    localeFi)
+
+  /**
+   * Somewhat ad hoc list of charsets that could be common. If you
+   * have a better idea what should be here, let me know!
+   * Cyrillic? Asian?
+   *
+   * Idea is that this contains a small set of guesses that together
+   * would cover a large fraction of real world cases. Full coverage
+   * is not feasible so only charsets with presumed relatively large
+   * user base should be included.
+   *
+   * This is list is the default set of attempted locales in
+   * [[fi.pelam.csv.table.DetectingTableReader]].
+   *
+   * If this library is used in some rare context, then the defaults
+   * provided in this class will most likely have to be overridden
+   * appropriately by client code.
+   */
+  val commonCharsets: IndexedSeq[Charset] = IndexedSeq(
+    // UTF-8
+    defaultCharset,
+    // Typical modern windows charset.
+    StandardCharsets.UTF_16LE,
+    // The grand old one.
+    StandardCharsets.US_ASCII,
+    // Typical European charset, also covers pure ascii.
+    StandardCharsets.ISO_8859_1)
+
+  /**
+   * Somewhat ad hoc list of charsets that could be common. If you
+   * have a better idea what should be here, let me know!
+   * Cyrillic? Asian?
+   *
+   * Idea is that this contains a small set of guesses that together
+   * would cover a large fraction of real world cases. Full coverage
+   * is not feasible so only separator with presumed relatively
+   * large user base should be included.
+   *
+   * This is list is the default set of attempted locales in
+   * [[fi.pelam.csv.table.DetectingTableReader]].
+   *
+   * If this library is used in some rare context, then the defaults
+   * provided in this class will most likely have to be overridden
+   * appropriately by client code.
+   */
+  val commonSeparators: IndexedSeq[Char] = IndexedSeq(
+    // Comma
+    defaultSeparatorChar,
+    ';',
+    '\t')
+
 
 }

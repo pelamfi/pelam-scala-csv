@@ -30,16 +30,17 @@ import java.util.Locale
  *
  * This class is quite simple, but the companion object is more
  * interesting as it implements the [[CellParser]] trait and acts as a factory
- * which produces IntegerCell instances (or errors if parsing fails) from String data.
+ * which produces DoubleCell instances (or errors if parsing fails) from String data.
  *
  * @param cellKey the location of this cell in a CSV table.
  * @param formatter A function used to convert the integer held by this cell into a `String`
  *                  to be stored in CSV text data.
  * @param value is the integer stored in CSV.
  */
-case class IntegerCell(override val cellKey: CellKey,
-  override val value: Int)
-  (implicit val formatter: IntegerCell.Formatter = IntegerCell.defaultFormatter)
+// TODO: Fix DRY wrt IntegerCell
+case class DoubleCell(override val cellKey: CellKey,
+  override val value: Double)
+  (implicit val formatter: DoubleCell.Formatter = DoubleCell.defaultFormatter)
   extends Cell {
 
   def serializedString: String = {
@@ -48,17 +49,17 @@ case class IntegerCell(override val cellKey: CellKey,
 }
 
 /**
- * The IntegerCell class it self is quite simple, but this companion object is more
+ * The DoubleCell class it self is quite simple, but this companion object is more
  * interesting as it implements the [[CellParser]] trait and acts as a factory
- * which produces IntegerCell instances (or errors if parsing fails) from String data.
+ * which produces DoubleCell instances (or errors if parsing fails) from String data.
  *
  * This companion object can be used used to upgrade cells in TableReader in an easy way
  * by using it in a map passed to [[fi.pelam.csv.table.TableReaderConfig.makeCellUpgrader]].
  * to specify which cells should be interpreted as containing integers.
  */
-object IntegerCell extends CellParser {
+object DoubleCell extends CellParser {
 
-  type Formatter = (Integer) => String
+  type Formatter = (Double) => String
 
   def defaultFormatter = toSynchronizedFormatter(NumberFormat.getInstance(Locale.ROOT))
 
@@ -74,7 +75,7 @@ object IntegerCell extends CellParser {
     // Clone to ensure instance is only used in this scope
     val clonedFormatter = numberFormat.clone().asInstanceOf[NumberFormat]
 
-    val function = { (input: Integer) =>
+    val function = { (input: Double) =>
       clonedFormatter.synchronized {
         clonedFormatter.format(input)
       }
@@ -83,7 +84,7 @@ object IntegerCell extends CellParser {
     function
   }
 
-  override def parse(cellKey: CellKey, locale: Locale, input: String): Either[CellParsingError, IntegerCell] = {
+  override def parse(cellKey: CellKey, locale: Locale, input: String): Either[CellParsingError, DoubleCell] = {
 
     // TODO: Refactor, make the numberFormat somehow client code configurable.
     // NOTE: This creates a local instance of NumberFormat to workaround
@@ -99,24 +100,18 @@ object IntegerCell extends CellParser {
       val number = numberFormat.parse(trimmedInput, position)
 
       if (position.getIndex() != trimmedInput.size) {
-        Left(CellParsingError(s"Expected integer, but input '$input' could not be fully parsed with locale '$locale'."))
+        Left(CellParsingError(s"Expected decimal number (double precision), but input '$input' could not be fully parsed with locale '$locale'."))
       } else {
 
-        val intValue = number.intValue()
+        val doubleValue = number.doubleValue()
 
-        if (intValue == number) {
-          Right(IntegerCell(cellKey, intValue)(toSynchronizedFormatter(numberFormat)))
-        } else {
-          Left(CellParsingError(s"Expected integer, but value '$input' is decimal"))
-        }
-
+        Right(DoubleCell(cellKey, doubleValue)(toSynchronizedFormatter(numberFormat)))
       }
 
     } catch {
       case e: ParseException =>
-        Left(CellParsingError(s"Expected integer, but input '$input' could not be parsed with locale '$locale'"))
+        Left(CellParsingError(s"Expected a decimal number (double precision), but input '$input' could not be parsed with locale '$locale'"))
     }
   }
 }
-
 

@@ -18,30 +18,25 @@
 
 package fi.pelam.csv.table
 
-import java.io.OutputStreamWriter
+import java.nio.charset.Charset
+import java.util.Locale
 
-import fi.pelam.csv.stream.CsvWriter
+// TODO: Scaladoc
+trait LocaleTableMetadata[T <: LocaleTableMetadata[T]] extends TableMetadata {
+  /**
+   * Locale used in cell and column type names stored in CSV cells.
+   */
+  val cellTypeLocale: Locale = Locale.ROOT
 
-// TODO: Scaladoc and code example
-class TableWriter[RT, CT, M <: TableMetadata](table: Table[RT, CT, M]) {
+  /**
+   * Locale used in encoding data in CSV cells. This accounts
+   * for example for different thousand separators etc.
+   * used in diffent locales by spreadsheet progrms.
+   */
+  val dataLocale: Locale = Locale.ROOT
 
-  def write(output: java.io.OutputStream) = {
-
-    val writer = new OutputStreamWriter(output, table.metadata.charset)
-
-    val csvWriter = new CsvWriter(writer, table.metadata.separator)
-
-    val cells = table.getCells()
-
-    csvWriter.write(cells)
-
-    // Add the final line end
-    csvWriter.goToNextRow()
-
-    // TODO: Make sure streams are closed if exception is thrown
-    writer.close()
-
-    output.close()
-  }
-
+  /**
+   * This is a polymorphic way of accessing the concrete case class copy.
+   */
+  def withFormatParameters(separator: Char, charset: Charset, cellTypeLocale: Locale, dataLocale: Locale): T
 }

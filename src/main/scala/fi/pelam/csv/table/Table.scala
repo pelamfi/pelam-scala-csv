@@ -76,6 +76,12 @@ import scala.collection.SortedMap
  *                 Multiple columns can have the same type.
  * @param metadata User extensible metadata that is piggybacked in the `Table` instance.
  *
+ * @tparam RT The client specific row type.
+ *
+ * @tparam CT The client specific column type.
+ *
+ * @tparam M The type of the `metadata` parameter. Must be a sub type of [[TableMetadata]].
+ *           This specifies the character set and separator to use when reading the CSV data from the input stream.
  */
 case class Table[RT, CT, M <: TableMetadata] private(
   cells: IndexedSeq[IndexedSeq[Cell]],
@@ -342,7 +348,7 @@ object Table {
     cells: TraversableOnce[Cell] = IndexedSeq(),
     rowTypes: SortedBiMap[RowKey, RT] = SortedBiMap[RowKey, RT](),
     colTypes: SortedBiMap[ColKey, CT] = SortedBiMap[ColKey, CT](),
-    metadata: M = SimpleTableMetadata()): Table[RT, CT, M] = {
+    metadata: M = SimpleMetadata()): Table[RT, CT, M] = {
 
     val maxRow = findKeyRangeEnd(rowTypes.keys)
 

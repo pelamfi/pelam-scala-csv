@@ -19,12 +19,15 @@
 package fi.pelam.csv.table
 
 import fi.pelam.csv.cell._
-import fi.pelam.csv.util.{SuccessState, SortedBiMap}
+import fi.pelam.csv.util.{LastStageResult, SortedBiMap}
 
+/**
+ * This is class is an internal class used to thread state through stages in [[TableReader]].
+ */
 case class TableReadingState[RT, CT](cells: IndexedSeq[Cell] = IndexedSeq(),
   rowTypes: TableReader.RowTypes[RT] = SortedBiMap[RowKey, RT](),
   colTypes: TableReader.ColTypes[CT] = SortedBiMap[ColKey, CT](),
-  errors: TableReadingErrors = TableReadingErrors()) extends SuccessState {
+  errors: TableReadingErrors = TableReadingErrors()) extends LastStageResult[TableReadingState[RT, CT]] {
 
   override val success: Boolean = errors.noErrors
 
@@ -32,7 +35,11 @@ case class TableReadingState[RT, CT](cells: IndexedSeq[Cell] = IndexedSeq(),
 
   def defineColType(col: ColKey, colType: CT): TableReadingState[RT, CT] = copy(colTypes = colTypes.updated(col, colType))
 
-  def addErrors(moreErrors: Iterator[TableReadingError]): TableReadingState[RT, CT] = copy(errors = errors.add(moreErrors))
+  def addErrors(moreErrors: Iterator[TableReadingError]): TableReadingState[RT, CT] = copy(errors = errors.addError(moreErrors))
 
-  def addError(error: TableReadingError): TableReadingState[RT, CT] = copy(errors = errors.add(error))
+  def addError(error: TableReadingError): TableReadingState[RT, CT] = copy(errors = errors.addError(error))
+
+  override def stageNumberIncremented() = copy(errors = errors.copy(stageNumber + 1))
+
+  override val stageNumber: Int = errors.stageNumber
 }
