@@ -24,9 +24,12 @@ import java.util.Locale
 import fi.pelam.csv.CsvConstants
 
 /**
+ *
+ *
  * @param dataLocale
  * @param cellTypeLocale
  */
+// TODO: Scaladoc
 case class LocaleMetadata(override val dataLocale: Locale = Locale.ROOT,
   override val cellTypeLocale: Locale = Locale.ROOT,
   override val charset: Charset = CsvConstants.defaultCharset,

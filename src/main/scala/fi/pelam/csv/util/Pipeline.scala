@@ -45,6 +45,7 @@ package fi.pelam.csv.util
  *
  * @tparam S The type of the state to be threaded through pipeline stages.
  */
+// TODO: Make it more clear in the example what the stages do.
 // TODO: Is it accurate to call this a monad?
 sealed trait Pipeline[S <: LastStageResult[S]] {
   def map(f: S => S): Pipeline[S]

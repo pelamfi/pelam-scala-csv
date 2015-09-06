@@ -23,7 +23,6 @@ import java.nio.charset.StandardCharsets
 import java.util.Locale
 
 import com.google.common.io.{ByteSource, Resources}
-import fi.pelam.csv.cell._
 import fi.pelam.csv.table.Locales.localeFi
 import fi.pelam.csv.table.TestColType._
 import fi.pelam.csv.table.TestRowType._
@@ -32,10 +31,11 @@ import org.junit.Assert._
 import org.junit.Test
 
 class TableReaderExample {
-  import TableReaderTest._
 
   @Test
   def testCodeExample() = {
+    import fi.pelam.csv.table._
+    import fi.pelam.csv.cell._
     import TableReaderConfig._
 
     val reader = new TableReader[String, String, SimpleMetadata](

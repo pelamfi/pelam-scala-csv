@@ -38,13 +38,12 @@ import org.junit.Test
 import fi.pelam.csv.cell._
 
 class DetectingTableReaderExample {
-  import TableReaderTest._
-  import DetectingTableReaderTest._
-  import TableReaderConfig._
 
   @Test
   def testFromCodeExample() = {
-    // TODO: Add this as a code sample
+    import fi.pelam.csv.table._
+    import fi.pelam.csv.cell._
+    import TableReaderConfig._
 
     val validColTypes = Set("header", "name", "number")
 

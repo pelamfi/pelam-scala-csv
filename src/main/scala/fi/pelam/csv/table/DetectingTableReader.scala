@@ -31,25 +31,89 @@ import fi.pelam.csv.cell._
  * the `Table` with least errors is returned.
  *
  * For simpler usage you can skip `initialMetadata` in the constructor
- * by using [[fi.pelam.csv.table.DetectingTableReader.apply]] defined in the companion object.
+ * by using [[fi.pelam.csv.table.DetectingTableReader.apply the apply method]]
+ * defined in the companion object.
+ *
+ * The interface of this class is similar to the one in [[TableReader]], but this
+ * class creates multiple `TableReader` instances under the hood.
+ *
+ * == Example on detection of CSV format ==
+ *
+ * This example detects and parses a weird CSV format in which the separator
+ * is the one used at least in the finnish locale, but numeric data is
+ * formatted in english style. In which the column types are defined
+ * on the first row and the row type is defined by the first column.
  *
  * {{{
- * ADD SAMPLE HERE FROM TEST SUITE
+ *   import fi.pelam.csv.table._
+ *   import fi.pelam.csv.cell._
+ *   import TableReaderConfig._
+ *
+ *   val validColTypes = Set("header", "name", "number")
+ *
+ *   val reader = DetectingTableReader[String, String](
+ *
+ *     tableReaderMaker = { (metadata) => new TableReader(
+ *       openStream = "header;name;number\n" +
+ *         "data;foo;1,234.0\n" +
+ *         "data;bar;1,234,567.89",
+ *
+ *       tableMetadata = metadata,
+ *
+ *       rowTyper = makeRowTyper({
+ *         case (CellKey(_, 0), rowType) => rowType
+ *       }),
+ *
+ *       // Column type is specified by the first row.
+ *       // Type names are checked and error is generated for unknown
+ *       // column types by errorOnUndefinedCol.
+ *       // This strictness is what enables the correct detection of CSV format.
+ *       colTyper = errorOnUndefinedCol(makeColTyper({
+ *         case (CellKey(0, _), colType) if validColTypes.contains(colType) => colType
+ *       })),
+ *
+ *       cellUpgrader = makeCellUpgrader({
+ *         case CellType("data", "number") => DoubleCell
+ *       },
+ *       metadata.dataLocale
+ *       ))
+ *     }
+ *   )
+ *
+ *   val table = reader.readOrThrow()
+ *
+ *   // Get values from cells in column with type "name" on rows with type "data."
+ *   table.getSingleCol("data", "name").map(_.value).toList
+ *   // Will give List("foo","bar")
+ *
+ *   // Get values from cells in column with type "number" on rows with type "data."
+ *   table.getSingleCol("number", "data").map(_.value).toList)
+ *   // Will give List(1234, 1234567.89)
  * }}}
  *
  * @param initialMetadata base metadata instance. Copies with different format parameters will be created from this
- *                        using [[LocaleTableMetadata.withFormatParameters]].
+ *                        using [[LocaleTableMetadata.withFormatParameters]]. Idea is that you client
+ *                        have custom metadata subclass and use this parameter to set initial values for
+ *                        custom fields in the metadata.
+ *
  * @param tableReaderMaker user provided method that constructs a [[TableReader]] using
  *                         locales, separator and charset specified by [[LocaleTableMetadata]] parameter.
- * @param locales List of locales to try. Default is [[CsvConstants.commonLocales]].
+ *
+ * @param locales List of locales to try for `cellTypeLocale` and `dataLocale`.
+ *                The default is [[CsvConstants.commonLocales]].
+ *
  * @param charsets List of charsets to try. Default is [[CsvConstants.commonCharsets]].
+ *
  * @param separators List of separators to try. Default is [[CsvConstants.commonSeparators]].
+ *
  * @tparam RT The client specific row type.
+ *
  * @tparam CT The client specific column type.
- * @tparam M The type of the `metadata` parameter. Must be a sub type of [[TableMetadata]].
- *           This specifies the character set and separator to use when reading the CSV data from the input stream.
+ *
+ * @tparam M The type of the `metadata` parameter. Must be a sub type of [[LocaleTableMetadata]].
+ *           This is used to manage the character set, separator, `cellTypeLocale` and `dataLocale`
+ *           combinations when attempting to read the CSV data from the input stream.
  */
-// TODO: Scaladoc example, document parameters.
 class DetectingTableReader[RT, CT, M <: LocaleTableMetadata[M]] (
   val initialMetadata: M,
   val tableReaderMaker: (M) => TableReader[RT, CT, M],
@@ -59,7 +123,18 @@ class DetectingTableReader[RT, CT, M <: LocaleTableMetadata[M]] (
 
   type ResultTable = Table[RT, CT, M]
 
+  /**
+   * The main method in this class. Can be called several times.
+   * The input stream is may be opened and closed many times
+   * per each call.
+   *
+   * If there are no errors [[TableReadingErrors.noErrors]] is `true`.
+   *
+   * @return a pair with a [[.TableReader]] and [[TableReadingErrors]].
+   */
   def read(): (ResultTable, TableReadingErrors) = {
+
+    // TODO: Is there a functional way to combine TableReaderEvaluator and the generation of CSV format combinations.
     val readers = for (
       separator <- List(CsvConstants.defaultSeparatorChar, ';');
       charset <- List(StandardCharsets.UTF_8, StandardCharsets.ISO_8859_1);
@@ -83,19 +158,11 @@ class DetectingTableReader[RT, CT, M <: LocaleTableMetadata[M]] (
   }
 
   /**
-   * If there are no paramter combinations to evaluate, this is
-   * used as the return value.
-   */
-  private def defaultRead() = {
-    tableReaderMaker(initialMetadata).read()
-  }
-
-  /**
-   * This method extends the usual read method with exception based error handling, which
-   * may be useful in smaller applications that don't expect errors in input.
+   * This method extends the basic `read` method with exception based error handling,
+   * which may be useful in smaller applications that don't expect or handle
+   * errors in input.
    *
    * A `RuntimeException` will be thrown when error is encountered.
-   *
    */
   def readOrThrow(): ResultTable = {
     val (table, errors) = read()
@@ -105,6 +172,12 @@ class DetectingTableReader[RT, CT, M <: LocaleTableMetadata[M]] (
       sys.error(errors.toString)
     }
   }
+
+  // If there are no parameter combinations to evaluate, this is used as the return value.
+  private def defaultRead() = {
+    tableReaderMaker(initialMetadata).read()
+  }
+
 }
 
 object DetectingTableReader {
@@ -115,10 +188,15 @@ object DetectingTableReader {
    *
    * @param tableReaderMaker user provided method that constructs a [[TableReader]] using
    *                         locales, separator and charset specified by [[LocaleTableMetadata]] parameter.
+   *
    * @param locales List of locales to try. Default is [[CsvConstants.commonLocales]].
+   *
    * @param charsets List of charsets to try. Default is [[CsvConstants.commonCharsets]].
+   *
    * @param separators List of separators to try. Default is [[CsvConstants.commonSeparators]].
+   *
    * @tparam RT The client specific row type.
+   *
    * @tparam CT The client specific column type.
    */
   def apply[RT, CT](

@@ -22,6 +22,7 @@ import java.io.OutputStreamWriter
 
 import fi.pelam.csv.stream.CsvWriter
 
+// TODO: Scaladoc and code example
 class TableWriter[RT, CT, M <: TableMetadata](table: Table[RT, CT, M]) {
 
   def write(output: java.io.OutputStream) = {

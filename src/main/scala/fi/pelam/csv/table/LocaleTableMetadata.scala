@@ -21,6 +21,7 @@ package fi.pelam.csv.table
 import java.nio.charset.Charset
 import java.util.Locale
 
+// TODO: Scaladoc
 trait LocaleTableMetadata[T <: LocaleTableMetadata[T]] extends TableMetadata {
   /**
    * Locale used in cell and column type names stored in CSV cells.
