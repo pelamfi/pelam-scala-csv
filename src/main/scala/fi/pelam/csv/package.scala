@@ -18,6 +18,7 @@
 
 package fi.pelam
 
+// @formatter:off IntelliJ 14.1 (Scala plugin) formatter messes up Scaladoc
 /**
  * This is pelam-scala-csv contained in package fi.pelam.csv. Pelam-scala-csv is a
  * library for reading and writing CSV data.
@@ -37,6 +38,7 @@ package fi.pelam
  *  using [[fi.pelam.csv.table.LocaleTableMetadata LocaleTableMetadata]]
  *
  */
+// @formatter:on IntelliJ 14.1 (Scala plugin) formatter messes up Scaladoc
 // TODO: Link more classes in this package scaladoc
 package object csv {
 
