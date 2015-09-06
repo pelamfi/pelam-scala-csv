@@ -19,7 +19,6 @@
 package fi.pelam.csv.table
 
 import java.nio.charset.Charset
-import java.util.Locale
 
 import fi.pelam.csv.CsvConstants
 

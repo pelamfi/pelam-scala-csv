@@ -18,10 +18,8 @@
 
 package fi.pelam.csv.table
 
-import java.io.{InputStream, BufferedReader, ByteArrayInputStream}
-import java.util.Locale
+import java.io.BufferedReader
 
-import fi.pelam.csv.CsvConstants
 import fi.pelam.csv.cell._
 import fi.pelam.csv.stream.CsvReader
 import fi.pelam.csv.util.{Pipeline, SortedBiMap}

@@ -18,8 +18,8 @@
 
 package fi.pelam.csv.util
 
-import org.junit.Test
 import org.junit.Assert._
+import org.junit.Test
 
 class PipelineTest {
 

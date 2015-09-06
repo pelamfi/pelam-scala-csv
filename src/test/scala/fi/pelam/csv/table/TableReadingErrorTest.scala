@@ -17,9 +17,9 @@
  */
 package fi.pelam.csv.table
 
-import org.junit.Test
+import fi.pelam.csv.cell.{CellKey, IntegerCell, StringCell}
 import org.junit.Assert._
-import fi.pelam.csv.cell.{IntegerCell, CellKey, StringCell}
+import org.junit.Test
 
 class TableReadingErrorTest {
   import TableReadingErrorTest._

@@ -18,15 +18,6 @@
 
 package fi.pelam.csv.table
 
-import java.io.ByteArrayInputStream
-import java.nio.charset.StandardCharsets
-import java.util.Locale
-
-import com.google.common.io.{ByteSource, Resources}
-import fi.pelam.csv.table.Locales.localeFi
-import fi.pelam.csv.table.TestColType._
-import fi.pelam.csv.table.TestRowType._
-import TableReaderConfig._
 import org.junit.Assert._
 import org.junit.Test
 
@@ -34,9 +25,8 @@ class TableReaderExample {
 
   @Test
   def testCodeExample() = {
-    import fi.pelam.csv.table._
-    import fi.pelam.csv.cell._
     import TableReaderConfig._
+    import fi.pelam.csv.cell._
 
     val reader = new TableReader[String, String, SimpleMetadata](
       openStream = "name,number\n" +

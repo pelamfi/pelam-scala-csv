@@ -17,33 +17,15 @@
  */
 
 package fi.pelam.csv.table
-import TableReaderConfig._
-import org.junit.Test
-import org.junit.Assert._
-import java.nio.charset.{StandardCharsets, Charset}
-
-import fi.pelam.csv.CsvConstants
-import org.junit.Test
-import org.junit.Assert._
-import java.io.ByteArrayInputStream
-import java.util.Locale
-
-import com.google.common.io.{ByteSource, Resources}
-import fi.pelam.csv.cell._
-import fi.pelam.csv.table.Locales.localeFi
-import fi.pelam.csv.table.TestColType._
-import fi.pelam.csv.table.TestRowType._
 import org.junit.Assert._
 import org.junit.Test
-import fi.pelam.csv.cell._
 
 class DetectingTableReaderExample {
 
   @Test
   def testFromCodeExample() = {
-    import fi.pelam.csv.table._
-    import fi.pelam.csv.cell._
     import TableReaderConfig._
+    import fi.pelam.csv.cell._
 
     val validColTypes = Set("header", "name", "number")
 

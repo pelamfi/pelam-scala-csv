@@ -18,11 +18,10 @@
 
 package fi.pelam.csv.table
 
-import java.nio.charset.{StandardCharsets, Charset}
-import fi.pelam.csv.CsvConstants
-import java.io.ByteArrayInputStream
+import java.nio.charset.{Charset, StandardCharsets}
 import java.util.Locale
-import fi.pelam.csv.cell._
+
+import fi.pelam.csv.CsvConstants
 
 /**
  * This CSV format detection heuristic tries to read the input CSV

@@ -18,8 +18,6 @@
 
 package fi.pelam.csv.table
 
-import java.io.ByteArrayInputStream
-import java.nio.charset.StandardCharsets
 import java.util.Locale
 
 import com.google.common.io.{ByteSource, Resources}
@@ -27,13 +25,12 @@ import fi.pelam.csv.cell._
 import fi.pelam.csv.table.Locales.localeFi
 import fi.pelam.csv.table.TestColType._
 import fi.pelam.csv.table.TestRowType._
-import TableReaderConfig._
 import org.junit.Assert._
 import org.junit.Test
 
 class TableReaderTest {
-  import TableReaderTest._
   import TableReaderConfig._
+  import TableReaderTest._
 
   @Test
   def testReadFailNoRowId: Unit = {

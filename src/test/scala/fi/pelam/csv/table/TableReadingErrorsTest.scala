@@ -18,8 +18,8 @@
 package fi.pelam.csv.table
 
 import fi.pelam.csv.cell.{CellKey, StringCell}
-import org.junit.Test
 import org.junit.Assert._
+import org.junit.Test
 
 class TableReadingErrorsTest {
   import TableReadingErrorsTest._

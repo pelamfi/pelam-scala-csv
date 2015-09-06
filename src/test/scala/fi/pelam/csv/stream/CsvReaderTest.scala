@@ -18,8 +18,9 @@
 
 package fi.pelam.csv.stream
 
-import com.google.common.io.Resources
 import java.nio.charset.StandardCharsets
+
+import com.google.common.io.Resources
 import fi.pelam.csv.cell.{CellKey, StringCell}
 import org.junit.Assert._
 import org.junit.Test
