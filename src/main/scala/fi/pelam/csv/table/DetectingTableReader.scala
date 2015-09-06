@@ -23,6 +23,7 @@ import java.util.Locale
 
 import fi.pelam.csv.CsvConstants
 
+// @formatter:off IntelliJ 14.1 (Scala plugin) formatter messes up Scaladoc
 /**
  * This CSV format detection heuristic tries to read the input CSV
  * with varying parameters until a `Table` is produced with no errors or
@@ -113,7 +114,8 @@ import fi.pelam.csv.CsvConstants
  *           This is used to manage the character set, separator, `cellTypeLocale` and `dataLocale`
  *           combinations when attempting to read the CSV data from the input stream.
  */
-class DetectingTableReader[RT, CT, M <: LocaleTableMetadata[M]] (
+// @formatter:on IntelliJ 14.1 (Scala plugin) formatter messes up Scaladoc
+class DetectingTableReader[RT, CT, M <: LocaleTableMetadata[M]](
   val initialMetadata: M,
   val tableReaderMaker: (M) => TableReader[RT, CT, M],
   val locales: Seq[Locale] = CsvConstants.commonLocales,
@@ -202,7 +204,7 @@ object DetectingTableReader {
     tableReaderMaker: (LocaleMetadata) => TableReader[RT, CT, LocaleMetadata],
     locales: Seq[Locale] = CsvConstants.commonLocales,
     charsets: Seq[Charset] = CsvConstants.commonCharsets,
-    separators: Seq[Char] = CsvConstants.commonSeparators) = {
+    separators: Seq[Char] = CsvConstants.commonSeparators)` = {
 
     new DetectingTableReader(initialMetadata = LocaleMetadata(),
       tableReaderMaker = tableReaderMaker,

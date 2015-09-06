@@ -33,10 +33,10 @@ package fi.pelam.csv.table
  *           This specifies the character set and separator to use when reading the CSV data from the input stream.
  *
  */
-case class TableReaderEvaluator[RT, CT, M <: TableMetadata] private[csv] (
+case class TableReaderEvaluator[RT, CT, M <: TableMetadata] private[csv](
   table: Option[Table[RT, CT, M]] = None,
   errors: TableReadingErrors = TableReadingErrors.initialValue
-  ){
+  ) {
 
   val metadata: Option[M] = table.map(_.metadata)
 

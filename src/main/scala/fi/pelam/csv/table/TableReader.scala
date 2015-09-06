@@ -24,6 +24,7 @@ import fi.pelam.csv.cell._
 import fi.pelam.csv.stream.CsvReader
 import fi.pelam.csv.util.{Pipeline, SortedBiMap}
 
+// @formatter:off IntelliJ 14.1 (Scala plugin) formatter messes up Scaladoc
 /**
  * This class is part of the the higher level API for reading,
  * writing and processing CSV data.
@@ -140,6 +141,7 @@ import fi.pelam.csv.util.{Pipeline, SortedBiMap}
  * @tparam M The type of the `metadata` parameter. Must be a sub type of [[TableMetadata]].
  *           This specifies the character set and separator to use when reading the CSV data from the input stream.
  */
+// @formatter:on IntelliJ 14.1 (Scala plugin) formatter messes up Scaladoc
 class TableReader[RT, CT, M <: TableMetadata](
   val openStream: () => java.io.InputStream,
   val tableMetadata: M = SimpleMetadata(),
