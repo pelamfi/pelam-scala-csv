@@ -21,6 +21,7 @@ package fi.pelam.csv.cell
 import java.text.{NumberFormat, ParseException, ParsePosition}
 import java.util.Locale
 
+// @formatter:off IntelliJ 14.1 (Scala plugin) formatter messes up Scaladoc
 /**
  * Basically this class is a sample implementation of a more specialised subtype of
  * [[fi.pelam.csv.cell.Cell]].
@@ -37,6 +38,7 @@ import java.util.Locale
  *                  to be stored in CSV text data.
  * @param value is the integer stored in CSV.
  */
+// @formatter:on IntelliJ 14.1 (Scala plugin) formatter messes up Scaladoc
 // TODO: Fix DRY wrt IntegerCell
 case class DoubleCell(override val cellKey: CellKey,
   override val value: Double)

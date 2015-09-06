@@ -42,6 +42,7 @@ package fi.pelam.csv.cell
  * column and row numbering.
  */
 case class CellKey(rowIndex: Int, colIndex: Int) extends Ordered[CellKey] {
+
   import CellKey._
 
   /**
@@ -70,12 +71,14 @@ case class CellKey(rowIndex: Int, colIndex: Int) extends Ordered[CellKey] {
    */
   def indices: IndicesTuple = (rowIndex, colIndex)
 
+  // @formatter:off IntelliJ 14.1 (Scala plugin) formatter messes up Scaladoc
   /**
    * Example: {{{
    *   scala> CellKey(26, 26)
    *   cellKey: fi.pelam.csv.cell.CellKey = Row 26, Column AA (26)
    * }}}
    */
+  // @formatter:on
   override def toString(): String = s"$rowKey, $colKey"
 
   /**

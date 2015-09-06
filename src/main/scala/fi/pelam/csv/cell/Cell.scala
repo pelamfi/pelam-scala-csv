@@ -18,6 +18,7 @@
 
 package fi.pelam.csv.cell
 
+// @formatter:off IntelliJ 14.1 (Scala plugin) formatter messes up Scaladoc
 /**
  * Base class for cells used in this CSV library.
  *
@@ -32,6 +33,7 @@ package fi.pelam.csv.cell
  * @see See the documentation of cellKey member below for design rationale
  *      on having coordinates in each cell.
  */
+// @formatter:on
 abstract class Cell {
 
   /**
