@@ -100,6 +100,7 @@ class DetectingTableReaderTest {
 }
 
 object DetectingTableReaderTest {
+
   import TableReaderTest._
 
   val locales = List(localeFi, Locale.ROOT)
@@ -138,4 +139,5 @@ object DetectingTableReaderTest {
       copy(separator = separator, charset = charset, cellTypeLocale = cellTypeLocale, dataLocale = dataLocale)
     }
   }
+
 }

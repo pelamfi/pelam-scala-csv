@@ -22,6 +22,7 @@ import org.junit.Assert._
 import org.junit.Test
 
 class TableReadingErrorTest {
+
   import TableReadingErrorTest._
 
   @Test
@@ -62,9 +63,9 @@ class TableReadingErrorTest {
 }
 
 object TableReadingErrorTest {
-  val stringCell = StringCell(CellKey(1,2),"foocell")
+  val stringCell = StringCell(CellKey(1, 2), "foocell")
   val errorFoo = TableReadingError("Some error occured.", Some(stringCell))
-  val intCell = IntegerCell(CellKey(2,3), 123)
+  val intCell = IntegerCell(CellKey(2, 3), 123)
   val errorBar = TableReadingError("Another error occured.", Some(intCell))
 
 }

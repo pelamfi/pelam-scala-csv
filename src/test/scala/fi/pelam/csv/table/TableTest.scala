@@ -103,9 +103,9 @@ class TableTest {
         ColKey(1) -> "number")
     )
 
-    assertEquals(List("foo","bar"), table.getSingleCol("data", "name").map(_.value).toList)
+    assertEquals(List("foo", "bar"), table.getSingleCol("data", "name").map(_.value).toList)
 
-    assertEquals(List(1,2), table.getSingleCol("data", "number").map(_.value).toList)
+    assertEquals(List(1, 2), table.getSingleCol("data", "number").map(_.value).toList)
   }
 
   @Test

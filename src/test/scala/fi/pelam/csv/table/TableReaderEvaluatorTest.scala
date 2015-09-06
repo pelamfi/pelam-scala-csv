@@ -29,10 +29,10 @@ class TableReaderEvaluatorTest {
   val mockReader = mock[TableReader[TestRowType, TestColType, SimpleMetadata]]
 
   val table1 = Table[TestRowType, TestColType, SimpleMetadata](
-    IndexedSeq(StringCell(CellKey(0,0), "foocell")))
+    IndexedSeq(StringCell(CellKey(0, 0), "foocell")))
 
   val table2 = Table[TestRowType, TestColType, SimpleMetadata](
-    IndexedSeq(StringCell(CellKey(1,0), "barcell")))
+    IndexedSeq(StringCell(CellKey(1, 0), "barcell")))
 
   val noErrors = TableReadingErrors()
 

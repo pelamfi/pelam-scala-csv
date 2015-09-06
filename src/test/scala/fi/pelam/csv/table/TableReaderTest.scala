@@ -29,6 +29,7 @@ import org.junit.Assert._
 import org.junit.Test
 
 class TableReaderTest {
+
   import TableReaderConfig._
   import TableReaderTest._
 
@@ -157,6 +158,7 @@ class TableReaderTest {
 }
 
 object TableReaderTest {
+
   import TableReaderConfig._
 
   val headerAndCommentsOnly = "ColumnHeader,CommentCol,CommentCol,CommentCol,CommentCol\n" +
