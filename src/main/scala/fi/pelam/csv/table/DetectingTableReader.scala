@@ -41,7 +41,7 @@ import fi.pelam.csv.cell._
  *
  * This example detects and parses a weird CSV format in which the separator
  * is the one used at least in the finnish locale, but numeric data is
- * formatted in english style. In which the column types are defined
+ * formatted in english style. The column types are defined
  * on the first row and the row type is defined by the first column.
  *
  * {{{
