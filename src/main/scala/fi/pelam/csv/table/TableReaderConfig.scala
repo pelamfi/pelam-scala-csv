@@ -78,7 +78,7 @@ object TableReaderConfig {
   def makeCellUpgrader[RT, CT](parserMap: PartialFunction[CellType[_, _], CellParser], locale: Locale = Locale.ROOT): TableReader.CellUpgrader[RT, CT] = {
     case (cell, cellType) if parserMap.isDefinedAt(cellType) => {
 
-      parserMap(cellType).parse(cell.cellKey, locale, cell.serializedString) match {
+      parserMap(cellType).parse(cell.cellKey, cell.serializedString) match {
         case Left(error) => Left(TableReadingError(error, cell, cellType))
         case Right(cell) => Right(cell)
       }

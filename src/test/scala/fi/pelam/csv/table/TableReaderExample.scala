@@ -44,7 +44,7 @@ class TableReaderExample {
       }),
 
       cellUpgrader = makeCellUpgrader({
-        case CellType("data", "number") => IntegerCell
+        case CellType("data", "number") => IntegerCell.defaultParser
       }))
 
     val table = reader.readOrThrow()

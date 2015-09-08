@@ -106,7 +106,7 @@ class TableReaderTest {
     // TODO: wrap in locale detection
     // assertEquals(Locale.ROOT, table.metadata.dataLocale)
 
-    val expectedIntegerCell = IntegerCell.parse(CellKey(2, 4), Locale.ROOT, "12000").right.get
+    val expectedIntegerCell = IntegerCell.defaultParser.parse(CellKey(2, 4), "12000").right.get
 
     assertEquals(IndexedSeq(expectedIntegerCell), cells)
   }
@@ -199,7 +199,7 @@ object TableReaderTest {
   }
 
   def cellUpgrader(locale: Locale) = makeCellUpgrader[TestRowType, TestColType](
-    Map(CellType(TestRowType.Worker, TestColType.Salary) -> IntegerCell), locale
+    Map(CellType(TestRowType.Worker, TestColType.Salary) -> IntegerCell.parserForLocale(locale))
   )
 
   implicit def opener(byteSource: ByteSource): () => java.io.InputStream = {

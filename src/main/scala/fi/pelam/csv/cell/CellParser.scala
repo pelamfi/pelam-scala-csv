@@ -36,5 +36,5 @@ package fi.pelam.csv.cell
  * client specified requirements.
  */
 abstract class CellParser {
-  def parse(cellKey: CellKey, locale: java.util.Locale, input: String): Either[CellParsingError, Cell]
+  def parse(cellKey: CellKey, input: String): Either[CellParsingError, Cell]
 }

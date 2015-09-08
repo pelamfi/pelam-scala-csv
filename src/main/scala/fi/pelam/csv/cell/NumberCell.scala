@@ -18,13 +18,16 @@
 
 package fi.pelam.csv.cell
 
-/**
- * [[CellParser]] subtypes produce these errors when they can't parse the cell content string.
- */
-case class CellParsingError(msg: String) {
+import fi.pelam.csv.util.FormatterUtil
 
-  override def toString() = s"Error parsing cell content: $msg"
+trait NumberCell[T <: AnyVal] extends Cell {
 
-  def withExtraMessage(extra: String) = copy(msg = msg + " " + extra)
+  val value: T
+
+  val formatter: FormatterUtil.Formatter[T]
+
+  def serializedString: String = {
+    formatter(value)
+  }
 
 }

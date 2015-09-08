@@ -63,39 +63,33 @@ case class DoubleCell(override val cellKey: CellKey,
  * by using it in a map passed to [[fi.pelam.csv.table.TableReaderConfig.makeCellUpgrader]].
  * to specify which cells should be interpreted as containing integers.
  */
-object DoubleCell extends CellParser {
+object DoubleCell {
 
   type Formatter = FormatterUtil.Formatter[Double]
 
   def defaultFormatter = toSynchronizedFormatter[Double](NumberFormat.getInstance(Locale.ROOT))
 
-  override def parse(cellKey: CellKey, locale: Locale, input: String): Either[CellParsingError, DoubleCell] = {
+  def getParser(locale: Locale): CellParser = {
 
-    // TODO: Refactor, make the numberFormat somehow client code configurable.
-    // NOTE: This creates a local instance of NumberFormat to workaround
-    // thread safety problem http://stackoverflow.com/a/1285353/1148030
-    val numberFormat: NumberFormat = NumberFormat.getInstance(locale)
+    val parser = toSynchronizedParser(NumberFormat.getInstance(locale))
 
-    try {
+    val formatter = toSynchronizedFormatter[Double](NumberFormat.getInstance(locale))
 
-      val position = new ParsePosition(0)
+    new CellParser {
+      override def parse(cellKey: CellKey, input: String) = {
 
-      val trimmedInput = input.trim
+        val trimmedInput = input.trim
 
-      val number = numberFormat.parse(trimmedInput, position)
+        val result = parser(trimmedInput)
 
-      if (position.getIndex() != trimmedInput.size) {
-        Left(CellParsingError(s"Expected decimal number (double precision), but input '$input' could not be fully parsed with locale '$locale'."))
-      } else {
-
-        val doubleValue = number.doubleValue()
-
-        Right(DoubleCell(cellKey, doubleValue)(toSynchronizedFormatter(numberFormat)))
+        result match {
+          case Some(number) => {
+            Right(DoubleCell(cellKey, number.doubleValue())(formatter))
+          }
+          case None => Left(CellParsingError(s"Expected decimal number (double precision), " +
+            s"but input '$input' could not be fully parsed with locale '$locale'."))
+        }
       }
-
-    } catch {
-      case e: ParseException =>
-        Left(CellParsingError(s"Expected a decimal number (double precision), but input '$input' could not be parsed with locale '$locale'"))
     }
   }
 }

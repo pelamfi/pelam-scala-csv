@@ -51,7 +51,7 @@ case class StringCell(override val cellKey: CellKey,
 
 object StringCell extends CellParser {
 
-  override def parse(cellKey: CellKey, locale: Locale, input: String): Either[CellParsingError, StringCell] = {
+  override def parse(cellKey: CellKey, input: String): Either[CellParsingError, StringCell] = {
     Right(StringCell(cellKey, input))
   }
 }
