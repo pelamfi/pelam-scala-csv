@@ -31,7 +31,7 @@ class IntegerCellTest {
   @Test
   def testFromStringError: Unit = {
     assertEquals(Left(CellParsingError(s"Expected integer, but input '12,000.0' " +
-      s"could not be fully parsed with locale 'fi'.")),
+      s"could not be fully parsed. Used locale 'fi'.")),
       IntegerCell.parserForLocale(localeFi)(CellKey(0, 0), "12,000.0"))
   }
 

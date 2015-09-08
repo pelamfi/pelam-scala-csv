@@ -18,10 +18,9 @@
 
 package fi.pelam.csv.cell
 
-import java.text.{NumberFormat, ParseException, ParsePosition}
+import java.text.NumberFormat
 import java.util.Locale
 
-import fi.pelam.csv.util.FormatterUtil
 import fi.pelam.csv.util.FormatterUtil.Formatter
 
 // @formatter:off IntelliJ 14.1 (Scala plugin) formatter messes up Scaladoc
@@ -33,15 +32,15 @@ import fi.pelam.csv.util.FormatterUtil.Formatter
  * of [[fi.pelam.csv.cell.Cell]].
  *
  * This class is quite simple, but the companion object is more
- * interesting as it implements the [[CellParser]] trait and acts as a factory
- * which produces IntegerCell instances (or errors if parsing fails) from String data.
+ * interesting as it provides [[Cell.Parser]] functions
+ * which produce IntegerCell instances (or errors if parsing fails) from String data.
  *
  * @param cellKey the location of this cell in a CSV table.
  * @param formatter A function used to convert the integer held by this cell into a `String`
  *                  to be stored in CSV text data.
  * @param value is the integer stored in CSV.
  */
-// @formatter:on IntelliJ 14.1 (Scala plugin) formatter messes up Scaladoc
+// @formatter:on IntelliJ 14.1 (Scala plugin) formatter messes up ScalaDoc
 case class IntegerCell(override val cellKey: CellKey,
   override val value: Int)
   (implicit override val formatter: Formatter[Int] = IntegerCell.defaultFormatter)
@@ -51,12 +50,12 @@ case class IntegerCell(override val cellKey: CellKey,
 
 /**
  * The IntegerCell class it self is quite simple, but this companion object is more
- * interesting as it implements the [[CellParser]] trait and acts as a factory
- * which produces IntegerCell instances (or errors if parsing fails) from String data.
+ * interesting as provides [[Cell.Parser]] functions. These functions in turn
+ * produce IntegerCell instances (or errors if parsing fails) from String data.
  *
- * This companion object can be used used to upgrade cells in TableReader in an easy way
- * by using it in a map passed to [[fi.pelam.csv.table.TableReaderConfig.makeCellUpgrader]].
- * to specify which cells should be interpreted as containing integers.
+ * [[Cell.Parser]] functions can be used used to upgrade cells in [[fi.pelam.csv.table.TableReader]]
+ * in an easy way by using them in a map passed to [[fi.pelam.csv.table.TableReaderConfig.makeCellUpgrader]].
+ * The map specifies which cells should be interpreted as containing integers.
  */
 object IntegerCell {
   import fi.pelam.csv.util.FormatterUtil._
@@ -66,26 +65,23 @@ object IntegerCell {
   val defaultParser = parserForLocale(Locale.ROOT)
 
   def parserForLocale(locale: Locale): Cell.Parser = {
-    parserForNumberFormat(NumberFormat.getInstance(locale))
-    /*
-    result match {
-      case Left(e: CellParsingError) => Left(e.withExtraMessage(s"Used locale $locale"))
-      case _ => _
-    }*/
+    val function = parserForNumberFormat(NumberFormat.getInstance(locale))
+
+    { (cellKey: CellKey, input: String) =>
+      function(cellKey, input) match {
+        case Left(e: CellParsingError) => Left(e.withExtraMessage(s"Used locale '$locale'."))
+        case Right(x)=> Right(x)
+      }
+    }
   }
 
   def parserForNumberFormat(numberFormat: NumberFormat): Cell.Parser = {
     val parser = toSynchronizedParser(numberFormat)
-
     val formatter = toSynchronizedFormatter[Int](numberFormat)
 
-    val parserFunction: Cell.Parser = { (cellKey: CellKey, input: String) =>
+    { (cellKey: CellKey, input: String) =>
 
-      val trimmedInput = input.trim
-
-      val result = parser(trimmedInput)
-
-      val errorsHandled: Cell.ParserResult = result match {
+      parser(input.trim) match {
         case Some(number) => {
           val intValue = number.intValue()
 
@@ -98,11 +94,7 @@ object IntegerCell {
         case None => Left(CellParsingError(s"Expected integer, but input '$input' " +
           s"could not be fully parsed."))
       }
-
-      errorsHandled
     }
-
-    parserFunction
   }
 }
 

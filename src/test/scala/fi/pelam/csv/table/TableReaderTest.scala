@@ -120,7 +120,7 @@ class TableReaderTest {
 
     assertEquals(
       "Error parsing cell content: Expected integer, but input 'injected-error-should-be-number' could not be " +
-        "fully parsed with locale 'fi'. CellType(Worker,Salary) The error is related to the StringCell with value " +
+        "fully parsed. Used locale 'fi'. CellType(Worker,Salary) The error is related to the StringCell with value " +
         "'injected-error-should-be-number' at Row 3, Column E (4).", errors.errors(0).toString())
 
     assertEquals(1, errors.errors.size)
