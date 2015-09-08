@@ -22,7 +22,7 @@ import java.io.ByteArrayInputStream
 import java.util.Locale
 
 import fi.pelam.csv.CsvConstants
-import fi.pelam.csv.cell.{Cell, CellKey, CellParser}
+import fi.pelam.csv.cell.{Cell, CellKey}
 
 /**
  * A set of functions that map various things used as parameters for
@@ -67,18 +67,19 @@ object TableReaderConfig {
   /**
    * This is a helper method to setup a simple cell upgrader
    * for [[fi.pelam.csv.table.TableReader]] from a map of
-   * [[CellType CellTypes]] to [[fi.pelam.csv.cell.CellParser CellParsers]].
+   * [[CellType CellTypes]] to [[fi.pelam.csv.cell.Cell.Parser Cell Parsers]].
    *
    * @param locale locale to be passed to cell parsers
-   * @param parserMap a map from [[CellType CellTypes]] to [[fi.pelam.csv.cell.CellParser CellParsers]]
+   * @param parserMap a map from [[CellType CellTypes]] to [[fi.pelam.csv.cell.Cell.Parser CellParsers]]
    * @tparam RT client specific row type
    * @tparam CT client specific column type
    * @return a [[TableReader.CellUpgrader]] to be passed to [[TableReader]]
    */
-  def makeCellUpgrader[RT, CT](parserMap: PartialFunction[CellType[_, _], CellParser], locale: Locale = Locale.ROOT): TableReader.CellUpgrader[RT, CT] = {
+  def makeCellUpgrader[RT, CT](parserMap: PartialFunction[CellType[_, _], Cell.Parser], locale: Locale = Locale.ROOT): TableReader.CellUpgrader[RT, CT] = {
     case (cell, cellType) if parserMap.isDefinedAt(cellType) => {
+      val parse = parserMap(cellType)
 
-      parserMap(cellType).parse(cell.cellKey, cell.serializedString) match {
+      parse(cell.cellKey, cell.serializedString) match {
         case Left(error) => Left(TableReadingError(error, cell, cellType))
         case Right(cell) => Right(cell)
       }

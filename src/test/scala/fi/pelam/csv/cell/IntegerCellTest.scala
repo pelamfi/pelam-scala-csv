@@ -32,7 +32,7 @@ class IntegerCellTest {
   def testFromStringError: Unit = {
     assertEquals(Left(CellParsingError(s"Expected integer, but input '12,000.0' " +
       s"could not be fully parsed with locale 'fi'.")),
-      IntegerCell.parserForLocale(localeFi).parse(CellKey(0, 0), "12,000.0"))
+      IntegerCell.parserForLocale(localeFi)(CellKey(0, 0), "12,000.0"))
   }
 
   @Test
@@ -50,6 +50,6 @@ class IntegerCellTest {
   @Test
   def testFromStringFi: Unit = {
     assertEquals("12\u00A0000",
-      IntegerCell.parserForLocale(localeFi).parse(CellKey(0, 0), "12000,0").right.get.serializedString)
+      IntegerCell.parserForLocale(localeFi)(CellKey(0, 0), "12000,0").right.get.serializedString)
   }
 }

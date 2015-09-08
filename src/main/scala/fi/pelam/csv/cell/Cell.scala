@@ -93,3 +93,26 @@ abstract class Cell {
 
   override def toString() = this.getClass().getSimpleName() + s" with value '$value' at $cellKey"
 }
+
+object Cell {
+  type ParserResult = Either[CellParsingError, Cell]
+
+  /**
+   * A type for client defined [[fi.pelam.csv.cell.Cell Cell]] parsers
+   * which construct cells from strings.
+   *
+   * == Use of this class in [[fi.pelam.csv.table.TableReader TableReader]] ==
+   *
+   * These parser are used in [[fi.pelam.csv.table.TableReader TableReader]].
+   * The parsers are invoked based on [[fi.pelam.csv.table.CellType CellTypes]] of each cell.
+   *
+   * The parser can then replace the cell with an instance of another subclass of [[fi.pelam.csv.cell.Cell Cell]].
+   * The purpose of the mechanism in [[fi.pelam.csv.table.TableReader TableReader]] is to upgrade the
+   * cells from simple [[fi.pelam.csv.cell.StringCell StringCell]]s to more specialized subclasses of
+   * [[fi.pelam.csv.cell.Cell Cell]] like the [[fi.pelam.csv.cell.IntegerCell IntegerCell]].
+   *
+   * Another function that can be performed at the same time is validating that the contents of the cells against
+   * client specified requirements.
+   */
+  type Parser = (CellKey, String) => ParserResult
+}

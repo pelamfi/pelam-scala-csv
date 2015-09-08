@@ -49,9 +49,10 @@ case class StringCell(override val cellKey: CellKey,
 
 }
 
-object StringCell extends CellParser {
+object StringCell {
 
-  override def parse(cellKey: CellKey, input: String): Either[CellParsingError, StringCell] = {
+  val parser: Cell.Parser = { (cellKey: CellKey, input: String) =>
     Right(StringCell(cellKey, input))
   }
+
 }

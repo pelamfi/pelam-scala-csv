@@ -69,28 +69,29 @@ object DoubleCell {
 
   def defaultFormatter = toSynchronizedFormatter[Double](NumberFormat.getInstance(Locale.ROOT))
 
-  def getParser(locale: Locale): CellParser = {
+  def getParser(locale: Locale): Cell.Parser = {
 
     val parser = toSynchronizedParser(NumberFormat.getInstance(locale))
 
     val formatter = toSynchronizedFormatter[Double](NumberFormat.getInstance(locale))
 
-    new CellParser {
-      override def parse(cellKey: CellKey, input: String) = {
+    val parserFunction: Cell.Parser = { (cellKey: CellKey, input: String) =>
+      val trimmedInput = input.trim
 
-        val trimmedInput = input.trim
+      val result = parser(trimmedInput)
 
-        val result = parser(trimmedInput)
-
-        result match {
-          case Some(number) => {
-            Right(DoubleCell(cellKey, number.doubleValue())(formatter))
-          }
-          case None => Left(CellParsingError(s"Expected decimal number (double precision), " +
-            s"but input '$input' could not be fully parsed with locale '$locale'."))
+      val errorsHandled: Cell.ParserResult = result match {
+        case Some(number) => {
+          Right(DoubleCell(cellKey, number.doubleValue())(formatter))
         }
+        case None => Left(CellParsingError(s"Expected decimal number (double precision), " +
+          s"but input '$input' could not be fully parsed with locale '$locale'."))
       }
+
+      errorsHandled
     }
+
+    parserFunction
   }
 }
 

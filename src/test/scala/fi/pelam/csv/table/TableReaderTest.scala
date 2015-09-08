@@ -106,7 +106,7 @@ class TableReaderTest {
     // TODO: wrap in locale detection
     // assertEquals(Locale.ROOT, table.metadata.dataLocale)
 
-    val expectedIntegerCell = IntegerCell.defaultParser.parse(CellKey(2, 4), "12000").right.get
+    val expectedIntegerCell = IntegerCell.defaultParser(CellKey(2, 4), "12000").right.get
 
     assertEquals(IndexedSeq(expectedIntegerCell), cells)
   }

@@ -65,7 +65,7 @@ object IntegerCell {
 
   val defaultParser = parserForLocale(Locale.ROOT)
 
-  def parserForLocale(locale: Locale): CellParser = {
+  def parserForLocale(locale: Locale): Cell.Parser = {
     parserForNumberFormat(NumberFormat.getInstance(locale))
     /*
     result match {
@@ -74,35 +74,36 @@ object IntegerCell {
     }*/
   }
 
-  def parserForNumberFormat(numberFormat: NumberFormat): CellParser = {
-    new CellParser {
+  def parserForNumberFormat(numberFormat: NumberFormat): Cell.Parser = {
+    val parser = toSynchronizedParser(numberFormat)
 
-      val parser = toSynchronizedParser(numberFormat)
+    val formatter = toSynchronizedFormatter[Int](numberFormat)
 
-      val formatter = toSynchronizedFormatter[Int](numberFormat)
+    val parserFunction: Cell.Parser = { (cellKey: CellKey, input: String) =>
 
-      override def parse(cellKey: CellKey, input: String) = {
+      val trimmedInput = input.trim
 
-        val trimmedInput = input.trim()
+      val result = parser(trimmedInput)
 
-        val result = parser(trimmedInput)
+      val errorsHandled: Cell.ParserResult = result match {
+        case Some(number) => {
+          val intValue = number.intValue()
 
-        result match {
-          case Some(number) => {
-            val intValue = number.intValue()
-
-            if (intValue == number) {
-              Right(IntegerCell(cellKey, intValue)(formatter))
-            } else {
-              Left(CellParsingError(s"Expected integer, but value '$input' is decimal"))
-            }
+          if (intValue == number) {
+            Right(IntegerCell(cellKey, intValue)(formatter))
+          } else {
+            Left(CellParsingError(s"Expected integer, but value '$input' is decimal"))
           }
-          case None => Left(CellParsingError(s"Expected integer, but input '$input' " +
-            s"could not be fully parsed."))
         }
+        case None => Left(CellParsingError(s"Expected integer, but input '$input' " +
+          s"could not be fully parsed."))
       }
+
+      errorsHandled
     }
-}
+
+    parserFunction
+  }
 }
 
 
