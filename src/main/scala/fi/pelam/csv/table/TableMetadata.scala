@@ -22,7 +22,6 @@ import java.nio.charset.Charset
 
 import fi.pelam.csv.CsvConstants
 
-// TODO: WIP, start using something like this internally or  remove this class
 /**
  * Base class for metadata attached to [[Table]].
  *
