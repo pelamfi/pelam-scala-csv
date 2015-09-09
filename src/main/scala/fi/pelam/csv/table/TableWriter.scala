@@ -22,7 +22,36 @@ import java.io.OutputStreamWriter
 
 import fi.pelam.csv.stream.CsvWriter
 
-// TODO: Scaladoc and code example
+/**
+ * This class writes a [[Table]] as CSV to the given `OutputStream`.
+ *
+ * The stream is closed at the end. This can be used to write CSV files.
+ * The CSV format is taken from [[Table.metadata]].
+ *
+ * Cells contents are each formatted according to their individual
+ * [[fi.pelam.csv.cell.Cell.serializedString serializedString]].
+ *
+ * {{{
+ *  val table = Table[String, String, SimpleMetadata](IndexedSeq(
+ *    StringCell(CellKey(0,0), "foo"),
+ *    StringCell(CellKey(0,1), "bar")))
+ *
+ *  val writer = new TableWriter(table)
+ *
+ *  val outputStream = new ByteArrayOutputStream()
+ *
+ *  writer.write(outputStream)
+ *
+ *  val written = new String(outputStream.toByteArray(), table.metadata.charset)
+ *
+ *  assertEquals("foo,bar\n", written)
+ * }}}
+ *
+ * @param table the table to write
+ * @tparam M a user customizable metadata type than can piggybacks additional information on the table object.
+ * @tparam RT Client specified object type used for typing rows in CSV data.
+ * @tparam CT Client specified object type used for typing columns in CSV data.
+ */
 class TableWriter[RT, CT, M <: TableMetadata](table: Table[RT, CT, M]) {
 
   def write(output: java.io.OutputStream) = {

@@ -32,6 +32,7 @@ class TableReaderTest {
 
   import TableReaderConfig._
   import TableReaderTest._
+  import TableTest._
 
   @Test
   def testReadFailNoRowId: Unit = {

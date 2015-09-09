@@ -18,6 +18,7 @@
 
 package fi.pelam.csv.table
 
+import com.google.common.io.ByteSource
 import fi.pelam.csv.cell._
 import fi.pelam.csv.util.SortedBiMap
 import org.junit.Assert._
