@@ -66,7 +66,7 @@ import fi.pelam.csv.util.{Pipeline, SortedBiMap}
  *    }),
  *
  *    cellUpgrader = makeCellUpgrader({
- *      case CellType("data", "number") => IntegerCell
+ *      case CellType("data", "number") => IntegerCell.defaultParser
  *    }))
  *
  *  val table = reader.readOrThrow()

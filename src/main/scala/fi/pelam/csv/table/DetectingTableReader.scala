@@ -73,7 +73,7 @@ import fi.pelam.csv.CsvConstants
  *       })),
  *
  *       cellUpgrader = makeCellUpgrader({
- *         case CellType("data", "number") => DoubleCell
+ *         case CellType("data", "number") => DoubleCell.parserForLocale(metadata.dataLocale)
  *       },
  *       metadata.dataLocale
  *       ))
