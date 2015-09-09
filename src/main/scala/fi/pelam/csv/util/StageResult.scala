@@ -19,11 +19,12 @@
 package fi.pelam.csv.util
 
 /**
- * A trait that captures whether some state in the previous stage of some computation
- * is considered successful. This is used by [[Pipeline]].
+ * A trait that captures whether some state during some computation
+ * is considered successful.
+ *
+ * This is used by [[Pipeline]].
  */
-// TODO: Better name
-trait LastStageResult[T <: LastStageResult[T]] {
+trait StageResult[T <: StageResult[T]] {
 
   val success: Boolean
 

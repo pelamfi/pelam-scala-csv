@@ -23,7 +23,7 @@ package fi.pelam.csv.util
  * transformations of state. An input state can then be passed
  * through the pipeline with the [[Pipeline!.run run]] method.
  *
- * The state is queried for success via the trait [[LastStageResult]].
+ * The state is queried for success via the trait [[StageResult]].
  *
  * If the state does not report as success after executing a stage,
  * the rest of the pipeline is bypassed.
@@ -47,7 +47,7 @@ package fi.pelam.csv.util
  */
 // TODO: Make it more clear in the example what the stages do.
 // TODO: Is it accurate to call this a monad?
-sealed trait Pipeline[S <: LastStageResult[S]] {
+sealed trait Pipeline[S <: StageResult[S]] {
   def map(f: S => S): Pipeline[S]
 
   def flatMap(inner: S => Pipeline[S]): Pipeline[S]
@@ -57,7 +57,7 @@ sealed trait Pipeline[S <: LastStageResult[S]] {
 
 object Pipeline {
 
-  case class Stage[S <: LastStageResult[S]](stageFunc: S => S) extends Pipeline[S] {
+  case class Stage[S <: StageResult[S]](stageFunc: S => S) extends Pipeline[S] {
     override def map(mapFunc: S => S) = Stage[S](state => mapFunc(stageFunc(state)))
 
     override def flatMap(inner: S => Pipeline[S]): Pipeline[S] = FlatmapStage(this, inner)
@@ -65,7 +65,7 @@ object Pipeline {
     override def run(inputState: S) = stageFunc(inputState).stageNumberIncremented()
   }
 
-  private case class FlatmapStage[S <: LastStageResult[S]](outer: Pipeline[S],
+  private case class FlatmapStage[S <: StageResult[S]](outer: Pipeline[S],
     inner: S => Pipeline[S],
     mapFunc: S => S = (state: S) => state) extends Pipeline[S] {
 
