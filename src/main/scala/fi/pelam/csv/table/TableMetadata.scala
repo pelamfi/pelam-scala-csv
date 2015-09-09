@@ -34,12 +34,12 @@ import fi.pelam.csv.CsvConstants
  * from.
  *
  * Another use for this metadata mechanism is during the process of autodetecting
- * details of the CSV format by [[TableReader]].
+ * details of the CSV format by [[DetectingTableReader]].
  *
- * This trait has two variables that TableReader can use directly.
+ * This trait has two values that TableReader can use directly.
  *
  * For more complex format detection heuristics, this can be inherited
- * and extended with variables that a more custom detection algorithm then tries to detect.
+ * and extended with values that a more custom detection algorithm then tries to detect.
  *
  */
 trait TableMetadata {

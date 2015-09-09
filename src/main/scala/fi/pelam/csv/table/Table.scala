@@ -67,7 +67,7 @@ import scala.collection.SortedMap
  * // Will give List(1,2)
  * }}}
  *
- * @constructor
+ * @constructor The actual constructor is on the companion object.
  *
  * @param cells All cells in a structure of nested `IndexedSeq`s. The order is first rows, then columns.
  * @param rowTypes A bidirectional map mapping rows to their row types and vice versa.

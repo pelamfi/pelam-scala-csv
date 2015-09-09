@@ -23,7 +23,7 @@ package fi.pelam.csv.table
  * identifying the row type and the column type respectively.
  * <p>
  * This type concept should not be confused with general scala types. Row and column
- * types typically just some suitable (case) objects defined by the client code.
+ * types are typically just some suitable (case) objects defined by the client code.
  * <p>
  * Cell types are used in [[TableReader]] to map which actual subtypes of [[fi.pelam.csv.cell.Cell Cell]] should
  * be used for each position in table.

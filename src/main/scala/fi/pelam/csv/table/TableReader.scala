@@ -81,7 +81,7 @@ import fi.pelam.csv.util.{Pipeline, SortedBiMap}
  * }}}
  *
  * == CSV format detection heuristics ==
- * One sinple detection heuristic is implemented in [[DetectingTableReader]]
+ * One simple detection heuristic is implemented in [[DetectingTableReader]]
  *
  * Since deducing whether correct parameters like character set were used in reading a CSV
  * file without any extra knowledge is impossible, this class supports implementing a custom

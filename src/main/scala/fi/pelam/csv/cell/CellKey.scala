@@ -24,14 +24,14 @@ package fi.pelam.csv.cell
  * Basically a composition of [[fi.pelam.csv.cell.RowKey RowKey]] and [[fi.pelam.csv.cell.ColKey ColKey]]
  * or alternatively just two zero based integers [[rowIndex]] and [[colIndex]].
  *
- * [[fi.pelam.csv.cell.Cell]] has a CellKey as a member.
+ * [[fi.pelam.csv.cell.Cell Each Cell]] has a `CellKey` as a member.
  *
  * == Cell coordinates ==
  *
  * Columns and rows are thought to start from top left corner.
  *
  * Typically in spreadsheet programs columns are numbered with an alphabetical
- * scheme and row number is a one based integer.
+ * scheme and the row number is a one based integer.
  *
  * == Ordering ==
  *
@@ -40,6 +40,9 @@ package fi.pelam.csv.cell
  *
  * The object representations provide type safety and spread sheet style
  * column and row numbering.
+ *
+ * @constructor See alternate constructors on the companion object.
+ *             Create a new `CellKey` from row index and column index.
  */
 case class CellKey(rowIndex: Int, colIndex: Int) extends Ordered[CellKey] {
 

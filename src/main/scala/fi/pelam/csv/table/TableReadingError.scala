@@ -24,6 +24,8 @@ import fi.pelam.csv.stream.CsvReaderError
 /**
  * Various phases in [[TableReader]] produce these when building a Table object from input fails.
  * [[fi.pelam.csv.cell.CellParsingError CellParsingErrors]] errors are converted to these errors in [[TableReader]].
+ *
+ * @constructor See alternate constructors on the companion object.
  */
 case class TableReadingError(msg: String, cell: Option[Cell] = None) {
 

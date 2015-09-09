@@ -70,7 +70,6 @@ TODO list
 
   * TODO: Some simple demo project
   * TODO: Mark classes and objects not intended to be extended final.
-  * TODO: Add @constructor scaladoc tags where needed in class scaladocs.
   * TODO: Try to reduce dependencies of the final artifact.
   * TODO: Some performance tests and profiling to at least have some idea of possible performance disasters.
   * TODO: Test the streaming api with massive data and document if it works.
