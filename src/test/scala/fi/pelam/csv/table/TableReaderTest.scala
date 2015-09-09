@@ -67,8 +67,11 @@ class TableReaderTest {
 
   @Test
   def testRowTypeEn: Unit = {
-    val metadata = SimpleMetadata()
-    val (table, errors) = new TableReader(headerAndCommentsOnly, metadata, testRowTyper(Locale.ROOT), testColTyper(Locale.ROOT)).read()
+    val (table, errors) = new TableReader(
+      openStream = headerAndCommentsOnly,
+      rowTyper = testRowTyper(Locale.ROOT),
+      colTyper = testColTyper(Locale.ROOT)).read()
+
     assertTrue(errors.toString, errors.noErrors)
     assertEquals(ColumnHeader, table.rowTypes(RowKey(0)))
     assertEquals(CommentRow, table.rowTypes(RowKey(1)))
@@ -77,7 +80,11 @@ class TableReaderTest {
 
   @Test
   def testRowTypeFi: Unit = {
-    val (table, errors) = new TableReader(headerAndCommentsOnlyFi, SimpleMetadata(), testRowTyper(localeFi), testColTyper(localeFi)).read()
+    val (table, errors) = new TableReader(
+      openStream = headerAndCommentsOnlyFi,
+      rowTyper = testRowTyper(localeFi),
+      colTyper = testColTyper(localeFi)).read()
+
     assertTrue(errors.toString, errors.noErrors)
     assertEquals(ColumnHeader, table.rowTypes(RowKey(0)))
     assertEquals(CommentRow, table.rowTypes(RowKey(1)))
@@ -96,15 +103,15 @@ class TableReaderTest {
   @Test
   def testUpgradeCellType: Unit = {
 
-    val (table, errors) = new TableReader(rowAndColTypesFiDataEn, SimpleMetadata(), testRowTyper(localeFi), testColTyper(localeFi),
-      cellUpgrader(Locale.ROOT)).read()
+    val (table, errors) = new TableReader(
+      openStream = rowAndColTypesFiDataEn,
+      rowTyper = testRowTyper(localeFi),
+      colTyper = testColTyper(localeFi),
+      cellUpgrader = cellUpgrader(Locale.ROOT)).read()
 
     assertTrue(errors.toString, errors.noErrors)
 
     val cells = table.getSingleCol(TestRowType.Worker, TestColType.Salary)
-
-    // TODO: wrap in locale detection
-    // assertEquals(Locale.ROOT, table.metadata.dataLocale)
 
     val expectedIntegerCell = IntegerCell.defaultParser(CellKey(2, 4), "12000").right.get
 
@@ -128,9 +135,11 @@ class TableReaderTest {
 
   @Test
   def testGetRowAndColTypes: Unit = {
-    // TODO: test with locale detection heuristic
-    val (table, errors) = new TableReader(rowAndColTypesFiDataEn, SimpleMetadata(), testRowTyper(localeFi), testColTyper(localeFi),
-      cellUpgrader(Locale.ROOT)).read()
+    val (table, errors) = new TableReader(
+      openStream = rowAndColTypesFiDataEn,
+      rowTyper = testRowTyper(localeFi),
+      colTyper = testColTyper(localeFi),
+      cellUpgrader = cellUpgrader(Locale.ROOT)).read()
 
     assertEquals(List(RowType, Qualifications, WorkerId, IntParam1, Salary), table.colTypes.values.toList)
     assertEquals(List(TestRowType.CommentRow, ColumnHeader, Worker), table.rowTypes.values.toList)
@@ -140,8 +149,10 @@ class TableReaderTest {
   def readCompletefileFiUtf8Csv: Unit = {
     val file = Resources.asByteSource(Resources.getResource("csv–file-for-loading"))
 
-    val (table, errors) = new TableReader(file, SimpleMetadata(), testRowTyper(Locale.ROOT), testColTyper(Locale.ROOT),
-      cellUpgrader(Locale.ROOT)).read()
+    val (table, errors) = new TableReader(openStream = file,
+      rowTyper = testRowTyper(Locale.ROOT),
+      colTyper = testColTyper(Locale.ROOT),
+      cellUpgrader = cellUpgrader(Locale.ROOT)).read()
 
     assertTrue(errors.toString, errors.noErrors)
 

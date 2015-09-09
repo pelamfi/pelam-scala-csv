@@ -143,7 +143,7 @@ import fi.pelam.csv.util.{Pipeline, SortedBiMap}
  */
 // @formatter:on IntelliJ 14.1 (Scala plugin) formatter messes up Scaladoc
 class TableReader[RT, CT, M <: TableMetadata](
-  val openStream: () => java.io.InputStream,
+  val openStream: TableReader.StreamOpener,
   val tableMetadata: M = SimpleMetadata(),
   val rowTyper: TableReader.RowTyper[RT] = PartialFunction.empty,
   val colTyper: TableReader.ColTyper[RT, CT] = PartialFunction.empty,
@@ -294,6 +294,8 @@ class TableReader[RT, CT, M <: TableMetadata](
  * instance.
  */
 object TableReader {
+
+  type StreamOpener = () => java.io.InputStream
 
   type RowTyperResult[RT] = Either[TableReadingError, RT]
 
