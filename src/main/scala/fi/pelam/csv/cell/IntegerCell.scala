@@ -65,14 +65,9 @@ object IntegerCell {
   val defaultParser = parserForLocale(Locale.ROOT)
 
   def parserForLocale(locale: Locale): Cell.Parser = {
-    val function = parserForNumberFormat(NumberFormat.getInstance(locale))
-
-    { (cellKey: CellKey, input: String) =>
-      function(cellKey, input) match {
-        case Left(e: CellParsingError) => Left(e.withExtraMessage(s"Used locale '$locale'."))
-        case Right(x)=> Right(x)
-      }
-    }
+    val numberFormat = NumberFormat.getInstance(locale)
+    val parser = parserForNumberFormat(numberFormat)
+    CellParserUtil.addLocaleToError(parser, locale)
   }
 
   def parserForNumberFormat(numberFormat: NumberFormat): Cell.Parser = {

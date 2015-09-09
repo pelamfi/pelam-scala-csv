@@ -52,7 +52,7 @@ class DetectingTableReaderExample {
         })),
 
         cellUpgrader = makeCellUpgrader({
-          case CellType("data", "number") => DoubleCell.getParser(metadata.dataLocale)
+          case CellType("data", "number") => DoubleCell.parserForLocale(metadata.dataLocale)
         }))
       }
     )

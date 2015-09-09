@@ -18,32 +18,15 @@
 
 package fi.pelam.csv.cell
 
-import java.text.{NumberFormat, ParseException, ParsePosition}
+import java.text.NumberFormat
 import java.util.Locale
 
 import fi.pelam.csv.util.FormatterUtil
-import FormatterUtil._
+import fi.pelam.csv.util.FormatterUtil._
 
-
-// @formatter:off IntelliJ 14.1 (Scala plugin) formatter messes up Scaladoc
 /**
- * Basically this class is a sample implementation of a more specialised subtype of
- * [[fi.pelam.csv.cell.Cell]].
- *
- * It is expected that any nontrivial client will want to specify its own subtypes
- * of [[fi.pelam.csv.cell.Cell]].
- *
- * This class is quite simple, but the companion object is more
- * interesting as it implements the [[CellParser]] trait and acts as a factory
- * which produces DoubleCell instances (or errors if parsing fails) from String data.
- *
- * @param cellKey the location of this cell in a CSV table.
- * @param formatter A function used to convert the integer held by this cell into a `String`
- *                  to be stored in CSV text data.
- * @param value is the integer stored in CSV.
+ * See documentation on [[IntegerCell]]. This is basically same, but with `Double` instead of Int.
  */
-// @formatter:on IntelliJ 14.1 (Scala plugin) formatter messes up Scaladoc
-// TODO: Fix DRY wrt IntegerCell
 case class DoubleCell(override val cellKey: CellKey,
   override val value: Double)
   (implicit val formatter: DoubleCell.Formatter = DoubleCell.defaultFormatter)
@@ -55,13 +38,7 @@ case class DoubleCell(override val cellKey: CellKey,
 }
 
 /**
- * The DoubleCell class it self is quite simple, but this companion object is more
- * interesting as it implements the [[CellParser]] trait and acts as a factory
- * which produces DoubleCell instances (or errors if parsing fails) from String data.
- *
- * This companion object can be used used to upgrade cells in TableReader in an easy way
- * by using it in a map passed to [[fi.pelam.csv.table.TableReaderConfig.makeCellUpgrader]].
- * to specify which cells should be interpreted as containing integers.
+ * See documentation on [[IntegerCell]]. This is basically same, but with `Double` instead of Int.
  */
 object DoubleCell {
 
@@ -69,29 +46,29 @@ object DoubleCell {
 
   def defaultFormatter = toSynchronizedFormatter[Double](NumberFormat.getInstance(Locale.ROOT))
 
-  def getParser(locale: Locale): Cell.Parser = {
+  def parserForLocale(locale: Locale): Cell.Parser = {
+    val numberFormat = NumberFormat.getInstance(locale)
+    val parser = parserForNumberFormat(numberFormat)
+    CellParserUtil.addLocaleToError(parser, locale)
+  }
 
-    val parser = toSynchronizedParser(NumberFormat.getInstance(locale))
+  def parserForNumberFormat(numberFormat: NumberFormat): Cell.Parser = {
 
-    val formatter = toSynchronizedFormatter[Double](NumberFormat.getInstance(locale))
+    val parser = toSynchronizedParser(numberFormat)
 
-    val parserFunction: Cell.Parser = { (cellKey: CellKey, input: String) =>
+    val formatter = toSynchronizedFormatter[Double](numberFormat)
+
+    { (cellKey: CellKey, input: String) =>
       val trimmedInput = input.trim
 
-      val result = parser(trimmedInput)
-
-      val errorsHandled: Cell.ParserResult = result match {
+      parser(trimmedInput) match {
         case Some(number) => {
           Right(DoubleCell(cellKey, number.doubleValue())(formatter))
         }
         case None => Left(CellParsingError(s"Expected decimal number (double precision), " +
-          s"but input '$input' could not be fully parsed with locale '$locale'."))
+          s"but input '$input' could not be fully parsed.."))
       }
-
-      errorsHandled
     }
-
-    parserFunction
   }
 }
 
