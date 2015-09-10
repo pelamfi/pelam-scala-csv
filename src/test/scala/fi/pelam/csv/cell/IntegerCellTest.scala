@@ -36,6 +36,13 @@ class IntegerCellTest {
   }
 
   @Test
+  def testDecimal: Unit = {
+    assertEquals(Left(CellParsingError(s"Expected integer, " +
+      s"but value '12,000.0123' is decimal. Used locale ''.")),
+      IntegerCell.defaultParser(CellKey(0, 0), "12,000.0123"))
+  }
+
+  @Test
   def javaNumberFormatTest: Unit = {
     assertEquals(
       "Thousand separator is non breaking space",

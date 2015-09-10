@@ -18,18 +18,12 @@
 
 package fi.pelam.csv.cell
 
-import java.text.NumberFormat
-import java.util.Locale
-
-import fi.pelam.csv.util.FormatterUtil
-import fi.pelam.csv.util.FormatterUtil._
-
 /**
  * See documentation on [[IntegerCell]]. This is basically same, but with `Double` instead of Int.
  */
 case class DoubleCell(override val cellKey: CellKey,
   override val value: Double)
-  (implicit val formatter: DoubleCell.Formatter = DoubleCell.defaultFormatter)
+  (implicit val formatter: DoubleCell.NumberFormatter = DoubleCell.defaultFormatter)
   extends Cell {
 
   def serializedString: String = {
@@ -40,37 +34,12 @@ case class DoubleCell(override val cellKey: CellKey,
 /**
  * See documentation on [[IntegerCell]]. This is basically same, but with `Double` instead of Int.
  */
-object DoubleCell {
+object DoubleCell extends PrimitiveCellObject[Double] {
 
-  type Formatter = FormatterUtil.Formatter[Double]
+  override val primitiveDescription = "decimal number (double precision)"
 
-  val defaultParser = parserForLocale(Locale.ROOT)
-
-  val defaultFormatter = toSynchronizedFormatter[Double](NumberFormat.getInstance(Locale.ROOT))
-
-  def parserForLocale(locale: Locale): Cell.Parser = {
-    val numberFormat = NumberFormat.getInstance(locale)
-    val parser = parserForNumberFormat(numberFormat)
-    CellParserUtil.addLocaleToError(parser, locale)
-  }
-
-  def parserForNumberFormat(numberFormat: NumberFormat): Cell.Parser = {
-
-    val parser = toSynchronizedParser(numberFormat)
-
-    val formatter = toSynchronizedFormatter[Double](numberFormat)
-
-    { (cellKey: CellKey, input: String) =>
-      val trimmedInput = input.trim
-
-      parser(trimmedInput) match {
-        case Some(number) => {
-          Right(DoubleCell(cellKey, number.doubleValue())(formatter))
-        }
-        case None => Left(CellParsingError(s"Expected decimal number (double precision), " +
-          s"but input '$input' could not be fully parsed.."))
-      }
-    }
+  override def numberToCell(cellKey: CellKey, input: String, number: Number, formatter: NumberFormatter) = {
+    Right(DoubleCell(cellKey, number.doubleValue())(formatter))
   }
 }
 

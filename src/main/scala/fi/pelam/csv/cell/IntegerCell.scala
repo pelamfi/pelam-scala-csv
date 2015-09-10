@@ -18,11 +18,6 @@
 
 package fi.pelam.csv.cell
 
-import java.text.NumberFormat
-import java.util.Locale
-
-import fi.pelam.csv.util.FormatterUtil
-
 // @formatter:off IntelliJ 14.1 (Scala plugin) formatter messes up Scaladoc
 /**
  * Basically this class is a sample implementation of a more specialised subtype of
@@ -43,7 +38,7 @@ import fi.pelam.csv.util.FormatterUtil
 // @formatter:on IntelliJ 14.1 (Scala plugin) formatter messes up ScalaDoc
 case class IntegerCell(override val cellKey: CellKey,
   override val value: Int)
-  (implicit override val formatter: IntegerCell.Formatter = IntegerCell.defaultFormatter)
+  (implicit override val formatter: IntegerCell.NumberFormatter = IntegerCell.defaultFormatter)
   extends Cell with NumberCell[Int] {
 
 }
@@ -57,41 +52,17 @@ case class IntegerCell(override val cellKey: CellKey,
  * in an easy way by using them in a map passed to [[fi.pelam.csv.table.TableReaderConfig.makeCellUpgrader]].
  * The map specifies which cells should be interpreted as containing integers.
  */
-object IntegerCell {
-  import fi.pelam.csv.util.FormatterUtil._
+object IntegerCell extends PrimitiveCellObject[Int] {
+  override val primitiveDescription: String = "integer"
 
-  type Formatter = FormatterUtil.Formatter[Int]
+  override def numberToCell(cellKey: CellKey, input: String, number: Number, formatter: NumberFormatter) = {
+      val intValue = number.intValue()
 
-  val defaultFormatter = toSynchronizedFormatter[Int](NumberFormat.getInstance(Locale.ROOT))
-
-  val defaultParser = parserForLocale(Locale.ROOT)
-
-  def parserForLocale(locale: Locale): Cell.Parser = {
-    val numberFormat = NumberFormat.getInstance(locale)
-    val parser = parserForNumberFormat(numberFormat)
-    CellParserUtil.addLocaleToError(parser, locale)
-  }
-
-  def parserForNumberFormat(numberFormat: NumberFormat): Cell.Parser = {
-    val parser = toSynchronizedParser(numberFormat)
-    val formatter = toSynchronizedFormatter[Int](numberFormat)
-
-    { (cellKey: CellKey, input: String) =>
-
-      parser(input.trim) match {
-        case Some(number) => {
-          val intValue = number.intValue()
-
-          if (intValue == number) {
-            Right(IntegerCell(cellKey, intValue)(formatter))
-          } else {
-            Left(CellParsingError(s"Expected integer, but value '$input' is decimal"))
-          }
-        }
-        case None => Left(CellParsingError(s"Expected integer, but input '$input' " +
-          s"could not be fully parsed."))
+      if (intValue == number) {
+        Right(IntegerCell(cellKey, intValue)(formatter))
+      } else {
+        Left(CellParsingError(s"Expected $primitiveDescription, but value '$input' is decimal."))
       }
-    }
   }
 }
 
