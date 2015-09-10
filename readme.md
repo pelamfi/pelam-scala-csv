@@ -77,16 +77,17 @@ normally returned by the reader.
    }
 
    // Running the code above will print the cells from the second second column:
-   Cell containing '0.99' at Row 1, Column B (1)
-   Cell containing '1.25' at Row 2, Column B (1)
-   Cell containing '0.80' at Row 3, Column B (1)
+   // Cell containing '0.99' at Row 1, Column B (1)
+   // Cell containing '1.25' at Row 2, Column B (1)
+   // Cell containing '0.80' at Row 3, Column B (1)
 ```
 
 ### Parsing to a table object
 
 This example demonstrates the higher level API. The CSV is parsed into a 
 `Table` object that provides various methods for accessing regions of 
-the table. Also cells containing numeric data use appropriate `Cell` sub type.
+the table. Also the cells containing numeric data are converted to the
+appropriate `Cell` sub type.
 
 ```scala
 
