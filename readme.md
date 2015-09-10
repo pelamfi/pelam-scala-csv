@@ -16,22 +16,18 @@ problematic or missing.
 
 ## Main points
 
-To be clear there are other CSV reading libraries and even writing a CSV parser from scratch is not
+There are other CSV reading libraries and writing a CSV parser from scratch is not 
 very difficult.
 
-However the specialty of this library is the higher level "table oriented" API.
+However, the specialty of this library is the higher level "table oriented" API.
+
 The higher level API helps in processing complex spreadsheets as well as detecting and handling
-differences in low level CSV syntax which often arise because the CSV is not a standardized or
-very structured format.
+differences in the CSV syntax. Such differences are common because the CSV is not a
+standardized format.
 
   * Two levels of APIs for both input and output
-
-
-  * First API is a simple streaming api for converting a CSV file to and from a
-    stream of StringCell objects.
+  * First API is a simple streaming api for converting a CSV file to and from a stream of StringCell objects.
     * Reading a CSV file is done with a Scala Iterator interface
-
-
   * Second higher level API is richer and is based on the Table class.
     * Supports attaching type information to rows and columns
     * Allows having some regions represented with smarter and custom Cell types 
@@ -56,9 +52,9 @@ TBD
 ## Quick examples
 
 ### Stream parsing
-This is the most basic way of accessing CSV data.
-See later examples for a more structured approach.
-The parsing is done through Scala's `Iterator` API in a streaming fashion.
+
+This is the most basic way of accessing CSV data. See later examples for a more 
+structured approach. The parsing is done through Scala's `Iterator` API in a streaming fashion.
 
 This example code will pick the second column from the `csvData` and print the `toString`
 of each `Cell` from that column. Note the use of `throwOnError` to bypass the `Either`
@@ -87,10 +83,10 @@ normally returned by the reader.
 ```
 
 ### Parsing to a table object
-This example demonstrates the higher level API.
-The CSV is parsed into a `Table` object that provides various
-methods for accessing regions of the table. Also cells containing
-numeric data use appropriate `Cell` sub type.
+
+This example demonstrates the higher level API. The CSV is parsed into a 
+`Table` object that provides various methods for accessing regions of 
+the table. Also cells containing numeric data use appropriate `Cell` sub type.
 
 ```scala
 
@@ -139,10 +135,11 @@ numeric data use appropriate `Cell` sub type.
 ```
 
 ### Parsing with a format detection heuristic
-This example builds upon table object parsing in previous example, but 
-adds a heuristic format detection process on top of it. This may be useful in
-applications that need to deal with CSV exported from different
-Spreadsheet programs with different locale settings.
+
+This example builds upon table object parsing in previous example, but adds a 
+heuristic format detection process on top of it. This may be useful in applications 
+that need to deal with CSV exported from different Spreadsheet programs with 
+different locale settings.
 
 ```scala
     import fi.pelam.csv.table._
