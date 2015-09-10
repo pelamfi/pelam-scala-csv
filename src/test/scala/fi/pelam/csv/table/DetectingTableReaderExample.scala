@@ -28,17 +28,25 @@ class DetectingTableReaderExample {
     import TableReaderConfig._
     import fi.pelam.csv.cell._
 
-    val validColTypes = Set("header", "name", "number")
+    val validColTypes = Set("header", "model", "price")
 
+    // Setup a DetectingTableReader which will try combinations of CSV formatting types
+    // to understand the data.
     val reader = DetectingTableReader[String, String](
 
       tableReaderMaker = { (metadata) => new TableReader(
-        openStream = "header;name;number\n" +
-          "data;foo;1,234.0\n" +
-          "data;bar;1,234,567.89",
 
+        // An implicit from the object TableReaderConfig converts the string
+        // to a function providing streams.
+        openStream =
+          "header;model;price\n" +
+          "data;300D;1,234.0\n" +
+          "data;SLS AMG;234,567.89",
+
+        // Make correct metadata end up in the final Table
         tableMetadata = metadata,
 
+        // First column specifies row types
         rowTyper = makeRowTyper({
           case (CellKey(_, 0), rowType) => rowType
         }),
@@ -52,15 +60,15 @@ class DetectingTableReaderExample {
         })),
 
         cellUpgrader = makeCellUpgrader({
-          case CellType("data", "number") => DoubleCell.parserForLocale(metadata.dataLocale)
+          case CellType("data", "price") => DoubleCell.parserForLocale(metadata.dataLocale)
         }))
       }
     )
 
     val table = reader.readOrThrow()
 
-    assertEquals(List("foo", "bar"), table.getSingleCol("data", "name").map(_.value).toList)
-    assertEquals(List(1234, 1234567.89), table.getSingleCol("data", "number").map(_.value).toList)
+    assertEquals(List("300D", "SLS AMG"), table.getSingleCol("data", "model").map(_.value).toList)
+    assertEquals(List(1234.0, 234567.89), table.getSingleCol("data", "price").map(_.value).toList)
 
   }
 

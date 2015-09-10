@@ -40,12 +40,12 @@ object TableReaderConfig {
 
   def errorOnUndefinedRow[RT](typer: TableReader.RowTyper[RT]): TableReader.RowTyper[RT] = {
     case cell if typer.isDefinedAt(cell) => typer(cell)
-    case _ => Left(TableReadingError(s"Undefined row type"))
+    case _ => Left(TableReadingError(s"Undefined row type."))
   }
 
   def errorOnUndefinedCol[RT, CT](typer: TableReader.ColTyper[RT, CT]): TableReader.ColTyper[RT, CT] = {
     case cell if typer.isDefinedAt(cell) => typer(cell)
-    case _ => Left(TableReadingError(s"Undefined column type"))
+    case _ => Left(TableReadingError(s"Undefined column type."))
   }
 
   def makeRowTyper[RT](rowTyper: PartialFunction[(CellKey, String), RT]): TableReader.RowTyper[RT] = {

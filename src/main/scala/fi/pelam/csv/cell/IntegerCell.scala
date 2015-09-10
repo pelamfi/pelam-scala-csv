@@ -21,7 +21,7 @@ package fi.pelam.csv.cell
 import java.text.NumberFormat
 import java.util.Locale
 
-import fi.pelam.csv.util.FormatterUtil.Formatter
+import fi.pelam.csv.util.FormatterUtil
 
 // @formatter:off IntelliJ 14.1 (Scala plugin) formatter messes up Scaladoc
 /**
@@ -43,7 +43,7 @@ import fi.pelam.csv.util.FormatterUtil.Formatter
 // @formatter:on IntelliJ 14.1 (Scala plugin) formatter messes up ScalaDoc
 case class IntegerCell(override val cellKey: CellKey,
   override val value: Int)
-  (implicit override val formatter: Formatter[Int] = IntegerCell.defaultFormatter)
+  (implicit override val formatter: IntegerCell.Formatter = IntegerCell.defaultFormatter)
   extends Cell with NumberCell[Int] {
 
 }
@@ -60,7 +60,9 @@ case class IntegerCell(override val cellKey: CellKey,
 object IntegerCell {
   import fi.pelam.csv.util.FormatterUtil._
 
-  def defaultFormatter = toSynchronizedFormatter[Int](NumberFormat.getInstance(Locale.ROOT))
+  type Formatter = FormatterUtil.Formatter[Int]
+
+  val defaultFormatter = toSynchronizedFormatter[Int](NumberFormat.getInstance(Locale.ROOT))
 
   val defaultParser = parserForLocale(Locale.ROOT)
 

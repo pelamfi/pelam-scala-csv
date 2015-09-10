@@ -28,29 +28,40 @@ class TableReaderExample {
     import TableReaderConfig._
     import fi.pelam.csv.cell._
 
+    // Create a TableReader that parses a small bit of CSV data in which the
+    // column types are defined on the first row.
     val reader = new TableReader[String, String, SimpleMetadata](
-      openStream = "name,number\n" +
-        "foo,1\n" +
-        "bar,2",
 
+      // An implicit from the object TableReaderConfig converts the string
+      // to a function providing streams.
+      openStream =
+        "product,price,number\n" +
+        "apple,0.99,3\n" +
+        "orange,1.25,2\n" +
+        "banana,0.80,4\n",
+
+      // The first row is the header, the rest are data.
       rowTyper = makeRowTyper({
         case (CellKey(0, _), _) => "header"
         case _ => "data"
       }),
 
+      // First row defines column types.
       colTyper = makeColTyper({
-        case (CellKey(_, 0), _) => "name"
-        case (CellKey(_, 1), _) => "number"
+        case (CellKey(0, _), colType) => colType
       }),
 
+      // Convert cells on the "data" rows in the "number" column to integer cells.
       cellUpgrader = makeCellUpgrader({
         case CellType("data", "number") => IntegerCell.defaultParser
+        case CellType("data", "price") => DoubleCell.defaultParser
       }))
 
+    // Read the data
     val table = reader.readOrThrow()
 
-    assertEquals(List("foo", "bar"), table.getSingleCol("data", "name").map(_.value).toList)
-    assertEquals(List(1, 2), table.getSingleCol("data", "number").map(_.value).toList)
+    assertEquals(List("apple", "orange", "banana"), table.getSingleCol("data", "product").map(_.value).toList)
+    assertEquals(List(0.99, 1.25, 0.8), table.getSingleCol("data", "price").map(_.value).toList)
   }
 
 

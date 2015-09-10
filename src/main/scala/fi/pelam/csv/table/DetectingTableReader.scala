@@ -45,51 +45,57 @@ import fi.pelam.csv.CsvConstants
  * on the first row and the row type is defined by the first column.
  *
  * {{{
- *   import fi.pelam.csv.table._
- *   import fi.pelam.csv.cell._
- *   import TableReaderConfig._
- *
- *   val validColTypes = Set("header", "name", "number")
- *
- *   val reader = DetectingTableReader[String, String](
- *
- *     tableReaderMaker = { (metadata) => new TableReader(
- *       openStream = "header;name;number\n" +
- *         "data;foo;1,234.0\n" +
- *         "data;bar;1,234,567.89",
- *
- *       tableMetadata = metadata,
- *
- *       rowTyper = makeRowTyper({
- *         case (CellKey(_, 0), rowType) => rowType
- *       }),
- *
- *       // Column type is specified by the first row.
- *       // Type names are checked and error is generated for unknown
- *       // column types by errorOnUndefinedCol.
- *       // This strictness is what enables the correct detection of CSV format.
- *       colTyper = errorOnUndefinedCol(makeColTyper({
- *         case (CellKey(0, _), colType) if validColTypes.contains(colType) => colType
- *       })),
- *
- *       cellUpgrader = makeCellUpgrader({
- *         case CellType("data", "number") => DoubleCell.parserForLocale(metadata.dataLocale)
- *       },
- *       metadata.dataLocale
- *       ))
- *     }
- *   )
- *
- *   val table = reader.readOrThrow()
- *
- *   // Get values from cells in column with type "name" on rows with type "data."
- *   table.getSingleCol("data", "name").map(_.value).toList
- *   // Will give List("foo","bar")
- *
- *   // Get values from cells in column with type "number" on rows with type "data."
- *   table.getSingleCol("number", "data").map(_.value).toList)
- *   // Will give List(1234, 1234567.89)
- * }}}
+    import fi.pelam.csv.table._
+    import fi.pelam.csv.cell._
+    import TableReaderConfig._
+
+    val validColTypes = Set("header", "model", "price")
+
+    // Setup a DetectingTableReader which will try combinations of CSV formatting types
+    // to understand the data.
+    val reader = DetectingTableReader[String, String](
+
+      tableReaderMaker = { (metadata) => new TableReader(
+
+        // An implicit from the object TableReaderConfig converts the string
+        // to a function providing streams.
+        openStream =
+          "header;model;price\n" +
+          "data;300D;1,234.0\n" +
+          "data;SLS AMG;234,567.89",
+
+        // Make correct metadata end up in the final Table
+        tableMetadata = metadata,
+
+        // First column specifies row types
+        rowTyper = makeRowTyper({
+          case (CellKey(_, 0), rowType) => rowType
+        }),
+
+        // Column type is specified by the first row.
+        // Type names are checked and error is generated for unknown
+        // column types by errorOnUndefinedCol.
+        // This strictness is what enables the correct detection of CSV format.
+        colTyper = errorOnUndefinedCol(makeColTyper({
+          case (CellKey(0, _), colType) if validColTypes.contains(colType) => colType
+        })),
+
+        cellUpgrader = makeCellUpgrader({
+          case CellType("data", "price") => DoubleCell.parserForLocale(metadata.dataLocale)
+        }))
+      }
+    )
+
+    val table = reader.readOrThrow()
+
+    // Get values from cells in column with type "name" on rows with type "data."
+    table.getSingleCol("data", "model").map(_.value).toList
+    // Will give List("300D", "SLS AMG")
+
+    // Get values from cells in column with type "number" on rows with type "data."
+    table.getSingleCol("number", "price").map(_.value).toList)
+    // Will give List(1234, 234567.89)
+ }}}
  *
  * @param initialMetadata base metadata instance. Copies with different format parameters will be created from this
  *                        using [[LocaleTableMetadata.withFormatParameters]]. Idea is that you client

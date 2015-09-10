@@ -23,9 +23,13 @@ import fi.pelam.csv.cell.{Cell, CellKey}
 
 /**
  * Opposite of [[CsvReader]]. The API is simple. There
- * are just 2 public methods. One to write a single cell and another
- * to write a [[http://www.scala-lang.org/api/current/index.html#scala.collection.TraversableOnce TraversableOnce]]
+ * are just 3 public methods. One to write a single cell and another
+ * to write a
+ * [[http://www.scala-lang.org/api/current/index.html#scala.collection.TraversableOnce TraversableOnce]]
  * of cells.
+ *
+ * The third method `goToNextRow` should be called last after the last cell to write the line
+ * feed at the end of the file.
  *
  * The cells are expected to be in top to bottom left to right order.
  * The sequence of cells can contain holes. Empty cells in CSV data will

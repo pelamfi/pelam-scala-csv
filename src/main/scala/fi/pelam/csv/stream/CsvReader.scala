@@ -29,7 +29,7 @@ import scala.collection.AbstractIterator
  * This class is part of the lower level API for processing CSV data.
  * This is a CSV parser that produces the data through the
  * [[http://www.scala-lang.org/api/current/index.html#scala.collection.Iterator scala.collection.Iterator]] trait.
- * The data is read into a sequence of [[fi.pelam.csv.cell.StringCell]] instances.
+ * The data is read into a sequence of [[fi.pelam.csv.cell.StringCell StringCell]] instances.
  * [[fi.pelam.csv.cell.StringCell StringCells]] can be written back to disk with [[CsvWriter]].
  *
  * This class does parsing in streaming fashion ie. you should be able to
@@ -55,7 +55,10 @@ import scala.collection.AbstractIterator
  * import fi.pelam.csv.cell._
  * import fi.pelam.csv.stream._
  *
- * val csvData = "foo,1,a\nbar,2,b\nbaz,3,c\n";
+ * val csvData =
+ *     "apple,0.99,3\n" +
+ *     "orange,1.25,2\n" +
+ *     "banana,0.80,4\n"
  *
  * val pickedCol = ColKey(1)
  *
@@ -64,9 +67,9 @@ import scala.collection.AbstractIterator
  * }
  *
  * // Running the code above will print the cells from first column:
- * Cell containing '1' at Row 1, Column B (1)
- * Cell containing '2' at Row 2, Column B (1)
- * Cell containing '3' at Row 3, Column B (1)
+ * Cell containing '0.99' at Row 1, Column B (1)
+ * Cell containing '1.25' at Row 2, Column B (1)
+ * Cell containing '0.80' at Row 3, Column B (1)
  *
  * }}}
  *

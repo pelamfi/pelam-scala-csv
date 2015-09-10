@@ -44,7 +44,9 @@ object DoubleCell {
 
   type Formatter = FormatterUtil.Formatter[Double]
 
-  def defaultFormatter = toSynchronizedFormatter[Double](NumberFormat.getInstance(Locale.ROOT))
+  val defaultParser = parserForLocale(Locale.ROOT)
+
+  val defaultFormatter = toSynchronizedFormatter[Double](NumberFormat.getInstance(Locale.ROOT))
 
   def parserForLocale(locale: Locale): Cell.Parser = {
     val numberFormat = NumberFormat.getInstance(locale)
