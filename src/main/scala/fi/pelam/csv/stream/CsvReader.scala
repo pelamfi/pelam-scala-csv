@@ -51,27 +51,27 @@ import scala.collection.AbstractIterator
  * normally returned by the reader.
  *
  * {{{
- *
- * import fi.pelam.csv.cell._
- * import fi.pelam.csv.stream._
- *
- * val csvData =
- *     "apple,0.99,3\n" +
- *     "orange,1.25,2\n" +
- *     "banana,0.80,4\n"
- *
- * val pickedCol = ColKey(1)
- *
- * for (cell <- new CsvReader(csvData).throwOnError; if cell.colKey == pickedCol) {
- *   println(cell)
- * }
- *
- * // Running the code above will print the cells from first column:
- * Cell containing '0.99' at Row 1, Column B (1)
- * Cell containing '1.25' at Row 2, Column B (1)
- * Cell containing '0.80' at Row 3, Column B (1)
- *
- * }}}
+
+  import fi.pelam.csv.cell._
+  import fi.pelam.csv.stream._
+
+  val csvData =
+      "apple,0.99,3\n" +
+      "orange,1.25,2\n" +
+      "banana,0.80,4\n"
+
+  val pickedCol = ColKey(1)
+
+  for (cell <- new CsvReader(csvData).throwOnError; if cell.colKey == pickedCol) {
+    println(cell)
+  }
+
+  // Running the code above will print the cells from the second column:
+  Cell containing '0.99' at Row 1, Column B (1)
+  Cell containing '1.25' at Row 2, Column B (1)
+  Cell containing '0.80' at Row 3, Column B (1)
+
+  }}}
  *
  * @note A note on closing the input stream. The
  *       [[http://docs.oracle.com/javase/8/docs/api/java/io/Reader.html java.io.Reader]] is closed only if the
