@@ -27,6 +27,6 @@ import fi.pelam.csv.cell.CellKey
  * @param message is a descriptive message.
  * @param at last known coordinates in CSV data (or corresponding spreadsheet).
  */
-case class CsvReaderError(message: String, at: CellKey) {
+final case class CsvReaderError(message: String, at: CellKey) {
   override def toString = s"Error parsing CSV at $at: $message"
 }

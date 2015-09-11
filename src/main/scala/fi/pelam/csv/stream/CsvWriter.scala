@@ -44,7 +44,7 @@ import fi.pelam.csv.cell.{Cell, CellKey}
  * @param output Java writer to write the CSV data to.
  * @param separator Optionally specify CSV separator to use.
  */
-class CsvWriter(val output: java.io.Writer, val separator: Char = defaultSeparatorChar) {
+final class CsvWriter(val output: java.io.Writer, val separator: Char = defaultSeparatorChar) {
 
   import CsvWriter._
 

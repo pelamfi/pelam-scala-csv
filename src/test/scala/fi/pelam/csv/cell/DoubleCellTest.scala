@@ -22,7 +22,7 @@ import org.junit.Test
 
 class DoubleCellTest {
 
-  Test
+  @Test
   def testParsing: Unit = {
     assertEquals(Right(DoubleCell(CellKey(0, 0), 12000.0123)),
       DoubleCell.defaultParser(CellKey(0, 0), "12,000.0123"))

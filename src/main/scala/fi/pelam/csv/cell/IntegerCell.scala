@@ -36,7 +36,7 @@ package fi.pelam.csv.cell
  * @param value is the integer stored in CSV.
  */
 // @formatter:on IntelliJ 14.1 (Scala plugin) formatter messes up ScalaDoc
-case class IntegerCell(override val cellKey: CellKey,
+final case class IntegerCell(override val cellKey: CellKey,
   override val value: Int)
   (implicit override val formatter: IntegerCell.NumberFormatter = IntegerCell.defaultFormatter)
   extends Cell with NumberCell[Int] {

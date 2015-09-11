@@ -57,7 +57,7 @@ sealed trait Pipeline[S <: StageResult[S]] {
 
 object Pipeline {
 
-  case class Stage[S <: StageResult[S]](stageFunc: S => S) extends Pipeline[S] {
+  final case class Stage[S <: StageResult[S]](stageFunc: S => S) extends Pipeline[S] {
     override def map(mapFunc: S => S) = Stage[S](state => mapFunc(stageFunc(state)))
 
     override def flatMap(inner: S => Pipeline[S]): Pipeline[S] = FlatmapStage(this, inner)
@@ -65,7 +65,7 @@ object Pipeline {
     override def run(inputState: S) = stageFunc(inputState).stageNumberIncremented()
   }
 
-  private case class FlatmapStage[S <: StageResult[S]](outer: Pipeline[S],
+  private final case class FlatmapStage[S <: StageResult[S]](outer: Pipeline[S],
     inner: S => Pipeline[S],
     mapFunc: S => S = (state: S) => state) extends Pipeline[S] {
 

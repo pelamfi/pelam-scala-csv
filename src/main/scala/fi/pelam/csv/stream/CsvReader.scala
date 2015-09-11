@@ -141,7 +141,7 @@ final class CsvReader(input: Reader, val separator: Char) extends AbstractIterat
   }
 }
 
-final object CsvReader {
+object CsvReader {
 
   /**
    * The type of output of this class. Matches the type [[CsvReaderInternal.CellOrError]].

@@ -44,7 +44,7 @@ package fi.pelam.csv.cell
  * @constructor See alternate constructors on the companion object.
  *             Create a new `CellKey` from row index and column index.
  */
-case class CellKey(rowIndex: Int, colIndex: Int) extends Ordered[CellKey] {
+final case class CellKey(rowIndex: Int, colIndex: Int) extends Ordered[CellKey] {
 
   import CellKey._
 

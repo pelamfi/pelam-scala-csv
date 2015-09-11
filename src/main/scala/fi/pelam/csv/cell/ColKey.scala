@@ -30,7 +30,7 @@ package fi.pelam.csv.cell
  *
  * @param index zero based column number (column index).
  */
-case class ColKey(index: Int) extends AxisKey[ColKey] {
+final case class ColKey(index: Int) extends AxisKey[ColKey] {
 
   import ColKey._
 

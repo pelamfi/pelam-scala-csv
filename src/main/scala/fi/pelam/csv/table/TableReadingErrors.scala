@@ -26,7 +26,7 @@ package fi.pelam.csv.table
  * @param stageNumber The number of stage reached in TableReader. Before any stages are run this is zero. After the first stage this is 1 etc.
  * @param errors List of errors. All errors are from same stage, because TableReader stops after first stage that produces errors.
  */
-case class TableReadingErrors(stageNumber: Int = 0, errors: IndexedSeq[TableReadingError] = IndexedSeq()) extends Ordered[TableReadingErrors] {
+final case class TableReadingErrors(stageNumber: Int = 0, errors: IndexedSeq[TableReadingError] = IndexedSeq()) extends Ordered[TableReadingErrors] {
 
   import TableReadingErrors._
 

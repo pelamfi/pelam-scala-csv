@@ -21,7 +21,7 @@ package fi.pelam.csv.cell
 /**
  * See documentation on [[IntegerCell]]. This is basically same, but with `Double` instead of Int.
  */
-case class DoubleCell(override val cellKey: CellKey,
+final case class DoubleCell(override val cellKey: CellKey,
   override val value: Double)
   (implicit val formatter: DoubleCell.NumberFormatter = DoubleCell.defaultFormatter)
   extends Cell {

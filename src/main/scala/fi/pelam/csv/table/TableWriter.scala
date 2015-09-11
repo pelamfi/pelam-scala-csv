@@ -52,7 +52,7 @@ import fi.pelam.csv.stream.CsvWriter
  * @tparam RT Client specified object type used for typing rows in CSV data.
  * @tparam CT Client specified object type used for typing columns in CSV data.
  */
-class TableWriter[RT, CT, M <: TableMetadata](table: Table[RT, CT, M]) {
+final class TableWriter[RT, CT, M <: TableMetadata](table: Table[RT, CT, M]) {
 
   def write(output: java.io.OutputStream) = {
     try {

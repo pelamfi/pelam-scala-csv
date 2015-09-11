@@ -37,7 +37,7 @@ import scala.collection.{SortedMap, mutable}
  *
  * @note This class uses Scala's SortedMap under the hood.
  */
-case class SortedBiMap[K, V](map: SortedMap[K, V])(implicit keyOrdering: Ordering[K]) extends SortedMap[K, V] {
+final case class SortedBiMap[K, V](map: SortedMap[K, V])(implicit keyOrdering: Ordering[K]) extends SortedMap[K, V] {
 
   import SortedBiMap._
 

@@ -83,7 +83,7 @@ import scala.collection.SortedMap
  * @tparam M The type of the `metadata` parameter. Must be a sub type of [[TableMetadata]].
  *           This specifies the character set and separator to use when reading the CSV data from the input stream.
  */
-case class Table[RT, CT, M <: TableMetadata] private(
+final case class Table[RT, CT, M <: TableMetadata] private(
   cells: IndexedSeq[IndexedSeq[Cell]],
   rowTypes: SortedBiMap[RowKey, RT],
   colTypes: SortedBiMap[ColKey, CT],

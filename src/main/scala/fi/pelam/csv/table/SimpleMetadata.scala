@@ -25,6 +25,6 @@ import fi.pelam.csv.CsvConstants
 /**
  * Simplest implementation of [[TableMetadata]].
  */
-case class SimpleMetadata(
+final case class SimpleMetadata(
   override val charset: Charset = CsvConstants.defaultCharset,
   override val separator: Char = CsvConstants.defaultSeparatorChar) extends TableMetadata

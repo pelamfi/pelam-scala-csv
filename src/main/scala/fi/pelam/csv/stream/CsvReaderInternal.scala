@@ -244,7 +244,7 @@ final class CsvReaderInternal(input: Reader, separator: Char) {
   }
 }
 
-final object CsvReaderInternal {
+object CsvReaderInternal {
 
   /**
    * Base class for the finite state machine states

@@ -27,7 +27,7 @@ import fi.pelam.csv.stream.CsvReaderError
  *
  * @constructor See alternate constructors on the companion object.
  */
-case class TableReadingError(msg: String, cell: Option[Cell] = None) {
+final case class TableReadingError(msg: String, cell: Option[Cell] = None) {
 
   override def toString() = {
     if (cell.isDefined) {

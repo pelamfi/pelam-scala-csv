@@ -121,7 +121,7 @@ import fi.pelam.csv.CsvConstants
  *           combinations when attempting to read the CSV data from the input stream.
  */
 // @formatter:on IntelliJ 14.1 (Scala plugin) formatter messes up Scaladoc
-class DetectingTableReader[RT, CT, M <: LocaleTableMetadata[M]](
+final class DetectingTableReader[RT, CT, M <: LocaleTableMetadata[M]](
   val initialMetadata: M,
   val tableReaderMaker: (M) => TableReader[RT, CT, M],
   val locales: Seq[Locale] = CsvConstants.commonLocales,

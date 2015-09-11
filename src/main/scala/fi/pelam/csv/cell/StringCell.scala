@@ -18,8 +18,6 @@
 
 package fi.pelam.csv.cell
 
-import java.util.Locale
-
 // @formatter:off IntelliJ 14.1 (Scala plugin) formatter messes up Scaladoc
 /**
  * The most basic subtype of [[fi.pelam.csv.cell.Cell Cell]].
@@ -35,7 +33,7 @@ import java.util.Locale
  * @param serializedString simply the string from the CSV file.
  */
 // @formatter:on IntelliJ 14.1 (Scala plugin) formatter messes up Scaladoc
-case class StringCell(override val cellKey: CellKey,
+final case class StringCell(override val cellKey: CellKey,
   override val serializedString: String)
   extends Cell {
 
