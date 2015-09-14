@@ -1,13 +1,78 @@
 apply plugin: 'scala'
 apply plugin: 'idea'
-apply plugin: 'maven-publish'
+apply plugin: 'maven'
+apply plugin: 'signing'
 
 group = 'fi.pelam'
-version = '0.1'
-sourceCompatibility = 1.8
+version = '0.9'
+description = """
+Scala library for reading and writing CSV data with an optional high level
+API. Supports structured access to tabular data and a form of CSV format detection.
+"""
 
 repositories {
     mavenCentral()
+}
+
+configurations {
+    deployerJars
+}
+
+signing {
+    sign configurations.archives
+}
+
+// http://stackoverflow.com/a/11475089/1148030
+task sourcesJar(type: Jar, dependsOn: classes) {
+    classifier = 'sources'
+    from sourceSets.main.allSource
+}
+
+task scaladocJar(type: Jar, dependsOn: scaladoc) {
+    // ScalaDoc is kept in -javadoc jars http://www.scala-lang.org/old/node/12471.html
+    classifier = 'javadoc'
+    from scaladoc.destinationDir
+}
+
+artifacts {
+    archives sourcesJar
+    archives scaladocJar
+}
+
+uploadArchives {
+    dependsOn(scaladocJar)
+    dependsOn(sourcesJar)
+    repositories {
+        mavenDeployer {
+            pom.project {
+                name "Pelam's Scala CSV Library"
+                description = project.description
+                url "https://github.com/pelamfi/pelam-scala-csv/blob/master/readme.md"
+                inceptionYear 2015
+                scm {
+                    connection "scm:git:https://github.com/pelamfi/pelam-scala-csv.git"
+                    url "https://github.com/pelamfi/pelam-scala-csv"
+                }
+                licenses {
+                    license {
+                        name 'The Apache Software License, Version 2.0'
+                        url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+                        distribution 'repo'
+                    }
+                }
+                developers {
+                    developer {
+                        id = 'pelam'
+                        name = 'Peter Lamberg'
+                    }
+                }
+            }
+            repository(url: "https://oss.sonatype.org/service/local/staging/deploy/maven2") {
+                authentication(userName: "pelam", password: sonatypePassword)
+            }
+            beforeDeployment { MavenDeployment deployment -> signing.signPom(deployment) }
+        }
+    }
 }
 
 tasks.withType(ScalaDoc) {
@@ -20,6 +85,7 @@ tasks.withType(ScalaDoc) {
 }
 
 dependencies {
+    deployerJars "org.apache.maven.wagon:wagon-http:2.2"
 
     compile 'org.scala-lang:scala-library:2.11.4'
 
@@ -35,6 +101,7 @@ dependencies {
     testCompile 'org.scalatest:scalatest_2.11:2.2.2'
     testCompile 'org.mockito:mockito-all:1.10.8'
 }
+
 
 idea {
     module {

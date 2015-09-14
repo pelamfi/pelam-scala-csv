@@ -3,12 +3,10 @@
 [![Build Status](https://travis-ci.org/pelamfi/pelam-scala-csv.svg?branch=master)](https://travis-ci.org/pelamfi/pelam-scala-csv)
 
 Scala library for reading and writing CSV data with an optional high level
-API.
+API. Supports structured access to tabular data and a form of CSV format detection.
 
-This project is still under development and the APIs may change. It
-is however functional and tested with the included test suite so feel free
-to use it. Please send me feedback on bugs and features you find useful,
-problematic or missing.
+Please send me feedback on bugs and features you find useful,
+problematic or missing. 
 
 ## ScalaDoc
 
@@ -30,12 +28,10 @@ standardized format.
     * Reading a CSV file is done with a Scala Iterator interface
   * Second higher level API is richer and is based on the Table class.
     * Supports attaching type information to rows and columns
-    * Allows having some regions represented with smarter and custom Cell types 
-      (like your own date cell.)
+    * Allows having regions represented with custom Cell types; for example a date cell.
     * Autodetection of CSV format details
     * Pluggable functions for defining Row, Column and Cell types.
-    * Supports management of locales (Office apps change default CSV
-      format based on locale.)
+    * Management of locales. Office apps change CSV format based on locale.
 
 
 ## License
@@ -46,8 +42,29 @@ and [online](http://www.apache.org/licenses/LICENSE-2.0).
 
 
 ## Maven coordinates
+[The Maven Central Repository entry is here.](http://search.maven.org/#artifactdetails%7Cfi.pelam%7Cpelam-scala-csv%7C0.9%7Cjar)
 
-TBD
+### Gradle
+
+```groovy
+compile 'fi.pelam:pelam-scala-csv:0.9'
+```
+
+### SBT
+
+```scala
+libraryDependencies += "fi.pelam" % "pelam-scala-csv" % "0.9"
+```
+
+### Maven
+
+```xml
+<dependency>
+    <groupId>fi.pelam</groupId>
+    <artifactId>pelam-scala-csv</artifactId>
+    <version>0.9</version>
+</dependency>
+```
 
 ## Quick examples
 
