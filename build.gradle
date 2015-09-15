@@ -1,7 +1,11 @@
 apply plugin: 'scala'
 apply plugin: 'idea'
 apply plugin: 'maven'
-apply plugin: 'signing'
+
+if (Boolean.valueOf(signArtifacts)) {
+    println "Artifact signing is on."
+    apply plugin: 'signing'
+}
 
 group = 'fi.pelam'
 version = '0.9'
@@ -18,8 +22,10 @@ configurations {
     deployerJars
 }
 
-signing {
-    sign configurations.archives
+if (Boolean.valueOf(signArtifacts)) {
+    signing {
+        sign configurations.archives
+    }
 }
 
 // http://stackoverflow.com/a/11475089/1148030
@@ -70,7 +76,11 @@ uploadArchives {
             repository(url: "https://oss.sonatype.org/service/local/staging/deploy/maven2") {
                 authentication(userName: "pelam", password: sonatypePassword)
             }
-            beforeDeployment { MavenDeployment deployment -> signing.signPom(deployment) }
+            if (Boolean.valueOf(signArtifacts)) {
+                beforeDeployment {
+                    MavenDeployment deployment -> signing.signPom(deployment)
+                }
+            }
         }
     }
 }
