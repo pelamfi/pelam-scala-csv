@@ -219,7 +219,7 @@ TBD
 ## TODO list
 
   * TODO: Some simple demo project
-  * TODO: Try to reduce dependencies of the final artifact.
+  * TODO: Configure Gradle to build binaries for multiple scala versions if necessary.
   * TODO: Some performance tests and profiling to at least have some idea of possible performance disasters.
   * TODO: Test the streaming api with massive data and document if it works.
   * TODO: A Gradle task to publish the built scaladoc to S3 into a sensible directory.
