@@ -33,7 +33,7 @@ package fi.pelam.csv.table
  * @tparam RT the type of all row types used by the client code.
  * @tparam CT the type of all column types used by the client code.
  */
-final case class CellType[RT, CT](rowType: RT, colType: CT) {
+final case class CellType[+RT, +CT](rowType: RT, colType: CT) {
 
   def asSentence: String = s"Cell type has row type '$rowType' and column type '$colType'."
 }
