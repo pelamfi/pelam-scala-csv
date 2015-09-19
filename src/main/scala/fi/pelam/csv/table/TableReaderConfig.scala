@@ -35,7 +35,7 @@ object TableReaderConfig {
 
   /**
    * A type to be passed to [[.makeCellUpgrader]]. A partial function
-   * that can accept a [[CellType]] and return a [[Cell.Parser]].
+   * that can accept a [[CellType]] and return a [[fi.pelam.csv.cell.Cell.Parser Cell Parser]].
    */
   type ParserProvider[RT, CT] = PartialFunction[CellType[RT, CT], Cell.Parser]
 

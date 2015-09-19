@@ -110,13 +110,13 @@ final case class Table[RT, CT, M <: TableMetadata] private(
 
   /**
    * This method is a shorthand for `rowTypes.reverse`.
-   * @return a map from row types to matching [[RowKey RowKeys]] (row indices)
+   * @return a map from row types to matching [[fi.pelam.csv.cell.RowKey RowKeys]] (row indices)
    */
   def rowsByType = rowTypes.reverse
 
   /**
    * This method is a shorthand for `colTypes.reverse`.
-   * @return a map from column types to matching [[ColKey ColKeys]] (column indices)
+   * @return a map from column types to matching [[fi.pelam.csv.cell.ColKey ColKeys]] (column indices)
    */
   def colsByType = colTypes.reverse
 
