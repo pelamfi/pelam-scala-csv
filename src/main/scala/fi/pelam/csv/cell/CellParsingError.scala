@@ -23,8 +23,8 @@ package fi.pelam.csv.cell
  */
 final case class CellParsingError(msg: String) {
 
-  override def toString() = s"Error parsing cell content: $msg"
+  override def toString() = s"Error parsing cell content:\n  $msg"
 
-  def withExtraMessage(extra: String) = copy(msg = msg + " " + extra)
+  def withExtraMessage(extra: String) = copy(msg = msg + "\n  " + extra)
 
 }

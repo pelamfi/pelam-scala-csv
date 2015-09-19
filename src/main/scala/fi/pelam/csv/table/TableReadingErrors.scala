@@ -51,9 +51,9 @@ final case class TableReadingErrors(stageNumber: Int = 0, errors: IndexedSeq[Tab
     if (errors.size == 0) {
       s"No errors (stage $stageNumber)"
     } else if (errors.size == 1) {
-      s"${errors(0)} Stage number is $stageNumber."
+      s"Error occured in reading table:\n  ${errors(0)}\n  Stage number is $stageNumber."
     } else {
-      s"${errors.size} errors in stage number $stageNumber. The first error is: ${errors(0)}"
+      s"${errors.size} errors in stage number $stageNumber.\n  The first error is:\n  ${errors(0)}"
     }
   }
 }
@@ -64,7 +64,7 @@ object TableReadingErrors {
    * Special initial value which is worse than any result from any real stage.
    * This value can be used as an initial value in format detection heuristics.
    */
-  val initialValue = TableReadingErrors(0, IndexedSeq(TableReadingError("No reading has been attempted yet.")))
+  val initialValue = TableReadingErrors(0, IndexedSeq(TableReadingError("No reading was attempted.")))
 
   private type OrderingTuple = (Int, Int)
 

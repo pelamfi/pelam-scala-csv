@@ -35,4 +35,5 @@ package fi.pelam.csv.table
  */
 final case class CellType[RT, CT](rowType: RT, colType: CT) {
 
+  def asSentence: String = s"Cell type has row type '$rowType' and column type '$colType'."
 }

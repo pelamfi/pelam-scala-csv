@@ -31,14 +31,14 @@ final case class TableReadingError(msg: String, cell: Option[Cell] = None) {
 
   override def toString() = {
     if (cell.isDefined) {
-      msg + " The error is related to the " + cell.get + "."
+      msg + "\n  The error is related to the " + cell.get + "."
     } else {
       msg
     }
   }
 
   def messageAppended(appended: String) = {
-    copy(msg = msg + " " + appended)
+    copy(msg = msg + "\n  " + appended)
   }
 
   def relatedCellAdded(specifiedCell: Cell): TableReadingError = {
@@ -50,7 +50,7 @@ final case class TableReadingError(msg: String, cell: Option[Cell] = None) {
 object TableReadingError {
 
   def apply(innerError: CellParsingError, cell: Cell, cellType: CellType[_, _]): TableReadingError = {
-    TableReadingError(s"$innerError $cellType", Some(cell))
+    TableReadingError(s"$innerError\n  ${cellType.asSentence}", Some(cell))
   }
 
   def apply(innerError: CsvReaderError): TableReadingError = {

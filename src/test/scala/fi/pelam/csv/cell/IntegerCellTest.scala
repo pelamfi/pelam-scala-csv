@@ -31,14 +31,16 @@ class IntegerCellTest {
   @Test
   def testFromStringError: Unit = {
     assertEquals(Left(CellParsingError(s"Expected integer, but input '12,000.0' " +
-      s"could not be fully parsed. Used locale 'fi'.")),
+      s"could not be fully parsed.\n" +
+      s"  Used locale 'fi'.")),
       IntegerCell.parserForLocale(localeFi)(CellKey(0, 0), "12,000.0"))
   }
 
   @Test
   def testDecimal: Unit = {
     assertEquals(Left(CellParsingError(s"Expected integer, " +
-      s"but value '12,000.0123' is decimal. Used locale ''.")),
+      s"but value '12,000.0123' is decimal.\n  " +
+      s"Used locale ''.")),
       IntegerCell.defaultParser(CellKey(0, 0), "12,000.0123"))
   }
 

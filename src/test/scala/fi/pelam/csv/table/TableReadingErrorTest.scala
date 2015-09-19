@@ -27,8 +27,11 @@ class TableReadingErrorTest {
 
   @Test
   def testToString: Unit = {
-    assertEquals("Some error occured. The error is related to the StringCell with value 'foocell' at Row 2, Column C (2).", errorFoo.toString)
-    assertEquals("Another error occured. The error is related to the IntegerCell with value '123' at Row 3, Column D (3).", errorBar.toString)
+    assertEquals("Some error occured.\n" +
+      "  The error is related to the StringCell with value 'foocell' at Row 2, Column C (2).", errorFoo.toString)
+
+    assertEquals("Another error occured.\n" +
+      "  The error is related to the IntegerCell with value '123' at Row 3, Column D (3).", errorBar.toString)
   }
 
   @Test
@@ -37,8 +40,8 @@ class TableReadingErrorTest {
     // This should have no effect
     val alreadySpecifiedCell = errorFoo.relatedCellAdded(intCell)
 
-    assertEquals("Some error occured. " +
-      "The error is related to the StringCell with value 'foocell' at Row 2, Column C (2).", alreadySpecifiedCell.toString)
+    assertEquals("Some error occured.\n" +
+      "  The error is related to the StringCell with value 'foocell' at Row 2, Column C (2).", alreadySpecifiedCell.toString)
   }
 
   @Test
@@ -47,8 +50,8 @@ class TableReadingErrorTest {
     // This should have no effect
     val alreadySpecifiedCell = errorFoo.messageAppended("Appended.")
 
-    assertEquals("Some error occured. Appended. " +
-      "The error is related to the StringCell with value 'foocell' at Row 2, Column C (2).", alreadySpecifiedCell.toString)
+    assertEquals("Some error occured.\n  Appended.\n" +
+      "  The error is related to the StringCell with value 'foocell' at Row 2, Column C (2).", alreadySpecifiedCell.toString)
   }
 
   @Test
@@ -56,8 +59,8 @@ class TableReadingErrorTest {
 
     val modifiedError = TableReadingError("Error originally without Cell.").relatedCellAdded(intCell)
 
-    assertEquals("Error originally without Cell. " +
-      "The error is related to the IntegerCell with value '123' at Row 3, Column D (3).", modifiedError.toString)
+    assertEquals("Error originally without Cell.\n" +
+      "  The error is related to the IntegerCell with value '123' at Row 3, Column D (3).", modifiedError.toString)
   }
 
 }
