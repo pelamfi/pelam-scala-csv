@@ -18,7 +18,7 @@
 
 package fi.pelam.csv.table
 
-import java.io.ByteArrayInputStream
+import java.io.{ByteArrayInputStream, File, FileInputStream}
 
 import fi.pelam.csv.CsvConstants
 import fi.pelam.csv.cell.{Cell, CellKey}
@@ -33,8 +33,18 @@ import fi.pelam.csv.cell.{Cell, CellKey}
 // TODO: Document methods with examples
 object TableReaderConfig {
 
+  /**
+   * A type to be passed to [[.makeCellUpgrader]]. A partial function
+   * that can accept a [[CellType]] and return a [[Cell.Parser]].
+   */
+  type ParserProvider[RT, CT] = PartialFunction[CellType[RT, CT], Cell.Parser]
+
   implicit def stringToStream(string: String): () => java.io.InputStream = {
     () => new ByteArrayInputStream(string.getBytes(CsvConstants.defaultCharset))
+  }
+
+  implicit def fileToStream(file: File): () => java.io.InputStream = {
+    () => new FileInputStream(file)
   }
 
   def errorOnUndefinedRow[RT](typer: TableReader.RowTyper[RT]): TableReader.RowTyper[RT] = {
@@ -68,14 +78,14 @@ object TableReaderConfig {
    * for [[fi.pelam.csv.table.TableReader]] from a map of
    * [[CellType CellTypes]] to [[fi.pelam.csv.cell.Cell.Parser Cell Parsers]].
    *
-   * @param parserMap a map from [[CellType CellTypes]] to [[fi.pelam.csv.cell.Cell.Parser CellParsers]]
+   * @param parserProvider a map from [[CellType CellTypes]] to [[fi.pelam.csv.cell.Cell.Parser CellParsers]]
    * @tparam RT client specific row type
    * @tparam CT client specific column type
    * @return a [[TableReader.CellUpgrader]] to be passed to [[TableReader]]
    */
-  def makeCellUpgrader[RT, CT](parserMap: PartialFunction[CellType[_, _], Cell.Parser]): TableReader.CellUpgrader[RT, CT] = {
-    case (cell, cellType) if parserMap.isDefinedAt(cellType) => {
-      val parse = parserMap(cellType)
+  def makeCellUpgrader[RT, CT](parserProvider: ParserProvider[RT, CT]): TableReader.CellUpgrader[RT, CT] = {
+    case (cell, cellType) if parserProvider.isDefinedAt(cellType) => {
+      val parse = parserProvider(cellType)
 
       parse(cell.cellKey, cell.serializedString) match {
         case Left(error) => Left(TableReadingError(error, cell, cellType))
