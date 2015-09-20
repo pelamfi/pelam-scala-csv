@@ -52,6 +52,7 @@ class TableReaderExample {
       }),
 
       // Convert cells on the "data" rows in the "number" column to integer cells.
+      // Convert cells on the "data" rows in the "price" column to decimal cells.
       cellUpgrader = makeCellUpgrader({
         case CellType("data", "number") => IntegerCell.defaultParser
         case CellType("data", "price") => DoubleCell.defaultParser

@@ -136,18 +136,18 @@ appropriate `Cell` sub type.
       }),
 
       // Convert cells on the "data" rows in the "number" column to integer cells.
+      // Convert cells on the "data" rows in the "price" column to decimal cells.
       cellUpgrader = makeCellUpgrader({
         case CellType("data", "number") => IntegerCell.defaultParser
-        case CellType("data", "price") => Dou
-        bleCell.defaultParser
+        case CellType("data", "price") => DoubleCell.defaultParser
       }))
 
     // Get values from cells in column with type "product" on rows with type "data."
     table.getSingleCol("data", "product").map(_.value).toList
     // Will give List("apple", "orange", "banana")
 
-    // Get values from cells in column with type "number" on rows with type "data."
-    table.getSingleCol("number", "data").map(_.value).toList)
+    // Get values from cells in column with type "price" on rows with type "data."
+    table.getSingleCol("data", "price").map(_.value).toList)
     // Will give List(0.99, 1.25, 0.8)
 
 ```
