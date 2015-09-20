@@ -208,7 +208,7 @@ different locale settings.
     // Will give List("300D", "SLS AMG")
 
     // Get values from cells in column with type "number" on rows with type "data."
-    table.getSingleCol("number", "price").map(_.value).toList)
+    table.getSingleCol("data", "price").map(_.value).toList)
     // Will give List(1234, 234567.89)
 ```
 
