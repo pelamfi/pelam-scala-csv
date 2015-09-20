@@ -8,7 +8,7 @@ if (Boolean.valueOf(signArtifacts)) {
 }
 
 group = 'fi.pelam'
-version = '0.9.1'
+version = '1.0.0'
 description = """
 Scala library for reading and writing CSV data with an optional high level
 API. Supports structured access to tabular data and a form of CSV format detection.

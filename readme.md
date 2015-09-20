@@ -42,18 +42,18 @@ and [online](http://www.apache.org/licenses/LICENSE-2.0).
 
 
 ## Maven coordinates
-[The Maven Central Repository entry is here.](http://search.maven.org/#artifactdetails%7Cfi.pelam%7Cpelam-scala-csv%7C0.9%7Cjar)
+[The Maven Central Repository entry is here.](http://search.maven.org/#artifactdetails%7Cfi.pelam%7Cpelam-scala-csv%7C1.0.0%7Cjar)
 
 ### Gradle
 
 ```groovy
-compile 'fi.pelam:pelam-scala-csv:0.9'
+compile 'fi.pelam:pelam-scala-csv:1.0.0'
 ```
 
 ### SBT
 
 ```scala
-libraryDependencies += "fi.pelam" % "pelam-scala-csv" % "0.9"
+libraryDependencies += "fi.pelam" % "pelam-scala-csv" % "1.0.0"
 ```
 
 ### Maven
@@ -62,7 +62,7 @@ libraryDependencies += "fi.pelam" % "pelam-scala-csv" % "0.9"
 <dependency>
     <groupId>fi.pelam</groupId>
     <artifactId>pelam-scala-csv</artifactId>
-    <version>0.9</version>
+    <version>1.0.0</version>
 </dependency>
 ```
 
@@ -83,7 +83,7 @@ normally returned by the reader.
    import fi.pelam.csv.stream._
 
    val csvData =
-       "apple,0.99,3\n" +
+       "apple,1.0.09,3\n" +
        "orange,1.25,2\n" +
        "banana,0.80,4\n"
 
@@ -94,7 +94,7 @@ normally returned by the reader.
    }
 
    // Running the code above will print the cells from the second second column:
-   // Cell containing '0.99' at Row 1, Column B (1)
+   // Cell containing '1.0.09' at Row 1, Column B (1)
    // Cell containing '1.25' at Row 2, Column B (1)
    // Cell containing '0.80' at Row 3, Column B (1)
 ```
@@ -120,7 +120,7 @@ appropriate `Cell` sub type.
       // to a function providing streams.
       openStream =
         "product,price,number\n" +
-        "apple,0.99,3\n" +
+        "apple,1.0.09,3\n" +
         "orange,1.25,2\n" +
         "banana,0.80,4\n",
 
@@ -148,7 +148,7 @@ appropriate `Cell` sub type.
 
     // Get values from cells in column with type "price" on rows with type "data."
     table.getSingleCol("data", "price").map(_.value).toList)
-    // Will give List(0.99, 1.25, 0.8)
+    // Will give List(1.0.09, 1.25, 0.8)
 
 ```
 
