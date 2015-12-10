@@ -368,6 +368,37 @@ final case class Table[RT, CT, M <: TableMetadata] private(
    */
   def getSingleColKeyByType(colType: CT) = getSingleKeyByType(colTypes.reverse, colType, "column")
 
+  override def toString() = {
+    val builder = new StringBuilder()
+
+    builder.append("columns:")
+
+    for ((colKey, colType) <- colTypes) {
+      builder.append(s"${colTypes(colKey)},")
+    }
+
+    builder.append("\n")
+
+    for (row <- cells) {
+      row.headOption.foreach { head =>
+        val rowKey = head.cellKey.rowKey
+        builder.append(s"${rowKey}/${rowTypes(rowKey)}:")
+      }
+      for (cell <- row) {
+        cell match {
+          case StringCell(_, s) => {
+            builder.append(s)
+          }
+          case IntegerCell(_, v) => builder.append(s"i $v")
+          case DoubleCell(_, v) => builder.append(s"d $v")
+          case someCell => builder.append(s"${someCell.getClass().getSimpleName} ${someCell.value}")
+        }
+        builder.append(s",")
+      }
+      builder.append("\n")
+    }
+    builder.toString()
+  }
 }
 
 object Table {
@@ -455,6 +486,5 @@ object Table {
       keys(0)
     }
   }
-
 
 }

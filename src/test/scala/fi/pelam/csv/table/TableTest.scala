@@ -125,17 +125,24 @@ class TableTest {
 
   @Test
   def testUpdatedRegionOneCell = {
-    val input = table.updatedCells(
-      StringCell(CellKey(1, 2), "x"),
-      foo,
-      bar,
-      StringCell(CellKey(3, 1), "x"))
-
     val replacement = StringCell(foo.cellKey, "replaced")
 
-    val result = table.updatedRegion(IndexedSeq(foo), IndexedSeq(replacement))
+    val result = fooBarTestTable.updatedRegion(IndexedSeq(foo), IndexedSeq(replacement))
 
-    assertEquals(table.updatedCells(replacement), result)
+    assertEquals(fooBarTestTable.updatedCells(replacement), result)
+  }
+
+  @Test
+  def testToString = {
+    assertEquals("columns:Qualifications,PrevWeek,PrevWeek,ThisWeek,CommentCol,\n" +
+      "Row 1/CommentRow:i 123,d 123.0,,,,,\n" +
+      "Row 2/Worker:,foo,x,,,,\n" +
+      "Row 3/Worker:,bar,,,,,\n" +
+      "Row 4/Day:,x,,,,,\n" +
+      "Row 5/CommentRow:,,,,,,", fooBarTestTable
+      .updatedCells(IntegerCell(CellKey(0, 0), 123))
+      .updatedCells(DoubleCell(CellKey(0, 1), 123))
+      .toString())
   }
 
 }
@@ -160,5 +167,12 @@ object TableTest {
   val history1 = StringCell(CellKey(3, 2), "history1")
   val history2 = StringCell(CellKey(3, 3), "history2")
   val plan1 = StringCell(CellKey(3, 4), "plan1")
+
+  val fooBarTestTable = table.updatedCells(
+    StringCell(CellKey(1, 2), "x"),
+    foo,
+    bar,
+    StringCell(CellKey(3, 1), "x"))
+
 }
 
