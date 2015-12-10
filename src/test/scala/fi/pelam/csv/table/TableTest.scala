@@ -123,6 +123,21 @@ class TableTest {
       table.getCells().map("'" + _.value + "'").reduce(_ + " " + _))
   }
 
+  @Test
+  def testUpdatedRegionOneCell = {
+    val input = table.updatedCells(
+      StringCell(CellKey(1, 2), "x"),
+      foo,
+      bar,
+      StringCell(CellKey(3, 1), "x"))
+
+    val replacement = StringCell(foo.cellKey, "replaced")
+
+    val result = table.updatedRegion(IndexedSeq(foo), IndexedSeq(replacement))
+
+    assertEquals(table.updatedCells(replacement), result)
+  }
+
 }
 
 object TableTest {

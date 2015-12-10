@@ -88,8 +88,35 @@ final case class Table[RT, CT, M <: TableMetadata] private(
   rowTypes: SortedBiMap[RowKey, RT],
   colTypes: SortedBiMap[ColKey, CT],
   metadata: M) {
-
   import Table._
+
+  type TableType = Table[RT, CT, M]
+
+  /**
+   * @param targetCells defines a rectangular region of cells to be replaced. There can be gaps,
+   *                    but the maximum and minimum row and column indices are used.
+   *
+   * @param replacementCells a rectangular region of cells to replace regionCells.
+   *                         If there are gaps, fillerGenerator is used.
+   *                         The replacementCells can define a smaller or larger
+   *                         rectangular region.
+   *                         If the region is smaller, overlapping rows and columns
+   *                         are deleted from the "ends" of the target region.
+   *
+   * @param fillerGenerator When the `replacementCells` region is larger than `regionCells`
+   *                        new rows and columns are added to the "ends" of the region
+   *                        and the new cells in them are generated with this function.
+   *                        This defaults to generating empty string cells.
+   *
+   * @return a new table with the replaced cells. Original table is never modified.
+   */
+  def updatedRegion(targetCells: Seq[Cell],
+    replacementCells: Seq[Cell],
+    fillerGenerator: CellGenerator = emptyStringCell): TableType = {
+    this
+  }
+
+  def getRows(rowType: RT): IndexedSeq[IndexedSeq[Cell]] = ???
 
   /**
    * The vertical size of this table. The table has strict rectangular form.
@@ -346,6 +373,17 @@ final case class Table[RT, CT, M <: TableMetadata] private(
 object Table {
 
   /**
+   * Defines a rectangular region. Both row and column index
+   * of first `CellKey` must be smaller or equal to the indices
+   * of the second `CellKey`.
+   */
+  type Region = (CellKey, CellKey)
+
+  type CellGenerator = (CellKey) => Cell
+
+  def emptyStringCell(cellKey: CellKey) = StringCell(cellKey, "")
+
+  /**
    * This is the main constructor for table. Often this is not used directly, but through [[TableReader]].
    *
    * @param cells The cells to be used in the table in any order.
@@ -397,7 +435,7 @@ object Table {
       for (colIndex <- 0 until finalColCount) {
 
         val cellKey = CellKey(rowKey, colIndex)
-        val cell = initialCellMap.get(cellKey).getOrElse(new StringCell(cellKey, ""))
+        val cell = initialCellMap.get(cellKey).getOrElse(emptyStringCell(cellKey))
 
         colArray(colIndex) = cell
       }
