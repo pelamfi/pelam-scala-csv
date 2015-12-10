@@ -113,7 +113,7 @@ final case class Table[RT, CT, M <: TableMetadata] private(
   def updatedRegion(targetCells: Seq[Cell],
     replacementCells: Seq[Cell],
     fillerGenerator: CellGenerator = emptyStringCell): TableType = {
-    this
+    this.updatedCells(replacementCells)
   }
 
   def getRows(rowType: RT): IndexedSeq[IndexedSeq[Cell]] = ???
