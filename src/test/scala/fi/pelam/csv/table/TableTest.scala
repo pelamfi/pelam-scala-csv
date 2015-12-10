@@ -139,7 +139,7 @@ class TableTest {
       "Row 2/Worker:,foo,x,,,,\n" +
       "Row 3/Worker:,bar,,,,,\n" +
       "Row 4/Day:,x,,,,,\n" +
-      "Row 5/CommentRow:,,,,,,", fooBarTestTable
+      "Row 5/CommentRow:,,,,,,\n", fooBarTestTable
       .updatedCells(IntegerCell(CellKey(0, 0), 123))
       .updatedCells(DoubleCell(CellKey(0, 1), 123))
       .toString())
