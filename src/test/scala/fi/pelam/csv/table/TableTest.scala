@@ -182,6 +182,26 @@ class TableTest {
       "Row 5/CommentRow:,,,,,,\n", testTableTypedCells.toString())
   }
 
+  @Test
+  def testSpannedRegion = {
+    assertEquals((CellKey(1, 1), CellKey(2, 2)), Table.spannedRegion(IndexedSeq(cell2b)))
+  }
+
+  @Test
+  def testSpannedRegion2 = {
+    assertEquals((CellKey(1, 1), CellKey(2, 3)), Table.spannedRegion(IndexedSeq(cell2b, cell2c)))
+  }
+
+  @Test
+  def testSpannedRegion2Down = {
+    assertEquals((CellKey(1, 1), CellKey(3, 2)), Table.spannedRegion(IndexedSeq(cell2b, cell3b)))
+  }
+
+  @Test
+  def testSpannedRegionEmpty = {
+    assertEquals((CellKey(0, 0), CellKey(0, 0)), Table.spannedRegion(IndexedSeq()))
+  }
+
 }
 
 object TableTest {

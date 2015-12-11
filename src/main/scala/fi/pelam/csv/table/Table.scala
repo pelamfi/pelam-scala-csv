@@ -414,9 +414,25 @@ object Table {
 
   def emptyStringCell(cellKey: CellKey) = StringCell(cellKey, "")
 
-  implicit def spannedRegion(cells: TraversableOnce[Cell]): Region = ???
+  implicit def spannedRegion(cells: TraversableOnce[Cell]): Region = spannedRegionKeys(cells.map(_.cellKey))
 
-  implicit def spannedRegionKeys(cellKeys: TraversableOnce[CellKey]): Region = ???
+  implicit def spannedRegionKeys(cellKeys: TraversableOnce[CellKey]): Region = {
+    val initial = (Int.MaxValue, Int.MinValue, Int.MaxValue, Int.MinValue)
+
+    val spannedIndices = cellKeys.foldLeft(initial)(
+      (region, key) => (
+        Math.min(region._1, Math.min(region._1, key.rowIndex)),
+        Math.max(region._2, Math.max(region._2, key.rowIndex + 1)),
+        Math.min(region._3, Math.min(region._3, key.colIndex)),
+        Math.max(region._4, Math.max(region._4, key.colIndex + 1))
+        ))
+
+    if (spannedIndices == initial) {
+      (CellKey(0, 0), CellKey(0, 0))
+    } else {
+      (CellKey(spannedIndices._1, spannedIndices._3), CellKey(spannedIndices._2, spannedIndices._4))
+    }
+  }
 
   /**
    * This is the main constructor for table. Often this is not used directly, but through [[TableReader]].
