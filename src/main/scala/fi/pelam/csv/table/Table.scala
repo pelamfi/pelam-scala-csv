@@ -93,10 +93,30 @@ final case class Table[RT, CT, M <: TableMetadata] private(
   type TableType = Table[RT, CT, M]
 
   /**
-   * @param targetCells defines a rectangular region of cells to be replaced. There can be gaps,
+   * @param rowKey where new rows are added or old rows deleted
+   * @param value for negative values, rows above `rowKey` are deleted
+   *              For positive values rows at `rowKey` are added.
+   * @return modified table
+   */
+  def resizeRows(rowKey: RowKey, value: Int, fillerGenerator: CellGenerator = emptyStringCell): TableType = {
+    this
+  }
+
+  /**
+   * @param colKey where new columns are added or old ones deleted
+   * @param value for negative values, rows left of `colKey` are deleted.
+   *              For positive values columns at `colKey` are added.
+   * @return modified table
+   */
+  def resizeCols(colKey: ColKey, value: Int, fillerGenerator: CellGenerator = emptyStringCell): TableType = {
+    this
+  }
+
+  /**
+   * @param targetRegion defines a rectangular region of cells to be replaced. There can be gaps,
    *                    but the maximum and minimum row and column indices are used.
    *
-   * @param replacementCells a rectangular region of cells to replace regionCells.
+   * @param replacementCells a rectangular region of cells to replace targetRegionw.
    *                         If there are gaps, fillerGenerator is used.
    *                         The replacementCells can define a smaller or larger
    *                         rectangular region.
@@ -110,10 +130,13 @@ final case class Table[RT, CT, M <: TableMetadata] private(
    *
    * @return a new table with the replaced cells. Original table is never modified.
    */
-  def updatedRegion(targetCells: Region,
+  def updatedRegion(targetRegion: Region,
     replacementCells: Seq[Cell],
     fillerGenerator: CellGenerator = emptyStringCell): TableType = {
-    this.updatedCells(replacementCells)
+    val replacementRegion = spannedRegion(replacementCells)
+    val resizedTable = resizeRows(targetRegion._2.rowKey, height(replacementRegion) - height(targetRegion), fillerGenerator)
+    val resizedTable2 = resizedTable.resizeCols(targetRegion._2.colKey, width(replacementRegion) - width(targetRegion), fillerGenerator)
+    resizedTable2.updatedCells(replacementCells)
   }
 
   def getRows(rowType: RT): IndexedSeq[IndexedSeq[Cell]] = ???
@@ -413,6 +436,10 @@ object Table {
   type CellGenerator = (CellKey) => Cell
 
   def emptyStringCell(cellKey: CellKey) = StringCell(cellKey, "")
+
+  def width(region: Region) = region._2.colIndex - region._1.colIndex
+
+  def height(region: Region) = region._2.rowIndex - region._1.rowIndex
 
   implicit def spannedRegion(cells: TraversableOnce[Cell]): Region = spannedRegionKeys(cells.map(_.cellKey))
 

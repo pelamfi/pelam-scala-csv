@@ -149,6 +149,30 @@ class TableTest {
   }
 
   @Test
+  def testRemoveRows = {
+    val result = testTable.resizeRows(cell2b.cellKey.rowKey, -1)
+
+    assertEquals("columns:Qualifications,PrevWeek,PrevWeek,ThisWeek,CommentCol,\n" +
+      "Row 1/Worker:,2b,2c,,,,\n" +
+      "Row 2/Worker:,3b,,,,,\n" +
+      "Row 3/Day:,4b,,,,,\n" +
+      "Row 4/CommentRow:,,,,,,\n", result.toString())
+  }
+
+  @Test
+  def testAddRows = {
+    val result = testTable.resizeRows(cell2b.cellKey.rowKey, 1, cellKey => StringCell(cellKey, "x"))
+
+    assertEquals("columns:Qualifications,PrevWeek,PrevWeek,ThisWeek,CommentCol,\n" +
+      "Row 1/CommentRow:,,,,,,\n" +
+      "Row 2/Worker:,2b,2c,,,,\n" +
+      "Row 3/Worker:x,x,x,x,x,x,\n" +
+      "Row 4/Worker:,3b,,,,,\n" +
+      "Row 5/Day:,4b,,,,,\n" +
+      "Row 6/CommentRow:,,,,,,\n", result.toString())
+  }
+
+  @Test
   def testUpdatedRegionSmaller = {
     import Table._
     val replacement = StringCell(cell2b.cellKey, "replaced")
