@@ -110,7 +110,7 @@ final case class Table[RT, CT, M <: TableMetadata] private(
    *
    * @return a new table with the replaced cells. Original table is never modified.
    */
-  def updatedRegion(targetCells: Seq[Cell],
+  def updatedRegion(targetCells: Region,
     replacementCells: Seq[Cell],
     fillerGenerator: CellGenerator = emptyStringCell): TableType = {
     this.updatedCells(replacementCells)
@@ -413,6 +413,10 @@ object Table {
   type CellGenerator = (CellKey) => Cell
 
   def emptyStringCell(cellKey: CellKey) = StringCell(cellKey, "")
+
+  implicit def spannedRegion(cells: TraversableOnce[Cell]): Region = ???
+
+  implicit def spannedRegionKeys(cellKeys: TraversableOnce[CellKey]): Region = ???
 
   /**
    * This is the main constructor for table. Often this is not used directly, but through [[TableReader]].

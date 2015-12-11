@@ -125,6 +125,8 @@ class TableTest {
 
   @Test
   def testUpdatedRegionOneCell = {
+    import Table._
+
     val replacement = StringCell(cell2b.cellKey, "replaced")
 
     val result = testTable.updatedRegion(IndexedSeq(cell2b), IndexedSeq(replacement))
@@ -148,6 +150,7 @@ class TableTest {
 
   @Test
   def testUpdatedRegionSmaller = {
+    import Table._
     val replacement = StringCell(cell2b.cellKey, "replaced")
 
     val result = testTable.updatedRegion(IndexedSeq(cell2b, cell3b), IndexedSeq(replacement))
