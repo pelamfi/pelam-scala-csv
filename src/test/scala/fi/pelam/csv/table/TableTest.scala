@@ -31,19 +31,19 @@ class TableTest {
   @Test
   def testGetSingleCol: Unit = {
 
-    val updated = table.updatedCells(
+    val updated = emptyTypedTable.updatedCells(
       StringCell(CellKey(1, 2), "x"),
-      foo,
-      bar,
+      cell2b,
+      cell3b,
       StringCell(CellKey(3, 1), "x"))
 
-    assertEquals(List(foo, bar), updated.getSingleCol(TestRowType.Worker, TestColType.Qualifications).toList)
+    assertEquals(List(cell2b, cell3b), updated.getSingleCol(TestRowType.Worker, TestColType.Qualifications).toList)
   }
 
   @Test
   def testGetSingleRow: Unit = {
 
-    val updated = table.updatedCells(StringCell(CellKey(3, 1), "x"),
+    val updated = emptyTypedTable.updatedCells(StringCell(CellKey(3, 1), "x"),
       history1,
       history2,
       plan1,
@@ -58,28 +58,28 @@ class TableTest {
   @Test(expected = classOf[IllegalArgumentException])
   def testSetCellOutsideBounds: Unit = {
     // Table should not allow cells outside initial bounds.
-    table.updatedCells(StringCell(CellKey(5, 3), "x"))
+    emptyTypedTable.updatedCells(StringCell(CellKey(5, 3), "x"))
   }
 
   @Test(expected = classOf[IllegalArgumentException])
   def testSetCellOutsideBoundsColumn: Unit = {
     // Table should not allow cells outside initial bounds.
-    table.updatedCells(StringCell(CellKey(1, 6), "x"))
+    emptyTypedTable.updatedCells(StringCell(CellKey(1, 6), "x"))
   }
 
   @Test
   def testSingleColWithEmptyCell: Unit = {
 
-    val updated = table.updatedCells(StringCell(CellKey(1, 2), "x"),
-      foo,
+    val updated = emptyTypedTable.updatedCells(StringCell(CellKey(1, 2), "x"),
+      cell2b,
       StringCell(CellKey(3, 1), "x"))
 
-    assertEquals(List(foo, StringCell(CellKey(2, 1), "")), updated.getSingleCol(TestRowType.Worker, TestColType.Qualifications).toList)
+    assertEquals(List(cell2b, StringCell(CellKey(2, 1), "")), updated.getSingleCol(TestRowType.Worker, TestColType.Qualifications).toList)
   }
 
   @Test(expected = classOf[RuntimeException])
   def testSingleColWithAmbiguousColumn: Unit = {
-    table.getSingleCol(TestRowType.Worker, TestColType.PrevWeek)
+    emptyTypedTable.getSingleCol(TestRowType.Worker, TestColType.PrevWeek)
   }
 
   @Test
@@ -125,30 +125,64 @@ class TableTest {
 
   @Test
   def testUpdatedRegionOneCell = {
-    val replacement = StringCell(foo.cellKey, "replaced")
+    val replacement = StringCell(cell2b.cellKey, "replaced")
 
-    val result = fooBarTestTable.updatedRegion(IndexedSeq(foo), IndexedSeq(replacement))
+    val result = testTable.updatedRegion(IndexedSeq(cell2b), IndexedSeq(replacement))
 
-    assertEquals(fooBarTestTable.updatedCells(replacement), result)
+    assertEquals(testTable.updatedCells(replacement), result)
+  }
+
+  @Test
+  def testUpdatedCell = {
+    val replacement = StringCell(cell2b.cellKey, "replaced")
+
+    val result = testTable.updatedCells(IndexedSeq(replacement))
+
+    assertEquals("columns:Qualifications,PrevWeek,PrevWeek,ThisWeek,CommentCol,\n" +
+      "Row 1/CommentRow:,,,,,,\n" +
+      "Row 2/Worker:,replaced,2c,,,,\n" +
+      "Row 3/Worker:,3b,,,,,\n" +
+      "Row 4/Day:,4b,,,,,\n" +
+      "Row 5/CommentRow:,,,,,,\n", result.toString())
+  }
+
+  @Test
+  def testUpdatedRegionSmaller = {
+    val replacement = StringCell(cell2b.cellKey, "replaced")
+
+    val result = testTable.updatedRegion(IndexedSeq(cell2b, cell3b), IndexedSeq(replacement))
+
+    assertEquals("columns:Qualifications,PrevWeek,PrevWeek,ThisWeek,CommentCol,\n" +
+      "Row 1/CommentRow:,,,,,,\n" +
+      "Row 2/Worker:,replaced,2c,,,,\n" +
+      "Row 3/Day:,4b,,,,,\n" +
+      "Row 4/CommentRow:,,,,,,\n", result.toString())
   }
 
   @Test
   def testToString = {
     assertEquals("columns:Qualifications,PrevWeek,PrevWeek,ThisWeek,CommentCol,\n" +
+      "Row 1/CommentRow:,,,,,,\n" +
+      "Row 2/Worker:,2b,2c,,,,\n" +
+      "Row 3/Worker:,3b,,,,,\n" +
+      "Row 4/Day:,4b,,,,,\n" +
+      "Row 5/CommentRow:,,,,,,\n", testTable.toString())
+  }
+
+  @Test
+  def testToStringTypedCells = {
+    assertEquals("columns:Qualifications,PrevWeek,PrevWeek,ThisWeek,CommentCol,\n" +
       "Row 1/CommentRow:i 123,d 123.0,,,,,\n" +
-      "Row 2/Worker:,foo,x,,,,\n" +
-      "Row 3/Worker:,bar,,,,,\n" +
-      "Row 4/Day:,x,,,,,\n" +
-      "Row 5/CommentRow:,,,,,,\n", fooBarTestTable
-      .updatedCells(IntegerCell(CellKey(0, 0), 123))
-      .updatedCells(DoubleCell(CellKey(0, 1), 123))
-      .toString())
+      "Row 2/Worker:,2b,2c,,,,\n" +
+      "Row 3/Worker:,3b,,,,,\n" +
+      "Row 4/Day:,4b,,,,,\n" +
+      "Row 5/CommentRow:,,,,,,\n", testTableTypedCells.toString())
   }
 
 }
 
 object TableTest {
-  val table: Table[TestRowType, TestColType, SimpleMetadata] = Table(
+  val emptyTypedTable: Table[TestRowType, TestColType, SimpleMetadata] = Table(
     List[Cell](),
     SortedBiMap[RowKey, TestRowType](RowKey(0) -> TestRowType.CommentRow,
       RowKey(1) -> TestRowType.Worker,
@@ -162,17 +196,19 @@ object TableTest {
       ColKey(5) -> TestColType.CommentCol),
     SimpleMetadata())
 
-  val foo = StringCell(CellKey(1, 1), "foo")
-  val bar = StringCell(CellKey(2, 1), "bar")
+  val cell2b = StringCell(CellKey(1, 1), "2b")
+  val cell3b = StringCell(CellKey(2, 1), "3b")
   val history1 = StringCell(CellKey(3, 2), "history1")
   val history2 = StringCell(CellKey(3, 3), "history2")
   val plan1 = StringCell(CellKey(3, 4), "plan1")
 
-  val fooBarTestTable = table.updatedCells(
-    StringCell(CellKey(1, 2), "x"),
-    foo,
-    bar,
-    StringCell(CellKey(3, 1), "x"))
+  val cell2c = StringCell(CellKey(1, 2), "2c")
+  val cell4b = StringCell(CellKey(3, 1), "4b")
 
+  val testTable = emptyTypedTable.updatedCells(cell2c, cell2b, cell3b, cell4b)
+
+  val testTableTypedCells = testTable
+    .updatedCells(IntegerCell(CellKey(0, 0), 123))
+    .updatedCells(DoubleCell(CellKey(0, 1), 123))
 }
 

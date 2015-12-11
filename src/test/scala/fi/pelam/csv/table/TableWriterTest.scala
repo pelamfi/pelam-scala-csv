@@ -35,7 +35,7 @@ class TableWriterTest {
 
   @Test
   def testWrite: Unit = {
-    val table = TableTest.table.updatedCells(foo, bar)
+    val table = TableTest.testTableTypedCells
 
     val writer = new TableWriter(table)
 
@@ -43,7 +43,7 @@ class TableWriterTest {
 
     val written = new String(outputStream.toByteArray(), table.metadata.charset)
 
-    assertEquals(",,,,,\n,foo,,,,\n,bar,,,,\n,,,,,\n,,,,,\n", written)
+    assertEquals("123,123,,,,\n,2b,2c,,,\n,3b,,,,\n,4b,,,,\n,,,,,\n", written)
   }
 
   @Test
