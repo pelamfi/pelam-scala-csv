@@ -26,6 +26,8 @@ final case class DoubleCell(override val cellKey: CellKey,
   (implicit val formatter: DoubleCell.NumberFormatter = DoubleCell.defaultFormatter)
   extends Cell {
 
+  override def updatedCellKey(cellKey: CellKey) = copy(cellKey = cellKey)
+
   def serializedString: String = {
     formatter(value)
   }

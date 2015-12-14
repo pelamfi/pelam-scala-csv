@@ -44,7 +44,7 @@ final case class StringCell(override val cellKey: CellKey,
    */
   override def value = serializedString
 
-
+  override def updatedCellKey(cellKey: CellKey) = copy(cellKey = cellKey)
 }
 
 object StringCell {

@@ -98,9 +98,24 @@ final case class Table[RT, CT, M <: TableMetadata] private(
    *              For positive values rows at `rowKey` are added.
    * @return modified table
    */
-  def resizeRows(rowKey: RowKey, value: Int, fillerGenerator: CellGenerator = emptyStringCell): TableType = {
-    this
+  def resizeRows(rowKey: RowKey, value: Int, fillerGenerator: CellGenerator = emptyStringCell): TableType = value match {
+    case value if value < 0 => {
+      val rowsRemoved = cells.take(rowKey.index + value) ++ cells.drop(rowKey.index)
+      new Table[RT, CT, M](rowsRemoved, rowTypes, colTypes, metadata)
+    }
+    case value if value > 0 => {
+      val newRows = for (rowIndex <- 0 until value) yield {
+        for (colIndex <- 0 until colCount) yield {
+          fillerGenerator(CellKey(rowIndex, colIndex))
+        }
+      }
+      val indicesOk = cells.take(rowKey.index + 1) ++ newRows
+      val rowsAdded = indicesOk ++ renumberRows(indicesOk.size, cells.drop(rowKey.index - 1))
+      new Table[RT, CT, M](rowsAdded, rowTypes, colTypes, metadata)
+    }
+    case _ => this
   }
+
 
   /**
    * @param colKey where new columns are added or old ones deleted
@@ -531,6 +546,15 @@ object Table {
       sys.error(s"Expected 1 $axisName of type $colType but more than 1 found.")
     } else {
       keys(0)
+    }
+  }
+
+  def renumberRows(firstIndex: Int, cells: IndexedSeq[IndexedSeq[Cell]]): IndexedSeq[IndexedSeq[Cell]] = {
+    for ((row, offset) <- cells.zipWithIndex;
+         index = firstIndex + offset) yield {
+      for (cell <- row) yield {
+        cell.updatedCellKey(CellKey(index, cell.colIndex))
+      }
     }
   }
 

@@ -37,6 +37,11 @@ package fi.pelam.csv.cell
 abstract class Cell {
 
   /**
+   * Make a copy of this cell, but with different cell key.
+   */
+  def updatedCellKey(key: CellKey): Cell
+
+  /**
    * Each cell directly contains information about its coordinates in the CSV data.
    *
    * The rationale is that this makes processing streams of cells simpler and allows
