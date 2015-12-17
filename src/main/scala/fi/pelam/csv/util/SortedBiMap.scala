@@ -18,7 +18,8 @@
 
 package fi.pelam.csv.util
 
-import scala.collection.{SortedMap, mutable}
+import scala.collection.generic.{SortedMapFactory, CanBuildFrom}
+import scala.collection.{GenTraversableOnce, SortedMap, mutable}
 
 /**
  * Bidirectional map supporting multiple values for a single key.
@@ -46,6 +47,12 @@ final case class SortedBiMap[K, V](map: SortedMap[K, V])(implicit keyOrdering: O
   override def updated[B1 >: V](key: K, value: B1): SortedBiMap[K, B1] = SortedBiMap(map.updated(key, value))
 
   override def +[B1 >: V](kv: (K, B1)): SortedBiMap[K, B1] = SortedBiMap[K, B1](map + kv)
+
+  override def drop(n: Int): SortedBiMap[K, V] = SortedBiMap(super.drop(n))
+
+  override def take(n: Int): SortedBiMap[K, V] = SortedBiMap(super.take(n))
+
+  override def ++[B1 >: V](xs: GenTraversableOnce[(K, B1)]): SortedBiMap[K, B1] = SortedBiMap(super.++(xs))
 
   override def get(key: K): Option[V] = map.get(key)
 
@@ -130,4 +137,22 @@ object SortedBiMap {
     resultBuilder.result()
   }
 
+  def empty[A, B](implicit ord: Ordering[A]): SortedBiMap[A, B] = SortedBiMap()
+
+  class BiMapBuilder[A, B](ord: Ordering[A]) extends mutable.Builder[(A, B), SortedBiMap[A, B]] {
+    override def +=(elem: (A, B)): BiMapBuilder.this.type = ???
+
+    override def result(): SortedBiMap[A, B] = ???
+
+    override def clear(): Unit = ???
+  }
+
+  class BiMapCanBuildFrom[A, B](implicit ord: Ordering[A]) extends CanBuildFrom[SortedBiMap[A, B], (A, B), SortedBiMap[A, B]] {
+    def apply(from: SortedBiMap[A, B]) = new BiMapBuilder[A, B](ord)
+
+    def apply() = new BiMapBuilder[A, B](ord)
+  }
+
+  implicit def canBuildFrom[A, B](implicit ord: Ordering[A]): CanBuildFrom[SortedBiMap[A, B], (A, B), SortedBiMap[A, B]] =
+    new BiMapCanBuildFrom[A, B]
 }
