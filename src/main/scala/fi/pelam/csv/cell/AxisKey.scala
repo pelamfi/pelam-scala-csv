@@ -28,4 +28,14 @@ trait AxisKey[T <: AxisKey[_]] extends Ordered[T] {
   val index: Int
 
   override def compare(that: T): Int = this.index - that.index
+
+  /**
+   * To construct a cell or row key with given index.
+   */
+  def updated(index: Int): T
+
+  /**
+   * To construct a cell or row key with given offset added to index.
+   */
+  def withOffset(offset: Int): T
 }

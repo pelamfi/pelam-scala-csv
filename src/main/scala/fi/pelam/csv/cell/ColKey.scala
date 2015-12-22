@@ -41,6 +41,10 @@ final case class ColKey(index: Int) extends AxisKey[ColKey] {
   override def toString(): String = {
     s"Column ${toAlphabetical(index)} (${index})"
   }
+
+  override def updated(newIndex: Int) = copy(index = newIndex)
+
+  override def withOffset(offset: Int) = copy(index = index + offset)
 }
 
 object ColKey {

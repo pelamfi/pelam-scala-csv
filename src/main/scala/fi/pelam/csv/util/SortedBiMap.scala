@@ -18,7 +18,7 @@
 
 package fi.pelam.csv.util
 
-import scala.collection.generic.{SortedMapFactory, CanBuildFrom}
+import scala.collection.generic.CanBuildFrom
 import scala.collection.{GenTraversableOnce, SortedMap, mutable}
 
 /**
@@ -139,12 +139,21 @@ object SortedBiMap {
 
   def empty[A, B](implicit ord: Ordering[A]): SortedBiMap[A, B] = SortedBiMap()
 
-  class BiMapBuilder[A, B](ord: Ordering[A]) extends mutable.Builder[(A, B), SortedBiMap[A, B]] {
-    override def +=(elem: (A, B)): BiMapBuilder.this.type = ???
+  class BiMapBuilder[A, B](val ord: Ordering[A]) extends mutable.Builder[(A, B), SortedBiMap[A, B]] {
+    val pairs = mutable.Buffer[(A, B)]()
 
-    override def result(): SortedBiMap[A, B] = ???
+    override def +=(elem: (A, B)): BiMapBuilder.this.type = {
+      pairs += elem
+      this
+    }
 
-    override def clear(): Unit = ???
+    override def result(): SortedBiMap[A, B] = {
+      SortedBiMap(SortedMap.empty(ord) ++ pairs)(ord)
+    }
+
+    override def clear(): Unit = {
+      pairs.clear()
+    }
   }
 
   class BiMapCanBuildFrom[A, B](implicit ord: Ordering[A]) extends CanBuildFrom[SortedBiMap[A, B], (A, B), SortedBiMap[A, B]] {

@@ -33,4 +33,7 @@ case class RowKey(index: Int) extends AxisKey[RowKey] {
     s"Row ${index + 1}"
   }
 
+  override def updated(newIndex: Int) = copy(index = newIndex)
+
+  override def withOffset(offset: Int) = copy(index = index + offset)
 }

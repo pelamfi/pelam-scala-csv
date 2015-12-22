@@ -22,6 +22,9 @@ import fi.pelam.csv.cell._
 import fi.pelam.csv.util.SortedBiMap
 
 import scala.collection.SortedMap
+import scala.collection.generic.CanBuildFrom
+import SortedBiMap._
+import scala.reflect.ClassTag
 
 /**
  * This class is part of the the higher level API for reading,
@@ -100,19 +103,40 @@ final case class Table[RT, CT, M <: TableMetadata] private(
    */
   def resizeRows(rowKey: RowKey, value: Int, fillerGenerator: CellGenerator = emptyStringCell): TableType = value match {
     case value if value < 0 => {
-      val rowsRemoved = cells.take(rowKey.index + value) ++ cells.drop(rowKey.index)
-      new Table[RT, CT, M](rowsRemoved, rowTypes, colTypes, metadata)
+      val keepFromStart = rowKey.index + value + 1
+      val dropAndKeepFromEnd = rowKey.index + 1
+      val beforeRemoved = cells.take(keepFromStart)
+      val rowsRemoved = beforeRemoved ++ renumberRows(beforeRemoved.size, cells.drop(dropAndKeepFromEnd))
+
+      val rowTypesBeforeRemoved = rowTypes.take(keepFromStart)
+      val rowTypesAfterRemoved = rowTypes.drop(dropAndKeepFromEnd)
+      val rowTypesRemoved = rowTypesBeforeRemoved ++ renumberTypeMap(keepFromStart, rowTypesAfterRemoved)
+
+      new Table[RT, CT, M](rowsRemoved, rowTypesRemoved, colTypes, metadata)
     }
+
     case value if value > 0 => {
-      val newRows = for (rowIndex <- 0 until value) yield {
+      val newIndices = rowKey.index + 1 until rowKey.index + value + 1
+
+      val newRows = for (rowIndex <- newIndices) yield {
         for (colIndex <- 0 until colCount) yield {
           fillerGenerator(CellKey(rowIndex, colIndex))
         }
       }
-      val indicesOk = cells.take(rowKey.index + 1) ++ newRows
-      val rowsAdded = indicesOk ++ renumberRows(indicesOk.size, cells.drop(rowKey.index - 1))
-      new Table[RT, CT, M](rowsAdded, rowTypes, colTypes, metadata)
+
+      val keepFromStart = rowKey.index + 1
+      val dropAndKeepFromEnd = rowKey.index + 1
+      val indicesOk = cells.take(keepFromStart) ++ newRows
+      val rowsAdded = indicesOk ++ renumberRows(indicesOk.size, cells.drop(dropAndKeepFromEnd))
+
+      val newRowTypes = newIndices.map(rowIndex => (RowKey(rowIndex), rowTypes(rowKey)))
+      val renumberedLastTypes = renumberTypeMap(indicesOk.size, rowTypes.drop(dropAndKeepFromEnd))
+      val indexOkTypes = rowTypes.take(keepFromStart) ++ newRowTypes
+      val rowTypesAdded = indexOkTypes ++ renumberedLastTypes
+
+      new Table[RT, CT, M](rowsAdded, rowTypesAdded, colTypes, metadata)
     }
+
     case _ => this
   }
 
@@ -149,7 +173,7 @@ final case class Table[RT, CT, M <: TableMetadata] private(
     replacementCells: Seq[Cell],
     fillerGenerator: CellGenerator = emptyStringCell): TableType = {
     val replacementRegion = spannedRegion(replacementCells)
-    val resizedTable = resizeRows(targetRegion._2.rowKey, height(replacementRegion) - height(targetRegion), fillerGenerator)
+    val resizedTable = resizeRows(targetRegion._2.rowKey.withOffset(-1), height(replacementRegion) - height(targetRegion), fillerGenerator)
     val resizedTable2 = resizedTable.resizeCols(targetRegion._2.colKey, width(replacementRegion) - width(targetRegion), fillerGenerator)
     resizedTable2.updatedCells(replacementCells)
   }
@@ -547,6 +571,28 @@ object Table {
     } else {
       keys(0)
     }
+  }
+
+  /*
+    def renumberTypeMap[K <: AxisKey[K], T, M <: SortedMap[K, T]](firstIndex: Int, typeMap: M)(implicit builder: CanBuildFrom[TraversableOnce[(K, T)], (K, T), M]): M = {
+      val b = builder()
+      b ++= (for (((axisKey, rowType), offset) <- typeMap.zipWithIndex;
+           index = firstIndex + offset) yield {
+        (axisKey.updated(index), rowType)
+      })
+      b.result()
+    }
+  */
+
+  def renumberTypeMap[K <: AxisKey[K], T](firstIndex: Int, typeMap: SortedBiMap[K, T])(implicit builder: CanBuildFrom[SortedBiMap[K, T], (K, T), SortedBiMap[K, T]]): SortedBiMap[K, T] = {
+    val b = builder()
+    var offset = 0
+    for ((axisKey, rowType) <- typeMap) {
+      val index = firstIndex + offset
+      b += ((axisKey.updated(index), rowType))
+      offset += 1
+    }
+    b.result()
   }
 
   def renumberRows(firstIndex: Int, cells: IndexedSeq[IndexedSeq[Cell]]): IndexedSeq[IndexedSeq[Cell]] = {
