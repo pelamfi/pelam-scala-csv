@@ -152,33 +152,88 @@ final case class Table[RT, CT, M <: TableMetadata] private(
   }
 
   /**
-   * @param targetRegion defines a rectangular region of cells to be replaced. There can be gaps,
-   *                    but the maximum and minimum row and column indices are used.
+   * @param targetRegion defines a rectangular region of cells to be replaced. Region
+   *                     spanned by `replacementCells` does not need to fit targetRegion.
+   *                     Table will be resized to match. See below for more details.
    *
-   * @param replacementCells a rectangular region of cells to replace targetRegionw.
-   *                         If there are gaps, fillerGenerator is used.
-   *                         The replacementCells can define a smaller or larger
-   *                         rectangular region.
-   *                         If the region is smaller, overlapping rows and columns
-   *                         are deleted from the "ends" of the target region.
+   * @param replacementCells a rectangular region of cells to replace `targetRegion`.
+   *                         Gaps are ok.
+   *                         The `replacementCells` can define (span) a different
+   *                         rectangular region than the targetRegion.
    *
-   * @param fillerGenerator When the `replacementCells` region is larger than `regionCells`
-   *                        new rows and columns are added to the "ends" of the region
-   *                        and the new cells in them are generated with this function.
-   *                        This defaults to generating empty string cells.
+   *                         See [[.resizeRegion]] for details on how the resizing works.
    *
-   * @return a new table with the replaced cells. Original table is never modified.
+   * @param fillerGenerator When new cells need to be created, this is used.
+   *
+   * @return a new table with the replaced cells. Original table is not modified.
    */
   def updatedRegion(targetRegion: Region,
-    replacementCells: Seq[Cell],
+    replacementCells: TraversableOnce[Cell],
     fillerGenerator: CellGenerator = emptyStringCell): TableType = {
+
     val replacementRegion = spannedRegion(replacementCells)
-    val resizedTable = resizeRows(targetRegion._2.rowKey.withOffset(-1), height(replacementRegion) - height(targetRegion), fillerGenerator)
-    val resizedTable2 = resizedTable.resizeCols(targetRegion._2.colKey, width(replacementRegion) - width(targetRegion), fillerGenerator)
-    resizedTable2.updatedCells(replacementCells)
+
+    val resizedTable = resized(targetRegion, replacementRegion, fillerGenerator)
+
+    resizedTable.updatedCells(replacementCells)
   }
 
-  def getRows(rowType: RT): IndexedSeq[IndexedSeq[Cell]] = ???
+  /**
+   * Otherwise same as `updatedRegion`, but `replacementCells` are renumbered to
+   * tightly fill the `targetRegion`. If there cell counts don't match,
+   * `targetRegion` is shrinked or grown to fit all `replacementCells`
+   */
+  def updatedColumns(targetRegion: Region,
+    replacementCells: TraversableOnce[Cell],
+    fillerGenerator: CellGenerator = emptyStringCell): TableType = {
+
+    val renumbered = renumberDown(replacementCells, targetRegion)
+
+    updatedRegion(targetRegion, renumbered, fillerGenerator)
+  }
+
+  /**
+   * A region based resize method for table that can grow or shrink a region
+   * as needed.
+   *
+   * @param targetRegion defines a rectangular region of cells to be replaced. Region
+   *                     spanned by `replacementCells` does not need to fit targetRegion.
+   *                     Table will be resized to match. See below for more details.
+   *
+   * @param resizedRegion a rectangular region to replace `targetRegion`.
+   *
+   *                      The idea is that `resizedRegion` can define
+   *                      (span) a different rectangular region than the
+   *                      `targetRegion`.
+   *
+   *                      If there are extra cells in the `targetRegion`, rows and columns
+   *                      are deleted from the "ends" of the `targetRegion`.
+   *
+   *                      If the `resizedCells` doesn't fit in `targetRegion`, `targetRegion`
+   *                      is expanded to contain it. New rows and columns are generated
+   *                      with `fillerGenerator` as needed.
+   *
+   *                      There is one limitation however. the top left corner of
+   *                      `resizedRegion` must be equal to or towards down and right
+   *                      with respect to the top left corner of `targetRegion`.
+   *
+   *
+   * @param fillerGenerator When new cells need to be created, this is used.
+   */
+  def resized(targetRegion: (CellKey, CellKey), resizedRegion: (CellKey, CellKey), fillerGenerator: CellGenerator): TableType = {
+    val topLeftMinRegion = topLeftMin(resizedRegion, targetRegion)
+    val heightResize: Int = height(topLeftMinRegion) - height(targetRegion)
+    val widthResize: Int = width(topLeftMinRegion) - width(targetRegion)
+    val resizeCellKey = CellKey(targetRegion._2.rowKey.withOffset(-1), targetRegion._2.colKey.withOffset(-1))
+    val resizedTable = resized(resizeCellKey, heightResize, widthResize, fillerGenerator)
+    resizedTable
+  }
+
+  def resized(resizeCellKey: CellKey, rowsResize: Int, colsResize: Int, fillerGenerator: CellGenerator): TableType = {
+    val resizedTable = resizeRows(resizeCellKey.rowKey, rowsResize, fillerGenerator)
+    val resizedTable2 = resizedTable.resizeCols(resizeCellKey.colKey, colsResize, fillerGenerator)
+    resizedTable2
+  }
 
   /**
    * The vertical size of this table. The table has strict rectangular form.
@@ -281,6 +336,16 @@ final case class Table[RT, CT, M <: TableMetadata] private(
    * Get cell at specific row, column address.
    */
   def getCell(key: CellKey) = cells(key.rowIndex)(key.colIndex)
+
+  /**
+   * Get a full rows from table defined by `rowType`.
+   */
+  def getRows(rowType: RT): IndexedSeq[IndexedSeq[Cell]] = {
+    val rowKeys = rowTypes.reverse(rowType)
+    for (rowKey <- rowKeys) yield {
+      cells(rowKey.index)
+    }
+  }
 
   /**
    * Get a cell from specified row matching the specified column type.
@@ -441,24 +506,8 @@ final case class Table[RT, CT, M <: TableMetadata] private(
 
     builder.append("\n")
 
-    for (row <- cells) {
-      row.headOption.foreach { head =>
-        val rowKey = head.cellKey.rowKey
-        builder.append(s"${rowKey}/${rowTypes(rowKey)}:")
-      }
-      for (cell <- row) {
-        cell match {
-          case StringCell(_, s) => {
-            builder.append(s)
-          }
-          case IntegerCell(_, v) => builder.append(s"i $v")
-          case DoubleCell(_, v) => builder.append(s"d $v")
-          case someCell => builder.append(s"${someCell.getClass().getSimpleName} ${someCell.value}")
-        }
-        builder.append(s",")
-      }
-      builder.append("\n")
-    }
+    builder.append(rowsToString(cells, rowKey => s"${rowKey}/${rowTypes(rowKey)}:"))
+
     builder.toString()
   }
 }
@@ -469,6 +518,9 @@ object Table {
    * Defines a rectangular region. Both row and column index
    * of first `CellKey` must be smaller or equal to the indices
    * of the second `CellKey`.
+   *
+   * Region is defined as an half open range ie CellKey 2 is not
+   * included in the region.
    */
   type Region = (CellKey, CellKey)
 
@@ -480,7 +532,20 @@ object Table {
 
   def height(region: Region) = region._2.rowIndex - region._1.rowIndex
 
+  /**
+   * Let `a` define bottom right corner, but get top left corner
+   * as a minimum of coordinates from top left corners of `a` and `b`.
+   */
+  def topLeftMin(a: Region, b: Region): Region = (
+    CellKey(Math.min(a._1.rowIndex, b._1.rowIndex),
+      Math.min(a._1.colIndex, b._1.colIndex)),
+    a._2)
+
   implicit def spannedRegion(cells: TraversableOnce[Cell]): Region = spannedRegionKeys(cells.map(_.cellKey))
+
+  implicit def toStringCells(strings: TraversableOnce[String]): TraversableOnce[Cell] = {
+    strings.map(StringCell(CellKey.invalid, _))
+  }
 
   implicit def spannedRegionKeys(cellKeys: TraversableOnce[CellKey]): Region = {
     val initial = (Int.MaxValue, Int.MinValue, Int.MaxValue, Int.MinValue)
@@ -574,14 +639,14 @@ object Table {
   }
 
   /*
-    def renumberTypeMap[K <: AxisKey[K], T, M <: SortedMap[K, T]](firstIndex: Int, typeMap: M)(implicit builder: CanBuildFrom[TraversableOnce[(K, T)], (K, T), M]): M = {
-      val b = builder()
-      b ++= (for (((axisKey, rowType), offset) <- typeMap.zipWithIndex;
-           index = firstIndex + offset) yield {
-        (axisKey.updated(index), rowType)
-      })
-      b.result()
-    }
+  def renumberTypeMap[K <: AxisKey[K], T, M <: SortedMap[K, T]](firstIndex: Int, typeMap: M)(implicit builder: CanBuildFrom[TraversableOnce[(K, T)], (K, T), M]): M = {
+    val b = builder()
+    b ++= (for (((axisKey, rowType), offset) <- typeMap.zipWithIndex;
+         index = firstIndex + offset) yield {
+      (axisKey.updated(index), rowType)
+    })
+    b.result()
+  }
   */
 
   def renumberTypeMap[K <: AxisKey[K], T](firstIndex: Int, typeMap: SortedBiMap[K, T])(implicit builder: CanBuildFrom[SortedBiMap[K, T], (K, T), SortedBiMap[K, T]]): SortedBiMap[K, T] = {
@@ -602,6 +667,56 @@ object Table {
         cell.updatedCellKey(CellKey(index, cell.colIndex))
       }
     }
+  }
+
+  /**
+   * Renumber `cells` to fit into `targetRegion` going from top left to right
+   * and then down row by row.
+   *
+   * If there are more `cells` than can fit in `targetRegion` then the
+   * numbering continues "below" `targetRegion`.
+   */
+  def renumberDown(cells: TraversableOnce[Cell], targetRegion: Region): TraversableOnce[Cell] = {
+    val top = targetRegion._1.rowIndex
+    val left = targetRegion._1.colIndex
+    var rowIndex = top
+    var colIndex = left
+    val regionWidth = width(targetRegion)
+    val rightMax = left + regionWidth
+    for (cell <- cells) yield {
+      val renumbered = cell.updatedCellKey(CellKey(rowIndex, colIndex))
+      if (rowIndex == rightMax) {
+        rowIndex += 1
+        colIndex = left
+      } else {
+        colIndex += 1
+      }
+      renumbered
+    }
+  }
+
+  def rowsToString(rows: IndexedSeq[IndexedSeq[Cell]], rowHeader: (RowKey) => String = rowKey => rowKey.toString): String = {
+    val builder = new StringBuilder()
+    for (row <- rows) {
+      row.headOption.foreach { head =>
+        val rowKey = head.cellKey.rowKey
+        builder.append(rowHeader(rowKey))
+      }
+      for (cell <- row) {
+        cell match {
+          case StringCell(_, s) => {
+            builder.append(s)
+          }
+          case IntegerCell(_, v) => builder.append(s"i $v")
+          case DoubleCell(_, v) => builder.append(s"d $v")
+          case someCell => builder.append(s"${someCell.getClass().getSimpleName} ${someCell.value}")
+        }
+        builder.append(s",")
+      }
+      builder.append("\n")
+    }
+
+    builder.toString()
   }
 
 }

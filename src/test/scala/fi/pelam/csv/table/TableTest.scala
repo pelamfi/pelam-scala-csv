@@ -179,6 +179,34 @@ class TableTest {
   }
 
   @Test
+  def testUpdatedRegion1Cell = {
+    import Table._
+    val replacement = StringCell(cell2b.cellKey, "replaced")
+
+    val result = testTable.updatedRegion(IndexedSeq(cell2b), IndexedSeq(replacement))
+
+    assertEquals("columns:Qualifications,PrevWeek,PrevWeek,ThisWeek,CommentCol,\n" +
+      "Row 1/CommentRow:,,,,,,\n" +
+      "Row 2/Worker:,replaced,2c,,,,\n" +
+      "Row 3/Worker:,3b,,,,,\n" +
+      "Row 4/Day:,4b,,,,,\n" +
+      "Row 5/CommentRow:,,,,,,\n", result.toString())
+  }
+
+  @Test
+  def testUpdatedRegionToZero = {
+    import Table._
+
+    val result = testTable.updatedRegion(IndexedSeq(cell2b), IndexedSeq())
+
+    assertEquals("columns:Qualifications,PrevWeek,PrevWeek,ThisWeek,CommentCol,\n" +
+      "Row 1/CommentRow:,,,,,,\n" +
+      "Row 2/Worker:,3b,,,,,\n" +
+      "Row 3/Day:,4b,,,,,\n" +
+      "Row 4/CommentRow:,,,,,,\n", result.toString())
+  }
+
+  @Test
   def testUpdatedRegionSmaller = {
     import Table._
     val replacement = StringCell(cell2b.cellKey, "replaced")
@@ -190,6 +218,23 @@ class TableTest {
       "Row 2/Worker:,replaced,2c,,,,\n" +
       "Row 3/Day:,4b,,,,,\n" +
       "Row 4/CommentRow:,,,,,,\n", result.toString())
+  }
+
+  @Test
+  def testUpdatedRegionOutside = {
+    import Table._
+
+    val replacement = StringCell(cell4b.cellKey, "new")
+
+    val result = testTable.updatedRegion(IndexedSeq(cell2b, cell3b), IndexedSeq(replacement))
+
+    assertEquals("columns:Qualifications,PrevWeek,PrevWeek,ThisWeek,CommentCol,\n" +
+      "Row 1/CommentRow:,,,,,,\n" +
+      "Row 2/Worker:,2b,2c,,,,\n" +
+      "Row 3/Worker:,3b,,,,,\n" +
+      "Row 4/Worker:,new,,,,,\n" +
+      "Row 5/Day:,4b,,,,,\n" +
+      "Row 6/CommentRow:,,,,,,\n", result.toString())
   }
 
   @Test
@@ -210,6 +255,15 @@ class TableTest {
       "Row 3/Worker:,3b,,,,,\n" +
       "Row 4/Day:,4b,,,,,\n" +
       "Row 5/CommentRow:,,,,,,\n", testTableTypedCells.toString())
+  }
+
+  @Test
+  def testGetRows = {
+    val resultAsString: String = Table.rowsToString(testTable.getRows(TestRowType.Worker))
+
+    assertEquals("Row 2,2b,2c,,,,\n" +
+      "Row 3,3b,,,,,\n",
+      resultAsString)
   }
 
   @Test
@@ -251,12 +305,14 @@ object TableTest {
 
   val cell2b = StringCell(CellKey(1, 1), "2b")
   val cell3b = StringCell(CellKey(2, 1), "3b")
+  val cell3c = StringCell(CellKey(2, 2), "3c")
   val history1 = StringCell(CellKey(3, 2), "history1")
   val history2 = StringCell(CellKey(3, 3), "history2")
   val plan1 = StringCell(CellKey(3, 4), "plan1")
 
   val cell2c = StringCell(CellKey(1, 2), "2c")
   val cell4b = StringCell(CellKey(3, 1), "4b")
+  val cell4c = StringCell(CellKey(3, 2), "4c")
 
   val testTable = emptyTypedTable.updatedCells(cell2c, cell2b, cell3b, cell4b)
 
