@@ -20,11 +20,10 @@ package fi.pelam.csv.table
 
 import fi.pelam.csv.cell._
 import fi.pelam.csv.util.SortedBiMap
+import fi.pelam.csv.util.SortedBiMap._
 
-import scala.collection.SortedMap
 import scala.collection.generic.CanBuildFrom
-import SortedBiMap._
-import scala.reflect.ClassTag
+import scala.collection.{SortedMap, SortedSet}
 
 /**
  * This class is part of the the higher level API for reading,
@@ -73,10 +72,13 @@ import scala.reflect.ClassTag
  * @constructor The actual constructor is on the companion object.
  *
  * @param cells All cells in a structure of nested `IndexedSeq`s. The order is first rows, then columns.
+ *
  * @param rowTypes A bidirectional map mapping rows to their row types and vice versa.
  *                 Multiple rows can have the same type.
+ *
  * @param colTypes A bidirectional map mapping columns to their column types and vice versa.
  *                 Multiple columns can have the same type.
+ *
  * @param metadata User extensible metadata that is piggybacked in the `Table` instance.
  *
  * @tparam RT The client specific row type.
@@ -86,12 +88,34 @@ import scala.reflect.ClassTag
  * @tparam M The type of the `metadata` parameter. Must be a sub type of [[TableMetadata]].
  *           This specifies the character set and separator to use when reading the CSV data from the input stream.
  */
-final case class Table[RT, CT, M <: TableMetadata] private(
+final case class Table[RT, CT, M <: TableMetadata](
   cells: IndexedSeq[IndexedSeq[Cell]],
   rowTypes: SortedBiMap[RowKey, RT],
   colTypes: SortedBiMap[ColKey, CT],
   metadata: M) {
   import Table._
+
+  /**
+   * The vertical size of this table. The table has strict rectangular form.
+   * Unused cells simply contain empty `StringCell`s.
+   */
+  val rowCount: Int = cells.size
+
+  /**
+   * The horizontal size of this table. The table has strict rectangular form.
+   * Unused cells simply contain empty `StringCell`s.
+   */
+  val colCount: Int = cells.lift(0).map(_.size).getOrElse(0)
+
+  require(rowTypes.keys.foldLeft(true)((acc, rowKey) => acc && rowKey.inRange(rowCount)),
+    "Row type map keys must match rows in the table")
+  require(colTypes.keys.foldLeft(true)((acc, colKey) => acc && colKey.inRange(colCount)),
+    "Column type map keys must match columns in the table")
+
+  // Verify table is strictly rectangular
+  for (row <- cells) {
+    require(row.size == colCount, s"Same number of columns required for reach row. ${row.size} vs ${colCount}")
+  }
 
   type TableType = Table[RT, CT, M]
 
@@ -236,39 +260,22 @@ final case class Table[RT, CT, M <: TableMetadata] private(
   }
 
   /**
-   * The vertical size of this table. The table has strict rectangular form.
-   * Unused cells simply contain empty `StringCell`s.
-   */
-  val rowCount: Int = cells.size
-
-  /**
-   * The horizontal size of this table. The table has strict rectangular form.
-   * Unused cells simply contain empty `StringCell`s.
-   */
-  val colCount: Int = cells.lift(0).map(_.size).getOrElse(0)
-
-  // Verify table is strictly rectangular
-  for (row <- cells) {
-    require(row.size == colCount, s"Same number of columns required for reach row. ${row.size} vs ${colCount}")
-  }
-
-  /**
    * This method is a shorthand for `rowTypes.reverse`.
    * @return a map from row types to matching [[fi.pelam.csv.cell.RowKey RowKeys]] (row indices)
    */
-  def rowsByType = rowTypes.reverse
+  def rowsByType: SortedMap[RT, IndexedSeq[RowKey]] = rowTypes.reverse
 
   /**
    * This method is a shorthand for `colTypes.reverse`.
    * @return a map from column types to matching [[fi.pelam.csv.cell.ColKey ColKeys]] (column indices)
    */
-  def colsByType = colTypes.reverse
+  def colsByType: SortedMap[CT, IndexedSeq[ColKey]] = colTypes.reverse
 
   /**
    * Return a new table with given cells replacing the previous cells
    * at each the location `cell.cellKey`.
    */
-  def updatedCells(newCells: TraversableOnce[Cell]): Table[RT, CT, M] = {
+  def updatedCells(newCells: TraversableOnce[Cell]): TableType = {
 
     var updatedCells = cells
     for ((rowIndex, rowCells) <- newCells.toTraversable.groupBy(_.rowIndex)) {
@@ -291,7 +298,7 @@ final case class Table[RT, CT, M <: TableMetadata] private(
    *   val updated = table.updatedCells(StringCell(CellKey(0, 0), "foo"), StringCell(CellKey(1, 0), "bar"),
    * }}}
    */
-  def updatedCells(cells: Cell*): Table[RT, CT, M] = updatedCells(cells)
+  def updatedCells(cells: Cell*): TableType = updatedCells(cells)
 
   private[csv] def checkRowInsideTable(rowIndex: Int) = {
     if (rowIndex >= rowCount) {
@@ -311,7 +318,7 @@ final case class Table[RT, CT, M <: TableMetadata] private(
    * Return a new table with given cell replacing the previous cell
    * in the location `cell.cellKey`.
    */
-  def updatedCell(cell: Cell): Table[RT, CT, M] = {
+  def updatedCell(cell: Cell): TableType = {
     val rowIndex = cell.rowIndex
     val colIndex = cell.colIndex
 
@@ -500,16 +507,24 @@ final case class Table[RT, CT, M <: TableMetadata] private(
 
     builder.append("columns:")
 
-    for ((colKey, colType) <- colTypes) {
-      builder.append(s"${colTypes(colKey)},")
+    for (colKey <- colKeys) {
+      builder.append(s"${colTypes.get(colKey).map(_.toString).getOrElse("")},")
     }
 
     builder.append("\n")
 
-    builder.append(rowsToString(cells, rowKey => s"${rowKey}/${rowTypes(rowKey)}:"))
+    builder.append(rowsToString(cells, rowKey => s"${rowKey}/${rowTypes.get(rowKey).map(_.toString).getOrElse("")}:"))
 
     builder.toString()
   }
+
+  def projection = new TableProjection(this)
+
+  def projectionFull = new TableProjection(this, rowKeys, colKeys)
+
+  val rowKeys: SortedSet[RowKey] = SortedSet[RowKey]() ++ (0 until rowCount).map(RowKey(_))
+
+  val colKeys: SortedSet[ColKey] = SortedSet[ColKey]() ++ (0 until colCount).map(ColKey(_))
 }
 
 object Table {
@@ -695,7 +710,7 @@ object Table {
     }
   }
 
-  def rowsToString(rows: IndexedSeq[IndexedSeq[Cell]], rowHeader: (RowKey) => String = rowKey => rowKey.toString): String = {
+  def rowsToString(rows: IndexedSeq[IndexedSeq[Cell]], rowHeader: (RowKey) => String = rowKey => s"$rowKey:"): String = {
     val builder = new StringBuilder()
     for (row <- rows) {
       row.headOption.foreach { head =>
@@ -703,14 +718,7 @@ object Table {
         builder.append(rowHeader(rowKey))
       }
       for (cell <- row) {
-        cell match {
-          case StringCell(_, s) => {
-            builder.append(s)
-          }
-          case IntegerCell(_, v) => builder.append(s"i $v")
-          case DoubleCell(_, v) => builder.append(s"d $v")
-          case someCell => builder.append(s"${someCell.getClass().getSimpleName} ${someCell.value}")
-        }
+        builder.append(cell.shortString())
         builder.append(s",")
       }
       builder.append("\n")

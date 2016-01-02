@@ -104,6 +104,6 @@ object CellKey {
 
   private val indicesTupleOrdering = implicitly(Ordering[IndicesTuple])
 
-  val invalid = CellKey(Int.MinValue / 2, Int.MinValue / 2)
+  val invalid = CellKey(RowKey.invalid, ColKey.invalid)
 
 }

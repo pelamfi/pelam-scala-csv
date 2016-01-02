@@ -31,6 +31,12 @@ final case class DoubleCell(override val cellKey: CellKey,
   def serializedString: String = {
     formatter(value)
   }
+
+  /**
+   * Shorter version of `toString` to be used in debug table outputs.
+   * Should identify cell type and value in small amount of text.
+   */
+  override def shortString(): String = "d " + value
 }
 
 /**

@@ -18,7 +18,6 @@
 
 package fi.pelam.csv.table
 
-import com.google.common.io.ByteSource
 import fi.pelam.csv.cell._
 import fi.pelam.csv.util.SortedBiMap
 import org.junit.Assert._
@@ -140,7 +139,7 @@ class TableTest {
 
     val result = testTable.updatedCells(IndexedSeq(replacement))
 
-    assertEquals("columns:Qualifications,PrevWeek,PrevWeek,ThisWeek,CommentCol,\n" +
+    assertEquals("columns:,Qualifications,PrevWeek,PrevWeek,ThisWeek,CommentCol,\n" +
       "Row 1/CommentRow:,,,,,,\n" +
       "Row 2/Worker:,replaced,2c,,,,\n" +
       "Row 3/Worker:,3b,,,,,\n" +
@@ -153,7 +152,7 @@ class TableTest {
     val result = testTable.resizeRows(cell3b.cellKey.rowKey, -1)
 
     assertEquals("One worker row should be gone",
-      "columns:Qualifications,PrevWeek,PrevWeek,ThisWeek,CommentCol,\n" +
+      "columns:,Qualifications,PrevWeek,PrevWeek,ThisWeek,CommentCol,\n" +
         "Row 1/CommentRow:,,,,,,\n" +
         "Row 2/Worker:,2b,2c,,,,\n" +
       "Row 3/Day:,4b,,,,,\n" +
@@ -168,7 +167,7 @@ class TableTest {
     val result = testTable.resizeRows(cell3b.cellKey.rowKey, 1, cellKey => StringCell(cellKey, "x"))
 
     assertEquals("One worker row should be added after 2 existing.",
-      "columns:Qualifications,PrevWeek,PrevWeek,ThisWeek,CommentCol,\n" +
+      "columns:,Qualifications,PrevWeek,PrevWeek,ThisWeek,CommentCol,\n" +
       "Row 1/CommentRow:,,,,,,\n" +
       "Row 2/Worker:,2b,2c,,,,\n" +
         "Row 3/Worker:,3b,,,,,\n" +
@@ -185,7 +184,7 @@ class TableTest {
 
     val result = testTable.updatedRegion(IndexedSeq(cell2b), IndexedSeq(replacement))
 
-    assertEquals("columns:Qualifications,PrevWeek,PrevWeek,ThisWeek,CommentCol,\n" +
+    assertEquals("columns:,Qualifications,PrevWeek,PrevWeek,ThisWeek,CommentCol,\n" +
       "Row 1/CommentRow:,,,,,,\n" +
       "Row 2/Worker:,replaced,2c,,,,\n" +
       "Row 3/Worker:,3b,,,,,\n" +
@@ -199,7 +198,7 @@ class TableTest {
 
     val result = testTable.updatedRegion(IndexedSeq(cell2b), IndexedSeq())
 
-    assertEquals("columns:Qualifications,PrevWeek,PrevWeek,ThisWeek,CommentCol,\n" +
+    assertEquals("columns:,Qualifications,PrevWeek,PrevWeek,ThisWeek,CommentCol,\n" +
       "Row 1/CommentRow:,,,,,,\n" +
       "Row 2/Worker:,3b,,,,,\n" +
       "Row 3/Day:,4b,,,,,\n" +
@@ -213,7 +212,7 @@ class TableTest {
 
     val result = testTable.updatedRegion(IndexedSeq(cell2b, cell3b), IndexedSeq(replacement))
 
-    assertEquals("columns:Qualifications,PrevWeek,PrevWeek,ThisWeek,CommentCol,\n" +
+    assertEquals("columns:,Qualifications,PrevWeek,PrevWeek,ThisWeek,CommentCol,\n" +
       "Row 1/CommentRow:,,,,,,\n" +
       "Row 2/Worker:,replaced,2c,,,,\n" +
       "Row 3/Day:,4b,,,,,\n" +
@@ -228,7 +227,7 @@ class TableTest {
 
     val result = testTable.updatedRegion(IndexedSeq(cell2b, cell3b), IndexedSeq(replacement))
 
-    assertEquals("columns:Qualifications,PrevWeek,PrevWeek,ThisWeek,CommentCol,\n" +
+    assertEquals("columns:,Qualifications,PrevWeek,PrevWeek,ThisWeek,CommentCol,\n" +
       "Row 1/CommentRow:,,,,,,\n" +
       "Row 2/Worker:,2b,2c,,,,\n" +
       "Row 3/Worker:,3b,,,,,\n" +
@@ -239,7 +238,7 @@ class TableTest {
 
   @Test
   def testToString = {
-    assertEquals("columns:Qualifications,PrevWeek,PrevWeek,ThisWeek,CommentCol,\n" +
+    assertEquals("columns:,Qualifications,PrevWeek,PrevWeek,ThisWeek,CommentCol,\n" +
       "Row 1/CommentRow:,,,,,,\n" +
       "Row 2/Worker:,2b,2c,,,,\n" +
       "Row 3/Worker:,3b,,,,,\n" +
@@ -249,7 +248,7 @@ class TableTest {
 
   @Test
   def testToStringTypedCells = {
-    assertEquals("columns:Qualifications,PrevWeek,PrevWeek,ThisWeek,CommentCol,\n" +
+    assertEquals("columns:,Qualifications,PrevWeek,PrevWeek,ThisWeek,CommentCol,\n" +
       "Row 1/CommentRow:i 123,d 123.0,,,,,\n" +
       "Row 2/Worker:,2b,2c,,,,\n" +
       "Row 3/Worker:,3b,,,,,\n" +
@@ -261,8 +260,8 @@ class TableTest {
   def testGetRows = {
     val resultAsString: String = Table.rowsToString(testTable.getRows(TestRowType.Worker))
 
-    assertEquals("Row 2,2b,2c,,,,\n" +
-      "Row 3,3b,,,,,\n",
+    assertEquals("Row 2:,2b,2c,,,,\n" +
+      "Row 3:,3b,,,,,\n",
       resultAsString)
   }
 

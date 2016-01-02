@@ -45,6 +45,12 @@ final case class StringCell(override val cellKey: CellKey,
   override def value = serializedString
 
   override def updatedCellKey(cellKey: CellKey) = copy(cellKey = cellKey)
+
+  /**
+   * Shorter version of `toString` to be used in debug table outputs.
+   * Should identify cell type and value in small amount of text.
+   */
+  override def shortString(): String = value
 }
 
 object StringCell {

@@ -42,6 +42,12 @@ final case class IntegerCell(override val cellKey: CellKey,
   extends Cell with NumberCell[Int] {
 
   override def updatedCellKey(cellKey: CellKey) = copy(cellKey = cellKey)
+
+  /**
+   * Shorter version of `toString` to be used in debug table outputs.
+   * Should identify cell type and value in small amount of text.
+   */
+  override def shortString(): String = "i " + value
 }
 
 /**

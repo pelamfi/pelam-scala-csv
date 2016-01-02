@@ -29,6 +29,8 @@ trait AxisKey[T <: AxisKey[_]] extends Ordered[T] {
 
   override def compare(that: T): Int = this.index - that.index
 
+  def inRange(count: Int): Boolean = index >= 0 && index < count
+
   /**
    * To construct a cell or row key with given index.
    */

@@ -60,6 +60,10 @@ final case class SortedBiMap[K, V](map: SortedMap[K, V])(implicit keyOrdering: O
 
   override def -(key: K): SortedBiMap[K, V] = SortedBiMap[K, V](map - key)
 
+  override def filter(p: ((K, V)) => Boolean): SortedBiMap[K, V] = SortedBiMap[K, V](map.filter(p))
+
+  override def filterKeys(p: K => Boolean): SortedBiMap[K, V] = SortedBiMap[K, V](map.filterKeys(p))
+
   override def ordering: Ordering[K] = keyOrdering
 
   override def valuesIteratorFrom(start: K): Iterator[V] = map.valuesIteratorFrom(start)

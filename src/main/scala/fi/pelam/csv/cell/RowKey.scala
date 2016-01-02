@@ -37,3 +37,8 @@ case class RowKey(index: Int) extends AxisKey[RowKey] {
 
   override def withOffset(offset: Int) = copy(index = index + offset)
 }
+
+object RowKey {
+  val zero: RowKey = RowKey(0)
+  val invalid: RowKey = RowKey(Int.MinValue / 2)
+}
