@@ -541,17 +541,6 @@ object Table {
 
   type CellGenerator = (CellKey) => Cell
 
-  def emptyStringCell(cellKey: CellKey) = StringCell(cellKey, "")
-
-  /**
-   * Let `a` define bottom right corner, but get top left corner
-   * as a minimum of coordinates from top left corners of `a` and `b`.
-   */
-  def topLeftMin(a: Region, b: Region): Region = (
-    CellKey(Math.min(a._1.rowIndex, b._1.rowIndex),
-      Math.min(a._1.colIndex, b._1.colIndex)),
-    a._2)
-
   implicit def spannedRegion(cells: TraversableOnce[Cell]): Region = spannedRegionKeys(cells.map(_.cellKey))
 
   implicit def toStringCells(strings: TraversableOnce[String]): TraversableOnce[Cell] = {

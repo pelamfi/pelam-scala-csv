@@ -10,6 +10,7 @@ import scala.collection.generic.CanBuildFrom
  * Collection of helper methods for [[Table]] and [[TableProjection]] implementation.
  */
 object TableUtil {
+
   /**
    * Defines a rectangular region. Both row and column index
    * of first `CellKey` must be smaller or equal to the indices
@@ -20,19 +21,26 @@ object TableUtil {
    */
   type Region = (CellKey, CellKey)
 
-  type CellGenerator = (CellKey) => Cell
-
   def emptyStringCell(cellKey: CellKey) = StringCell(cellKey, "")
 
   def width(region: Region) = region._2.colIndex - region._1.colIndex
 
   def height(region: Region) = region._2.rowIndex - region._1.rowIndex
 
+  /**
+   * Let `a` define bottom right corner, but get top left corner
+   * as a minimum of coordinates from top left corners of `a` and `b`.
+   */
+  def topLeftMin(a: Region, b: Region): Region = (
+    CellKey(Math.min(a._1.rowIndex, b._1.rowIndex),
+      Math.min(a._1.colIndex, b._1.colIndex)),
+    a._2)
+
   // Helper method to find maximum key values from a sequence of cells.
-  private[csv] def findKeyRangeEnd(keys: TraversableOnce[AxisKey[_]]) = keys.foldLeft(0)((max, key) => Math.max(max, key.index + 1))
+  private[table] def findKeyRangeEnd(keys: TraversableOnce[AxisKey[_]]) = keys.foldLeft(0)((max, key) => Math.max(max, key.index + 1))
 
   // This is a helper method to convert a sequence of cells to a 2 dimensional IndexedSeq.
-  private[csv] def buildCells(initialCells: TraversableOnce[Cell], rowCount: Int = 0, colCount: Int = 0): IndexedSeq[IndexedSeq[Cell]] = {
+  private[table] def buildCells(initialCells: TraversableOnce[Cell], rowCount: Int = 0, colCount: Int = 0): IndexedSeq[IndexedSeq[Cell]] = {
 
     val initialCellMap = initialCells.map(cell => cell.cellKey -> cell).toMap
 
@@ -74,18 +82,7 @@ object TableUtil {
     }
   }
 
-  /*
-  def renumberTypeMap[K <: AxisKey[K], T, M <: SortedMap[K, T]](firstIndex: Int, typeMap: M)(implicit builder: CanBuildFrom[TraversableOnce[(K, T)], (K, T), M]): M = {
-    val b = builder()
-    b ++= (for (((axisKey, rowType), offset) <- typeMap.zipWithIndex;
-         index = firstIndex + offset) yield {
-      (axisKey.updated(index), rowType)
-    })
-    b.result()
-  }
-  */
-
-  def renumberTypeMap[K <: AxisKey[K], T](firstIndex: Int, typeMap: SortedBiMap[K, T])(implicit builder: CanBuildFrom[SortedBiMap[K, T], (K, T), SortedBiMap[K, T]]): SortedBiMap[K, T] = {
+  private[table] def renumberTypeMap[K <: AxisKey[K], T](firstIndex: Int, typeMap: SortedBiMap[K, T])(implicit builder: CanBuildFrom[SortedBiMap[K, T], (K, T), SortedBiMap[K, T]]): SortedBiMap[K, T] = {
     val b = builder()
     var offset = 0
     for ((axisKey, rowType) <- typeMap) {
@@ -96,7 +93,7 @@ object TableUtil {
     b.result()
   }
 
-  def renumberTypeMapByMap[K <: AxisKey[K], T](indexMap: K => Int, typeMap: SortedBiMap[K, T])(implicit builder: CanBuildFrom[SortedBiMap[K, T], (K, T), SortedBiMap[K, T]]): SortedBiMap[K, T] = {
+  private[table] def renumberTypeMapByMap[K <: AxisKey[K], T](indexMap: K => Int, typeMap: SortedBiMap[K, T])(implicit builder: CanBuildFrom[SortedBiMap[K, T], (K, T), SortedBiMap[K, T]]): SortedBiMap[K, T] = {
     val b = builder()
     for ((axisKey, rowType) <- typeMap) {
       val index = indexMap(axisKey)
@@ -105,7 +102,7 @@ object TableUtil {
     b.result()
   }
 
-  def renumberRows(firstIndex: Int, cells: IndexedSeq[IndexedSeq[Cell]]): IndexedSeq[IndexedSeq[Cell]] = {
+  private[table] def renumberRows(firstIndex: Int, cells: IndexedSeq[IndexedSeq[Cell]]): IndexedSeq[IndexedSeq[Cell]] = {
     for ((row, offset) <- cells.zipWithIndex;
          index = firstIndex + offset) yield {
       for (cell <- row) yield {
@@ -121,7 +118,7 @@ object TableUtil {
    * If there are more `cells` than can fit in `targetRegion` then the
    * numbering continues "below" `targetRegion`.
    */
-  def renumberDown(cells: TraversableOnce[Cell], targetRegion: Region): TraversableOnce[Cell] = {
+  private[table] def renumberDown(cells: TraversableOnce[Cell], targetRegion: Region): TraversableOnce[Cell] = {
     val top = targetRegion._1.rowIndex
     val left = targetRegion._1.colIndex
     var rowIndex = top
@@ -140,7 +137,7 @@ object TableUtil {
     }
   }
 
-  def axisKeyRenumberingMap[K <: AxisKey[K]](rowsSeq: TraversableOnce[K]): Map[K, Int] = {
+  private[table] def axisKeyRenumberingMap[K <: AxisKey[K]](rowsSeq: TraversableOnce[K]): Map[K, Int] = {
     val rowsToIndexBuilder = Map.newBuilder[K, Int]
 
     var rowIndex2 = 0
