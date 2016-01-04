@@ -485,7 +485,7 @@ final case class Table[RT, CT, M <: TableMetadata](
   def getSingleCol(rowTypeMatcher: RT => Boolean, colKey: ColKey): IndexedSeq[Cell] = {
     for (cellKey <- getCellKeys(colKey);
          rowKey = cellKey.rowKey;
-         if colTypes.contains(colKey) && rowTypeMatcher(rowTypes(rowKey))) yield {
+         if rowTypes.contains(rowKey) && rowTypeMatcher(rowTypes(rowKey))) yield {
       getCell(cellKey)
     }
   }
