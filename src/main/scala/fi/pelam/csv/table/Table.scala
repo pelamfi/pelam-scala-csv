@@ -19,10 +19,10 @@
 package fi.pelam.csv.table
 
 import fi.pelam.csv.cell._
+import fi.pelam.csv.table.TableUtil._
 import fi.pelam.csv.util.SortedBiMap
 import fi.pelam.csv.util.SortedBiMap._
 
-import scala.collection.generic.CanBuildFrom
 import scala.collection.{SortedMap, SortedSet}
 
 /**
@@ -543,10 +543,6 @@ object Table {
 
   def emptyStringCell(cellKey: CellKey) = StringCell(cellKey, "")
 
-  def width(region: Region) = region._2.colIndex - region._1.colIndex
-
-  def height(region: Region) = region._2.rowIndex - region._1.rowIndex
-
   /**
    * Let `a` define bottom right corner, but get top left corner
    * as a minimum of coordinates from top left corners of `a` and `b`.
@@ -604,119 +600,6 @@ object Table {
     val builtCells = buildCells(cells, maxRow, maxCol)
 
     Table(builtCells, rowTypes, colTypes, metadata)
-  }
-
-  // Helper method to find maximum key values from a sequence of cells.
-  private[csv] def findKeyRangeEnd(keys: TraversableOnce[AxisKey[_]]) = keys.foldLeft(0)((max, key) => Math.max(max, key.index + 1))
-
-  // This is a helper method to convert a sequence of cells to a 2 dimensional IndexedSeq.
-  private[csv] def buildCells(initialCells: TraversableOnce[Cell], rowCount: Int = 0, colCount: Int = 0): IndexedSeq[IndexedSeq[Cell]] = {
-
-    val initialCellMap = initialCells.map(cell => cell.cellKey -> cell).toMap
-
-    // Row count is maximum from argument and largest row number seen in cells
-    val finalRowCount = initialCellMap.keys.foldLeft(rowCount)((a, b) => scala.math.max(a, b.rowKey.index + 1))
-
-    // Column count is maximum from argument and largest column number seen in cells
-    val finalColCount = initialCellMap.keys.foldLeft(colCount)((a, b) => scala.math.max(a, b.colKey.index + 1))
-
-    val rowArray = new Array[Array[Cell]](finalRowCount)
-
-    for (rowIndex <- 0 until finalRowCount) {
-
-      val rowKey = RowKey(rowIndex)
-      val colArray = new Array[Cell](finalColCount)
-
-      rowArray(rowIndex) = colArray
-
-      for (colIndex <- 0 until finalColCount) {
-
-        val cellKey = CellKey(rowKey, colIndex)
-        val cell = initialCellMap.get(cellKey).getOrElse(emptyStringCell(cellKey))
-
-        colArray(colIndex) = cell
-      }
-    }
-
-    rowArray.map(_.toIndexedSeq).toIndexedSeq
-  }
-
-  // A helper method that throws if the number of columns/rows with given type is not 1.
-  private[csv] def getSingleKeyByType[K <: AxisKey[K], T](keysByType: SortedMap[T, IndexedSeq[K]], colType: T, axisName: String): K = {
-    val keys = keysByType(colType)
-    if (keys.size == 0) {
-      sys.error(s"Expected 1 $axisName of type $colType but no $axisName of that type found.")
-    } else if (keys.size > 1) {
-      sys.error(s"Expected 1 $axisName of type $colType but more than 1 found.")
-    } else {
-      keys(0)
-    }
-  }
-
-  /*
-  def renumberTypeMap[K <: AxisKey[K], T, M <: SortedMap[K, T]](firstIndex: Int, typeMap: M)(implicit builder: CanBuildFrom[TraversableOnce[(K, T)], (K, T), M]): M = {
-    val b = builder()
-    b ++= (for (((axisKey, rowType), offset) <- typeMap.zipWithIndex;
-         index = firstIndex + offset) yield {
-      (axisKey.updated(index), rowType)
-    })
-    b.result()
-  }
-  */
-
-  def renumberTypeMap[K <: AxisKey[K], T](firstIndex: Int, typeMap: SortedBiMap[K, T])(implicit builder: CanBuildFrom[SortedBiMap[K, T], (K, T), SortedBiMap[K, T]]): SortedBiMap[K, T] = {
-    val b = builder()
-    var offset = 0
-    for ((axisKey, rowType) <- typeMap) {
-      val index = firstIndex + offset
-      b += ((axisKey.updated(index), rowType))
-      offset += 1
-    }
-    b.result()
-  }
-
-  def renumberTypeMapByMap[K <: AxisKey[K], T](indexMap: K => Int, typeMap: SortedBiMap[K, T])(implicit builder: CanBuildFrom[SortedBiMap[K, T], (K, T), SortedBiMap[K, T]]): SortedBiMap[K, T] = {
-    val b = builder()
-    for ((axisKey, rowType) <- typeMap) {
-      val index = indexMap(axisKey)
-      b += ((axisKey.updated(index), rowType))
-    }
-    b.result()
-  }
-
-  def renumberRows(firstIndex: Int, cells: IndexedSeq[IndexedSeq[Cell]]): IndexedSeq[IndexedSeq[Cell]] = {
-    for ((row, offset) <- cells.zipWithIndex;
-         index = firstIndex + offset) yield {
-      for (cell <- row) yield {
-        cell.updatedCellKey(CellKey(index, cell.colIndex))
-      }
-    }
-  }
-
-  /**
-   * Renumber `cells` to fit into `targetRegion` going from top left to right
-   * and then down row by row.
-   *
-   * If there are more `cells` than can fit in `targetRegion` then the
-   * numbering continues "below" `targetRegion`.
-   */
-  def renumberDown(cells: TraversableOnce[Cell], targetRegion: Region): TraversableOnce[Cell] = {
-    val top = targetRegion._1.rowIndex
-    val left = targetRegion._1.colIndex
-    var rowIndex = top
-    var colIndex = left
-    val regionWidth = width(targetRegion)
-    val rightMax = left + regionWidth
-    for (cell <- cells) yield {
-      val renumbered = cell.updatedCellKey(CellKey(rowIndex, colIndex))
-      if (rowIndex == rightMax) {
-        rowIndex += 1
-        colIndex = left
-      } else {
-        colIndex += 1
-      }
-      renumbered
-    }
   }
 
   def rowsToString(rows: IndexedSeq[IndexedSeq[Cell]], rowHeader: (RowKey) => String = rowKey => s"$rowKey:"): String = {

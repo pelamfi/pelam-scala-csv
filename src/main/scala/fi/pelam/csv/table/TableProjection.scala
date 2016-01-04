@@ -1,6 +1,7 @@
 package fi.pelam.csv.table
 
 import fi.pelam.csv.cell._
+import fi.pelam.csv.table.TableUtil._
 import fi.pelam.csv.util.SortedBiMap._
 
 import scala.collection.{SortedMap, SortedSet}
@@ -85,9 +86,9 @@ case class TableProjection[RT, CT, M <: TableMetadata](
 
     val colsToIndex: Map[ColKey, Int] = axisKeyRenumberingMap(colsSeq)
 
-    val projectedRowTypes = Table.renumberTypeMapByMap(rowsToIndex, rowTypes.filterKeys(rows.contains(_)))
+    val projectedRowTypes = renumberTypeMapByMap(rowsToIndex, rowTypes.filterKeys(rows.contains(_)))
 
-    val projectedColTypes = Table.renumberTypeMapByMap(colsToIndex, colTypes.filterKeys(cols.contains(_)))
+    val projectedColTypes = renumberTypeMapByMap(colsToIndex, colTypes.filterKeys(cols.contains(_)))
 
     Table(projectedCells, projectedRowTypes, projectedColTypes, full.metadata)
   }
@@ -117,18 +118,6 @@ object TableProjection {
       builder ++= axisByType(t)
     }
     prev -- builder.result
-  }
-
-  def axisKeyRenumberingMap[K <: AxisKey[K]](rowsSeq: TraversableOnce[K]): Map[K, Int] = {
-    val rowsToIndexBuilder = Map.newBuilder[K, Int]
-
-    var rowIndex2 = 0
-    for (rowKey <- rowsSeq) {
-      rowsToIndexBuilder += ((rowKey, rowIndex2))
-      rowIndex2 += 1
-    }
-
-    rowsToIndexBuilder.result()
   }
 
 }
