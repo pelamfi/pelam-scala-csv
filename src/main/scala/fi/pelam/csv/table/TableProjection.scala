@@ -66,10 +66,14 @@ case class TableProjection[RT, CT, M <: TableMetadata](
     var rowIndex = 0
     var colIndex = 0
 
-    val projectedCells: IndexedSeq[IndexedSeq[Cell]] = for (rowKey <- rows.toIndexedSeq) yield {
+    val rowsSeq = rows.toIndexedSeq
+    val colsSeq = cols.toIndexedSeq
+
+    val projectedCells: IndexedSeq[IndexedSeq[Cell]] = for (rowKey <- rowsSeq) yield {
       colIndex = 0
-      val row = for (colKey <- cols.toIndexedSeq) yield {
-        val cell = cells(rowKey.index)(colKey.index).updatedCellKey(CellKey(rowIndex, colIndex))
+      val oldRow = cells(rowKey.index)
+      val row = for (colKey <- colsSeq) yield {
+        val cell = oldRow(colKey.index).updatedCellKey(CellKey(rowIndex, colIndex))
         colIndex += 1
         cell
       }
@@ -77,9 +81,13 @@ case class TableProjection[RT, CT, M <: TableMetadata](
       row
     }
 
-    val projectedRowTypes = Table.renumberTypeMap(0, rowTypes.filterKeys(rows.contains(_)))
+    val rowsToIndex: Map[RowKey, Int] = axisKeyRenumberingMap(rowsSeq)
 
-    val projectedColTypes = Table.renumberTypeMap(0, colTypes.filterKeys(cols.contains(_)))
+    val colsToIndex: Map[ColKey, Int] = axisKeyRenumberingMap(colsSeq)
+
+    val projectedRowTypes = Table.renumberTypeMapByMap(rowsToIndex, rowTypes.filterKeys(rows.contains(_)))
+
+    val projectedColTypes = Table.renumberTypeMapByMap(colsToIndex, colTypes.filterKeys(cols.contains(_)))
 
     Table(projectedCells, projectedRowTypes, projectedColTypes, full.metadata)
   }
@@ -109,6 +117,18 @@ object TableProjection {
       builder ++= axisByType(t)
     }
     prev -- builder.result
+  }
+
+  def axisKeyRenumberingMap[K <: AxisKey[K]](rowsSeq: TraversableOnce[K]): Map[K, Int] = {
+    val rowsToIndexBuilder = Map.newBuilder[K, Int]
+
+    var rowIndex2 = 0
+    for (rowKey <- rowsSeq) {
+      rowsToIndexBuilder += ((rowKey, rowIndex2))
+      rowIndex2 += 1
+    }
+
+    rowsToIndexBuilder.result()
   }
 
 }

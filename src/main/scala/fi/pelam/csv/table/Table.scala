@@ -675,6 +675,15 @@ object Table {
     b.result()
   }
 
+  def renumberTypeMapByMap[K <: AxisKey[K], T](indexMap: K => Int, typeMap: SortedBiMap[K, T])(implicit builder: CanBuildFrom[SortedBiMap[K, T], (K, T), SortedBiMap[K, T]]): SortedBiMap[K, T] = {
+    val b = builder()
+    for ((axisKey, rowType) <- typeMap) {
+      val index = indexMap(axisKey)
+      b += ((axisKey.updated(index), rowType))
+    }
+    b.result()
+  }
+
   def renumberRows(firstIndex: Int, cells: IndexedSeq[IndexedSeq[Cell]]): IndexedSeq[IndexedSeq[Cell]] = {
     for ((row, offset) <- cells.zipWithIndex;
          index = firstIndex + offset) yield {
