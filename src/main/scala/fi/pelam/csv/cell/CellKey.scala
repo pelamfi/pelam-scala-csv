@@ -61,12 +61,12 @@ final case class CellKey(rowIndex: Int, colIndex: Int) extends Ordered[CellKey] 
   /**
    * Extracts the row key component.
    */
-  val rowKey = RowKey(rowIndex)
+  def rowKey = RowKey(rowIndex)
 
   /**
    * Extracts the column key component.
    */
-  val colKey = ColKey(colIndex)
+  def colKey = ColKey(colIndex)
 
   /**
    * This is equivalent to `CellKey.unapply(cellKey).get`.
