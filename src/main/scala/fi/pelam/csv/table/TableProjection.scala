@@ -82,13 +82,13 @@ case class TableProjection[RT, CT, M <: TableMetadata](
       row
     }
 
-    val rowsToIndex: Map[RowKey, Int] = axisKeyRenumberingMap(rowsSeq)
+    val rowsToIndex: Map[RowKey, RowKey] = axisKeyRenumberingMap(rowsSeq)
 
-    val colsToIndex: Map[ColKey, Int] = axisKeyRenumberingMap(colsSeq)
+    val colsToIndex: Map[ColKey, ColKey] = axisKeyRenumberingMap(colsSeq)
 
-    val projectedRowTypes = renumberTypeMapByMap(rowsToIndex, rowTypes.filterKeys(rows.contains(_)))
+    val projectedRowTypes = renumberTypeMapByMap(rowTypes.filterKeys(rows.contains(_)), rowsToIndex)
 
-    val projectedColTypes = renumberTypeMapByMap(colsToIndex, colTypes.filterKeys(cols.contains(_)))
+    val projectedColTypes = renumberTypeMapByMap(colTypes.filterKeys(cols.contains(_)), colsToIndex)
 
     Table(projectedCells, projectedRowTypes, projectedColTypes, full.metadata)
   }

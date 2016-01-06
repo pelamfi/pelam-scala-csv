@@ -93,11 +93,10 @@ object TableUtil {
     b.result()
   }
 
-  private[table] def renumberTypeMapByMap[K <: AxisKey[K], T](indexMap: K => Int, typeMap: SortedBiMap[K, T])(implicit builder: CanBuildFrom[SortedBiMap[K, T], (K, T), SortedBiMap[K, T]]): SortedBiMap[K, T] = {
+  private[table] def renumberTypeMapByMap[K <: AxisKey[K], T](typeMap: SortedBiMap[K, T], keyMap: K => K)(implicit builder: CanBuildFrom[SortedBiMap[K, T], (K, T), SortedBiMap[K, T]]): SortedBiMap[K, T] = {
     val b = builder()
     for ((axisKey, rowType) <- typeMap) {
-      val index = indexMap(axisKey)
-      b += ((axisKey.updated(index), rowType))
+      b += ((keyMap(axisKey), rowType))
     }
     b.result()
   }
@@ -137,13 +136,13 @@ object TableUtil {
     }
   }
 
-  private[table] def axisKeyRenumberingMap[K <: AxisKey[K]](rowsSeq: TraversableOnce[K]): Map[K, Int] = {
-    val rowsToIndexBuilder = Map.newBuilder[K, Int]
+  private[table] def axisKeyRenumberingMap[K <: AxisKey[K]](rowsSeq: TraversableOnce[K]): Map[K, K] = {
+    val rowsToIndexBuilder = Map.newBuilder[K, K]
 
-    var rowIndex2 = 0
+    var rowIndex = 0
     for (rowKey <- rowsSeq) {
-      rowsToIndexBuilder += ((rowKey, rowIndex2))
-      rowIndex2 += 1
+      rowsToIndexBuilder += ((rowKey, rowKey.updated(rowIndex)))
+      rowIndex += 1
     }
 
     rowsToIndexBuilder.result()
