@@ -134,7 +134,7 @@ final case class Table[RT, CT, M <: TableMetadata](
 
       val rowTypesBeforeRemoved = rowTypes.take(keepFromStart)
       val rowTypesAfterRemoved = rowTypes.drop(dropAndKeepFromEnd)
-      val rowTypesRemoved = rowTypesBeforeRemoved ++ renumberTypeMapByMap[RowKey, RT](rowTypesAfterRemoved, _.withOffset(-value))
+      val rowTypesRemoved = rowTypesBeforeRemoved ++ renumberTypeMapByMap[RowKey, RT](rowTypesAfterRemoved, _.withOffset(value))
 
       new Table[RT, CT, M](rowsRemoved, rowTypesRemoved, colTypes, metadata)
     }
