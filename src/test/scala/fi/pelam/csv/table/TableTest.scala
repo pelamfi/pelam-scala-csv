@@ -158,7 +158,7 @@ class TableTest {
         "Row 1/CommentRow:,,,,,,,\n" +
         "Row 2/Worker:,2b,2c,,,,,\n" +
         "Row 3/Day:,4b,,,,,,\n" +
-        "Row 4/Day:5a-untyped,,,,,5f-untyped,,\n" +
+        "Row 4/:5a-untyped,,,,,5f-untyped,,\n" +
         "Row 5/CommentRow:,,,,,,,\n",
       result.toString())
 
