@@ -37,8 +37,9 @@ class TableProjectionTest {
     val invProj = projection.inverse
     val inv = invProj.projected
 
-    assertEquals("columns:,ThisWeek,CommentCol,\n" +
-      "Row 1/CommentRow:,,,\n" +
-      "Row 2/CommentRow:,,,\n", inv.toString())
+    assertEquals("columns:,ThisWeek,,CommentCol,\n" +
+      "Row 1/CommentRow:,,,,\n" +
+      "Row 2/:5a-untyped,,5f-untyped,,\n" +
+      "Row 3/CommentRow:,,,,\n", inv.toString())
   }
 }
