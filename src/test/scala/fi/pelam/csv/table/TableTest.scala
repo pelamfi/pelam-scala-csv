@@ -57,13 +57,13 @@ class TableTest {
   @Test(expected = classOf[IllegalArgumentException])
   def testSetCellOutsideBounds: Unit = {
     // Table should not allow cells outside initial bounds.
-    emptyTypedTable.updatedCells(StringCell(CellKey(5, 3), "x"))
+    emptyTypedTable.updatedCells(StringCell(CellKey(6, 4), "x"))
   }
 
   @Test(expected = classOf[IllegalArgumentException])
   def testSetCellOutsideBoundsColumn: Unit = {
     // Table should not allow cells outside initial bounds.
-    emptyTypedTable.updatedCells(StringCell(CellKey(1, 6), "x"))
+    emptyTypedTable.updatedCells(StringCell(CellKey(2, 7), "x"))
   }
 
   @Test
