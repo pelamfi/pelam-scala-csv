@@ -123,10 +123,10 @@ object TableUtil {
     var rowIndex = top
     var colIndex = left
     val regionWidth = width(targetRegion)
-    val rightMax = left + regionWidth
+    val rightMax = left + regionWidth - 1
     for (cell <- cells) yield {
       val renumbered = cell.updatedCellKey(CellKey(rowIndex, colIndex))
-      if (rowIndex == rightMax) {
+      if (colIndex == rightMax) {
         rowIndex += 1
         colIndex = left
       } else {

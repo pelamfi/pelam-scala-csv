@@ -319,6 +319,7 @@ object TableTest {
   val cell2b = StringCell(CellKey(1, 1), "2b")
   val cell3b = StringCell(CellKey(2, 1), "3b")
   val cell3c = StringCell(CellKey(2, 2), "3c")
+  val cell3d = StringCell(CellKey(2, 3), "3d")
   val history1 = StringCell(CellKey(3, 2), "history1")
   val history2 = StringCell(CellKey(3, 3), "history2")
   val plan1 = StringCell(CellKey(3, 4), "plan1")
