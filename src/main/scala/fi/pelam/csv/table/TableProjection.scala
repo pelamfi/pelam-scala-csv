@@ -74,6 +74,24 @@ case class TableProjection[RT, CT, M <: TableMetadata](
     copy(cols = removeByType[CT, ColKey](cols, colTypes, full.colsByType))
   }
 
+  def rows(transform: SortedSet[RowKey] => TraversableOnce[RowKey]): Projection = {
+    val modifiedRows = SortedSet[RowKey]() ++ transform(rows)
+
+    require(modifiedRows.foldLeft(true)((acc, rowKey) => acc && rowKey.inRange(full.rowCount)),
+      "Row keys must match rows in the table")
+
+    copy(rows = modifiedRows)
+  }
+
+  def cols(transform: SortedSet[ColKey] => TraversableOnce[ColKey]): Projection = {
+    val modifiedCols = SortedSet[ColKey]() ++ transform(cols)
+
+    require(modifiedCols.foldLeft(true)((acc, colKey) => acc && colKey.inRange(full.colCount)),
+      "Column keys must match colmns in the table")
+
+    copy(cols = modifiedCols)
+  }
+
   /**
    * Construct a copy of the table with only selected a subset of rows and columns.
    */
