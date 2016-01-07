@@ -518,8 +518,19 @@ final case class Table[RT, CT, M <: TableMetadata](
     builder.toString()
   }
 
+  /**
+    * Table can be "projected" ie. select some rows and columns and create a new table.
+    *
+    * See [[TableProjection]] for an example.
+    */
   def projection = new TableProjection(this)
 
+  /**
+    * Same as `projection`, but start with all rows and columns which can
+    * then be removed.
+    *
+    * See [[TableProjection]] for more details.
+    */
   def projectionFull = new TableProjection(this, rowKeys, colKeys)
 
   val rowKeys: SortedSet[RowKey] = SortedSet[RowKey]() ++ (0 until rowCount).map(RowKey(_))
