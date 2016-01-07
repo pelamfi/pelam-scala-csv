@@ -195,11 +195,13 @@ final case class Table[RT, CT, M <: TableMetadata](
     replacementCells: TraversableOnce[Cell],
     fillerGenerator: CellGenerator = emptyStringCell): TableType = {
 
-    val replacementRegion = spannedRegion(replacementCells)
+    val traversableReplacement = replacementCells.toTraversable
+
+    val replacementRegion = spannedRegion(traversableReplacement)
 
     val resizedTable = resized(targetRegion, replacementRegion, fillerGenerator)
 
-    resizedTable.updatedCells(replacementCells)
+    resizedTable.updatedCells(traversableReplacement)
   }
 
   /**
