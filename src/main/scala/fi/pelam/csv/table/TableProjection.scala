@@ -31,16 +31,16 @@ case class TableProjection[RT, CT, M <: TableMetadata](
 
   import TableProjection._
 
-  def inverse = copy(rows = full.rowKeys -- rows, cols = full.colKeys -- cols)
-
-  def all = copy(cols = full.colKeys, rows = full.rowKeys)
-
-  def allCols = copy(cols = full.colKeys)
-
-  def allRows = copy(rows = full.rowKeys)
-
   type TableType = Table[RT, CT, M]
   type Projection = TableProjection[RT, CT, M]
+
+  def inverse: Projection = copy(rows = full.rowKeys -- rows, cols = full.colKeys -- cols)
+
+  def all: Projection = copy(cols = full.colKeys, rows = full.rowKeys)
+
+  def allCols: Projection = copy(cols = full.colKeys)
+
+  def allRows: Projection = copy(rows = full.rowKeys)
 
   def withRowTypes(rowTypes: RT*): Projection = {
     copy(rows = addByType[RT, RowKey](rows, rowTypes, full.rowsByType))
