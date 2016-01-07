@@ -6,6 +6,24 @@ import fi.pelam.csv.util.SortedBiMap._
 
 import scala.collection.{SortedMap, SortedSet}
 
+/**
+  * Part of the API to "project" a [[Table]]. Idea is to pick rows and columns
+  * in an fluent and immutable way, and then get a table with just the selected
+  * rows and columns. This is useful for example just displaying or logging certain
+  * data.
+  *
+  * Example:
+  * {{{
+  *   import TableProjection._ // Import implicit toTable and toProjection
+  *
+  *   val table: Table = ...
+  *   println(table.withColTypes(Name, Price).withRowTypes(Item))
+  *
+  *   // The inverse may also be useful for removing some data
+  *
+  *   println(table.withColTypes(Comments).inverse)
+  * }}}
+  */
 case class TableProjection[RT, CT, M <: TableMetadata](
   full: Table[RT, CT, M],
   rows: SortedSet[RowKey] = SortedSet(),
@@ -92,6 +110,8 @@ case class TableProjection[RT, CT, M <: TableMetadata](
 
     Table(projectedCells, projectedRowTypes, projectedColTypes, full.metadata)
   }
+
+  override def toString = s"TableProjection($rows, $cols)"
 }
 
 object TableProjection {
