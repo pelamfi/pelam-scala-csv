@@ -205,8 +205,9 @@ final case class Table[RT, CT, M <: TableMetadata](
   }
 
   /**
-   * Otherwise same as `updatedRegion`, but `replacementCells` are renumbered to
-   * tightly fill the `targetRegion`. If there cell counts don't match,
+    * Otherwise same as `updatedRegion`, but `replacementCells` are renumbered
+    * from left to right and top to bottom to
+    * tightly fill the `targetRegion`. If the cell counts don't match,
    * `targetRegion` is shrinked or grown to fit all `replacementCells`
    */
   def updatedColumns(targetRegion: Region,
@@ -214,6 +215,21 @@ final case class Table[RT, CT, M <: TableMetadata](
     fillerGenerator: CellGenerator = emptyStringCell): TableType = {
 
     val renumbered = renumberDown(replacementCells, targetRegion)
+
+    updatedRegion(targetRegion, renumbered, fillerGenerator)
+  }
+
+  /**
+    * Otherwise same as `updatedRegion`, but `replacementCells` are renumbered
+    * from top to bottom and left to right
+    * tightly fill the `targetRegion`. If the cell counts don't match,
+    * `targetRegion` is shrinked or grown to fit all `replacementCells`
+    */
+  def updatedRows(targetRegion: Region,
+    replacementCells: TraversableOnce[Cell],
+    fillerGenerator: CellGenerator = emptyStringCell): TableType = {
+
+    val renumbered = renumberRight(replacementCells, targetRegion)
 
     updatedRegion(targetRegion, renumbered, fillerGenerator)
   }
@@ -353,6 +369,16 @@ final case class Table[RT, CT, M <: TableMetadata](
     val rowKeys = rowTypes.reverse(rowType)
     for (rowKey <- rowKeys) yield {
       cells(rowKey.index)
+    }
+  }
+
+  /**
+    * Get a full columns from table defined by `rowType`.
+    */
+  def getCols(colType: CT): IndexedSeq[IndexedSeq[Cell]] = {
+    val colKeys = colTypes.reverse(colType)
+    for (colKey <- colKeys) yield {
+      cells(colKey.index)
     }
   }
 

@@ -136,6 +136,32 @@ object TableUtil {
     }
   }
 
+  /**
+    * Renumber `cells` to fit into `targetRegion` going from top left down
+    * and then right column by column.
+    *
+    * If there are more `cells` than can fit in `targetRegion` then the
+    * numbering continues right of `targetRegion`.
+    */
+  private[table] def renumberRight(cells: TraversableOnce[Cell], targetRegion: Region): TraversableOnce[Cell] = {
+    val top = targetRegion._1.rowIndex
+    val left = targetRegion._1.colIndex
+    var rowIndex = top
+    var colIndex = left
+    val regionHeight = height(targetRegion)
+    val bottomMax = top + regionHeight - 1
+    for (cell <- cells) yield {
+      val renumbered = cell.updatedCellKey(CellKey(rowIndex, colIndex))
+      if (rowIndex == bottomMax) {
+        colIndex += 1
+        rowIndex = top
+      } else {
+        rowIndex += 1
+      }
+      renumbered
+    }
+  }
+
   private[table] def axisKeyRenumberingMap[K <: AxisKey[K]](rowsSeq: TraversableOnce[K]): Map[K, K] = {
     val rowsToIndexBuilder = Map.newBuilder[K, K]
 
