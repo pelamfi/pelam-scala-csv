@@ -182,6 +182,21 @@ class TableTest {
   }
 
   @Test
+  def testAddColumns = {
+    val result = testTable.resizeCols(cell3b.cellKey.colKey, 1, cellKey => StringCell(cellKey, "x"))
+
+    assertEquals("One column should be added after B column.",
+      "columns:,Qualifications,PrevWeek,PrevWeek,ThisWeek,,CommentCol,\n" +
+        "Row 1/CommentRow:,,x,,,,,,\n" +
+        "Row 2/Worker:,2b,x,2c,,,,,\n" +
+        "Row 3/Worker:,3b,x,,,,,\n" +
+        "Row 4/Day:,4b,x,,,,,,\n" +
+        "Row 5/:5a-untyped,,x,,,,5f-untyped,,\n" +
+        "Row 6/CommentRow:,,x,,,,,,\n",
+      result.toString())
+  }
+
+  @Test
   def testUpdatedRegion1Cell = {
     import Table._
     val replacement = StringCell(cell2b.cellKey, "replaced")
@@ -214,7 +229,7 @@ class TableTest {
   }
 
   @Test
-  def testUpdatedRegionSmaller = {
+  def testUpdatedRegionLessRows = {
     import Table._
     val replacement = StringCell(cell2b.cellKey, "replaced")
 
@@ -230,7 +245,7 @@ class TableTest {
   }
 
   @Test
-  def testUpdatedRegionOutside = {
+  def testUpdatedRegionOutsideBelow = {
     import Table._
 
     val replacement = StringCell(cell4b.cellKey, "new")
