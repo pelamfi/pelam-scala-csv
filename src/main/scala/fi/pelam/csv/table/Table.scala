@@ -164,15 +164,54 @@ final case class Table[RT, CT, M <: TableMetadata](
     case _ => this
   }
 
-
   /**
    * @param colKey where new columns are added or old ones deleted
    * @param value for negative values, rows left of `colKey` are deleted.
    *              For positive values columns at `colKey` are added.
    * @return modified table
    */
-  def resizeCols(colKey: ColKey, value: Int, fillerGenerator: CellGenerator = emptyStringCell): TableType = {
-    this
+  def resizeCols(colKey: ColKey, value: Int, fillerGenerator: CellGenerator = emptyStringCell): TableType = value match {
+    case value if value < 0 => {
+      val keepFromStart = colKey.index + value + 1
+      val dropAndKeepFromEnd = colKey.index + 1
+
+      // extract
+      val colsRemoved = for (row <- cells) yield {
+        val endRenumbered = for ((cell, offset) <- row.drop(dropAndKeepFromEnd).zipWithIndex;
+                                 index = keepFromStart + offset) yield {
+          cell.updatedCellKey(CellKey(cell.rowIndex, index))
+        }
+        row.take(keepFromStart) ++ endRenumbered
+      }
+
+      // extract
+      val colTypesBeforeRemoved = colTypes.take(keepFromStart)
+      val colTypesAfterRemoved = colTypes.drop(dropAndKeepFromEnd)
+      val colTypesRemoved = colTypesBeforeRemoved ++ renumberTypeMapByMap[ColKey, CT](colTypesAfterRemoved, _.withOffset(value))
+
+      new Table[RT, CT, M](colsRemoved, rowTypes, colTypesRemoved, metadata)
+    }
+
+    case value if value > 0 => {
+      val newIndices = colKey.index + 1 until colKey.index + value + 1
+      val keepFromStart = colKey.index + 1
+      val dropAndKeepFromEnd = colKey.index + 1
+
+      val colsAdded = for ((row, rowIndex) <- cells.zipWithIndex) yield {
+        val newCols = for (colIndex <- newIndices) yield {
+          fillerGenerator(CellKey(rowIndex, colIndex))
+        }
+        row.take(keepFromStart) ++ newCols ++ row.drop(dropAndKeepFromEnd)
+      }
+
+      val newColTypes = newIndices.map(colIndex => (ColKey(colIndex), colTypes(colKey)))
+      val renumberedLastTypes = renumberTypeMapByMap[ColKey, CT](colTypes.drop(dropAndKeepFromEnd), _.withOffset(value))
+      val colTypesAdded = colTypes.take(keepFromStart) ++ newColTypes ++ renumberedLastTypes
+
+      new Table[RT, CT, M](colsAdded, rowTypes, colTypesAdded, metadata)
+    }
+
+    case _ => this
   }
 
   /**

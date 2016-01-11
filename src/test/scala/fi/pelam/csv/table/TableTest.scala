@@ -186,10 +186,10 @@ class TableTest {
     val result = testTable.resizeCols(cell3b.cellKey.colKey, 1, cellKey => StringCell(cellKey, "x"))
 
     assertEquals("One column should be added after B column.",
-      "columns:,Qualifications,PrevWeek,PrevWeek,ThisWeek,,CommentCol,\n" +
+      "columns:,Qualifications,Qualifications,PrevWeek,PrevWeek,ThisWeek,,CommentCol,\n" +
         "Row 1/CommentRow:,,x,,,,,,\n" +
         "Row 2/Worker:,2b,x,2c,,,,,\n" +
-        "Row 3/Worker:,3b,x,,,,,\n" +
+        "Row 3/Worker:,3b,x,,,,,,\n" +
         "Row 4/Day:,4b,x,,,,,,\n" +
         "Row 5/:5a-untyped,,x,,,,5f-untyped,,\n" +
         "Row 6/CommentRow:,,x,,,,,,\n",
@@ -214,14 +214,28 @@ class TableTest {
   }
 
   @Test
-  def testUpdatedRegionToZero = {
+  def testUpdatedCellToZero = {
     import Table._
 
     val result = testTable.updatedRegion(IndexedSeq(cell2b), IndexedSeq())
 
+    assertEquals("columns:,Qualifications,PrevWeek,ThisWeek,,CommentCol,\n" +
+      "Row 1/CommentRow:,,,,,,\n" +
+      "Row 2/Worker:,,,,,,\n" +
+      "Row 3/Day:,,,,,,\n" +
+      "Row 4/:5a-untyped,,,,5f-untyped,,\n" +
+      "Row 5/CommentRow:,,,,,,\n",
+      result.toString())
+  }
+
+  @Test
+  def testUpdatedRegionRemoveRow = {
+
+    val result = testTable.updatedRegion((cell2b.cellKey, cell4c.cellKey), IndexedSeq(StringCell(cell2b.cellKey, "foo")))
+
     assertEquals("columns:,Qualifications,PrevWeek,PrevWeek,ThisWeek,,CommentCol,\n" +
       "Row 1/CommentRow:,,,,,,,\n" +
-      "Row 2/Worker:,3b,,,,,,\n" +
+      "Row 2/Worker:,foo,2c,,,,,\n" +
       "Row 3/Day:,4b,,,,,,\n" +
       "Row 4/:5a-untyped,,,,,5f-untyped,,\n" +
       "Row 5/CommentRow:,,,,,,,\n",
