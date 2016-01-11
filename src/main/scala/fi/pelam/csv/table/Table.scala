@@ -132,9 +132,7 @@ final case class Table[RT, CT, M <: TableMetadata](
       val beforeRemoved = cells.take(keepFromStart)
       val rowsRemoved = beforeRemoved ++ renumberRows(beforeRemoved.size, cells.drop(dropAndKeepFromEnd))
 
-      val rowTypesBeforeRemoved = rowTypes.take(keepFromStart)
-      val rowTypesAfterRemoved = rowTypes.drop(dropAndKeepFromEnd)
-      val rowTypesRemoved = rowTypesBeforeRemoved ++ renumberTypeMapByMap[RowKey, RT](rowTypesAfterRemoved, _.withOffset(value))
+      val rowTypesRemoved = deleteTypeMapSlice(keepFromStart, dropAndKeepFromEnd, rowTypes)
 
       new Table[RT, CT, M](rowsRemoved, rowTypesRemoved, colTypes, metadata)
     }
@@ -184,10 +182,7 @@ final case class Table[RT, CT, M <: TableMetadata](
         row.take(keepFromStart) ++ endRenumbered
       }
 
-      // extract
-      val colTypesBeforeRemoved = colTypes.take(keepFromStart)
-      val colTypesAfterRemoved = colTypes.drop(dropAndKeepFromEnd)
-      val colTypesRemoved = colTypesBeforeRemoved ++ renumberTypeMapByMap[ColKey, CT](colTypesAfterRemoved, _.withOffset(value))
+      val colTypesRemoved = deleteTypeMapSlice(keepFromStart, dropAndKeepFromEnd, colTypes)
 
       new Table[RT, CT, M](colsRemoved, rowTypes, colTypesRemoved, metadata)
     }

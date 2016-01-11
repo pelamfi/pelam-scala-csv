@@ -219,7 +219,7 @@ class TableTest {
 
     val result = testTable.updatedRegion(IndexedSeq(cell2b), IndexedSeq())
 
-    assertEquals("columns:,Qualifications,PrevWeek,ThisWeek,,CommentCol,\n" +
+    assertEquals("columns:,PrevWeek,PrevWeek,ThisWeek,,CommentCol,\n" +
       "Row 1/CommentRow:,,,,,,\n" +
       "Row 2/Worker:,,,,,,\n" +
       "Row 3/Day:,,,,,,\n" +

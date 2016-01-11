@@ -101,6 +101,20 @@ object TableUtil {
     b.result()
   }
 
+  def deleteTypeMapSlice[K <: AxisKey[K], T](start: Int, end: Int, typeMap: SortedBiMap[K, T])(implicit builder: CanBuildFrom[SortedBiMap[K, T], (K, T), SortedBiMap[K, T]]): SortedBiMap[K, T] = {
+    val b = builder()
+    val size = end - start
+    for (pair <- typeMap) {
+      val index = pair._1.index
+      if (index < start) {
+        b += pair
+      } else if (index >= end) {
+        b += ((pair._1.withOffset(-size), pair._2))
+      }
+    }
+    b.result()
+  }
+
   private[table] def renumberRows(firstIndex: Int, cells: IndexedSeq[IndexedSeq[Cell]]): IndexedSeq[IndexedSeq[Cell]] = {
     for ((row, offset) <- cells.zipWithIndex;
          index = firstIndex + offset) yield {
