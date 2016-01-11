@@ -115,6 +115,25 @@ object TableUtil {
     b.result()
   }
 
+  def addTypeMapSlice[K <: AxisKey[K], T](start: K, count: Int, typeMap: SortedBiMap[K, T])(implicit builder: CanBuildFrom[SortedBiMap[K, T], (K, T), SortedBiMap[K, T]]): SortedBiMap[K, T] = {
+    val b = builder()
+    for (pair <- typeMap) {
+      val index = pair._1.index
+      if (index < start.index) {
+        b += pair
+      } else {
+        b += ((pair._1.withOffset(count), pair._2))
+      }
+    }
+    val fill = typeMap.get(start)
+    for (fill <- fill) {
+      for (i <- 0 until count) {
+        b += ((start.withOffset(i), fill))
+      }
+    }
+    b.result()
+  }
+
   private[table] def renumberRows(firstIndex: Int, cells: IndexedSeq[IndexedSeq[Cell]]): IndexedSeq[IndexedSeq[Cell]] = {
     for ((row, offset) <- cells.zipWithIndex;
          index = firstIndex + offset) yield {

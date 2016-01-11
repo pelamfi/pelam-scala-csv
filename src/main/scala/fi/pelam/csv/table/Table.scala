@@ -120,9 +120,13 @@ final case class Table[RT, CT, M <: TableMetadata](
   type TableType = Table[RT, CT, M]
 
   /**
-   * @param rowKey where new rows are added or old rows deleted
+   * @param rowKey where new rows are added or old rows deleted.
+   *               If rows are deleted this will be the first row to go and further rows will be the
+   *               ones before this. If rows are added, they are added after this row with the same
+   *               type as this row.
    * @param value for negative values, rows above `rowKey` are deleted
    *              For positive values rows at `rowKey` are added.
+   *              For zero, this table is returned.
    * @return modified table
    */
   def resizeRows(rowKey: RowKey, value: Int, fillerGenerator: CellGenerator = emptyStringCell): TableType = value match {
@@ -151,10 +155,7 @@ final case class Table[RT, CT, M <: TableMetadata](
       val indicesOk = cells.take(keepFromStart) ++ newRows
       val rowsAdded = indicesOk ++ renumberRows(indicesOk.size, cells.drop(dropAndKeepFromEnd))
 
-      val newRowTypes = newIndices.map(rowIndex => (RowKey(rowIndex), rowTypes(rowKey)))
-      val renumberedLastTypes = renumberTypeMapByMap[RowKey, RT](rowTypes.drop(dropAndKeepFromEnd), _.withOffset(value))
-      val indexOkTypes = rowTypes.take(keepFromStart) ++ newRowTypes
-      val rowTypesAdded = indexOkTypes ++ renumberedLastTypes
+      val rowTypesAdded = addTypeMapSlice(rowKey, newIndices.size, rowTypes)
 
       new Table[RT, CT, M](rowsAdded, rowTypesAdded, colTypes, metadata)
     }
@@ -164,8 +165,12 @@ final case class Table[RT, CT, M <: TableMetadata](
 
   /**
    * @param colKey where new columns are added or old ones deleted
+   *               If columns are deleted this will be the first columns to go and further columns will be the
+   *               ones before this. If columsns are added, they are added after this column with the same
+   *               type as this column.
    * @param value for negative values, rows left of `colKey` are deleted.
    *              For positive values columns at `colKey` are added.
+   *              For zero, this table is returned.
    * @return modified table
    */
   def resizeCols(colKey: ColKey, value: Int, fillerGenerator: CellGenerator = emptyStringCell): TableType = value match {
@@ -199,9 +204,7 @@ final case class Table[RT, CT, M <: TableMetadata](
         row.take(keepFromStart) ++ newCols ++ row.drop(dropAndKeepFromEnd)
       }
 
-      val newColTypes = newIndices.map(colIndex => (ColKey(colIndex), colTypes(colKey)))
-      val renumberedLastTypes = renumberTypeMapByMap[ColKey, CT](colTypes.drop(dropAndKeepFromEnd), _.withOffset(value))
-      val colTypesAdded = colTypes.take(keepFromStart) ++ newColTypes ++ renumberedLastTypes
+      val colTypesAdded = addTypeMapSlice(colKey, newIndices.size, colTypes)
 
       new Table[RT, CT, M](colsAdded, rowTypes, colTypesAdded, metadata)
     }

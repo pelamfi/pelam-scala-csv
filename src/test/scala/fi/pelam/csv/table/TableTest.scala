@@ -23,6 +23,7 @@ import fi.pelam.csv.util.SortedBiMap
 import org.junit.Assert._
 import org.junit.Test
 
+// TODO: Tests for updatedColumns and updatedRows
 class TableTest {
 
   import TableTest._
@@ -166,6 +167,21 @@ class TableTest {
   }
 
   @Test
+  def testRemoveRows2 = {
+    val result = testTable.resizeRows(cell3b.cellKey.rowKey, -2)
+
+    assertEquals("One worker row should be gone",
+      "columns:,Qualifications,PrevWeek,PrevWeek,ThisWeek,,CommentCol,\n" +
+        "Row 1/CommentRow:,,,,,,,\n" +
+        "Row 2/Day:,4b,,,,,,\n" +
+        "Row 3/:5a-untyped,,,,,5f-untyped,,\n" +
+        "Row 4/CommentRow:,,,,,,,\n",
+      result.toString())
+
+    assertEquals(3, result.rowTypes.size)
+  }
+
+  @Test
   def testAddRows = {
     val result = testTable.resizeRows(cell3b.cellKey.rowKey, 1, cellKey => StringCell(cellKey, "x"))
 
@@ -194,6 +210,19 @@ class TableTest {
         "Row 5/:5a-untyped,,x,,,,5f-untyped,,\n" +
         "Row 6/CommentRow:,,x,,,,,,\n",
       result.toString())
+  }
+
+  @Test
+  def testRemoveColumns = {
+    val result = testTable.resizeCols(cell3b.cellKey.colKey, -1)
+
+    assertEquals("columns:,PrevWeek,PrevWeek,ThisWeek,,CommentCol,\n" +
+      "Row 1/CommentRow:,,,,,,\n" +
+      "Row 2/Worker:,2c,,,,,\n" +
+      "Row 3/Worker:,,,,,,\n" +
+      "Row 4/Day:,,,,,,\n" +
+      "Row 5/:5a-untyped,,,,5f-untyped,,\n" +
+      "Row 6/CommentRow:,,,,,,\n", result.toString())
   }
 
   @Test
