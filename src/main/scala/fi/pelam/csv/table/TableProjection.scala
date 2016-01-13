@@ -129,6 +129,14 @@ case class TableProjection[RT, CT, M <: TableMetadata](
     Table(projectedCells, projectedRowTypes, projectedColTypes, full.metadata)
   }
 
+  def spannedRegion: Table.Region = {
+    if (rows.isEmpty || cols.isEmpty) {
+      Table.emptyRegion
+    } else {
+      (CellKey(rows.head, cols.head), CellKey(rows.last.withOffset(1), cols.last.withOffset(1)))
+    }
+  }
+
   override def toString = s"TableProjection($rows, $cols)"
 }
 

@@ -617,6 +617,8 @@ object Table {
 
   type CellGenerator = (CellKey) => Cell
 
+  val emptyRegion = (CellKey(0, 0), CellKey(0, 0))
+
   implicit def spannedRegion(cells: TraversableOnce[Cell]): Region = spannedRegionKeys(cells.map(_.cellKey))
 
   implicit def toStringCells(strings: TraversableOnce[String]): TraversableOnce[Cell] = {
@@ -635,7 +637,7 @@ object Table {
         ))
 
     if (spannedIndices == initial) {
-      (CellKey(0, 0), CellKey(0, 0))
+      emptyRegion
     } else {
       (CellKey(spannedIndices._1, spannedIndices._3), CellKey(spannedIndices._2, spannedIndices._4))
     }
