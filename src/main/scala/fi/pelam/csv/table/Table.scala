@@ -88,6 +88,7 @@ import scala.collection.{SortedMap, SortedSet}
  * @tparam M The type of the `metadata` parameter. Must be a sub type of [[TableMetadata]].
  *           This specifies the character set and separator to use when reading the CSV data from the input stream.
  */
+// TODO: Reorder methods
 final case class Table[RT, CT, M <: TableMetadata](
   cells: IndexedSeq[IndexedSeq[Cell]],
   rowTypes: SortedBiMap[RowKey, RT],
@@ -109,15 +110,23 @@ final case class Table[RT, CT, M <: TableMetadata](
 
   require(rowTypes.keys.foldLeft(true)((acc, rowKey) => acc && rowKey.inRange(rowCount)),
     "Row type map keys must match rows in the table")
+
   require(colTypes.keys.foldLeft(true)((acc, colKey) => acc && colKey.inRange(colCount)),
     "Column type map keys must match columns in the table")
 
-  // Verify table is strictly rectangular
-  for (row <- cells) {
+  // Verify table is strictly rectangular and that each cell's key matches the position in table
+  for ((row, rowIndex) <- cells.zipWithIndex) {
     require(row.size == colCount, s"Same number of columns required for reach row. ${row.size} vs ${colCount}")
+    for ((cell, colIndex) <- row.zipWithIndex) {
+      require(cell.cellKey.rowIndex == rowIndex &&
+        cell.cellKey.colIndex == colIndex,
+        s"Cell $cell should be in that position in the datastructure, \n but it is at position ${CellKey(rowIndex, colIndex)}.")
+    }
   }
 
   type TableType = Table[RT, CT, M]
+
+  def getRow(cellKey: CellKey) = cells(cellKey.rowIndex)
 
   /**
    * @param rowKey where new rows are added or old rows deleted.
@@ -201,7 +210,12 @@ final case class Table[RT, CT, M <: TableMetadata](
         val newCols = for (colIndex <- newIndices) yield {
           fillerGenerator(CellKey(rowIndex, colIndex))
         }
-        row.take(keepFromStart) ++ newCols ++ row.drop(dropAndKeepFromEnd)
+
+        val tailRenumbered = for (cell <- row.drop(dropAndKeepFromEnd)) yield {
+          cell.updatedCellKey(cell.cellKey.withColOffset(newIndices.size))
+        }
+
+        row.take(keepFromStart) ++ newCols ++ tailRenumbered
       }
 
       val colTypesAdded = addTypeMapSlice(colKey, newIndices.size, colTypes)
@@ -406,16 +420,6 @@ final case class Table[RT, CT, M <: TableMetadata](
     val rowKeys = rowTypes.reverse(rowType)
     for (rowKey <- rowKeys) yield {
       cells(rowKey.index)
-    }
-  }
-
-  /**
-    * Get a full columns from table defined by `rowType`.
-    */
-  def getCols(colType: CT): IndexedSeq[IndexedSeq[Cell]] = {
-    val colKeys = colTypes.reverse(colType)
-    for (colKey <- colKeys) yield {
-      cells(colKey.index)
     }
   }
 

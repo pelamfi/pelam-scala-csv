@@ -91,6 +91,10 @@ final case class CellKey(rowIndex: Int, colIndex: Int) extends Ordered[CellKey] 
     // Original idea from http://stackoverflow.com/a/19348339/1148030
     indicesTupleOrdering.compare(this.indices, that.indices)
   }
+
+  def withRowOffset(offset: Int) = copy(rowIndex = rowIndex + offset)
+
+  def withColOffset(offset: Int) = copy(colIndex = colIndex + offset)
 }
 
 object CellKey {
