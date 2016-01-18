@@ -20,10 +20,10 @@ class TableProjectionTest {
   def testProjected: Unit = {
     val result = projection.projected
 
-    assertEquals("columns:Qualifications,PrevWeek,PrevWeek,\n" +
-      "Row 1/Worker:2b,2c,,\n" +
-      "Row 2/Worker:3b,,,\n" +
-      "Row 3/Day:4b,,,\n", result.toString())
+    assertEquals("columns:0/Qualifications,1/PrevWeek,2/PrevWeek,\n" +
+      "0/Worker:2b,2c,,\n" +
+      "1/Worker:3b,,,\n" +
+      "2/Day:4b,,,\n", result.toString())
   }
 
   @Test
@@ -37,9 +37,9 @@ class TableProjectionTest {
     val invProj = projection.inverse
     val inv = invProj.projected
 
-    assertEquals("columns:,ThisWeek,,CommentCol,\n" +
-      "Row 1/CommentRow:,,,,\n" +
-      "Row 2/:5a-untyped,,5f-untyped,,\n" +
-      "Row 3/CommentRow:,,,,\n", inv.toString())
+    assertEquals("columns:0/,1/ThisWeek,2/,3/CommentCol,\n" +
+      "0/CommentRow:,,,,\n" +
+      "1/:5a-untyped,,5f-untyped,,\n" +
+      "2/CommentRow:,,,,\n", inv.toString())
   }
 }

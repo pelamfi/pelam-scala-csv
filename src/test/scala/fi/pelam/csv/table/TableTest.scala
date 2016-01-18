@@ -140,13 +140,13 @@ class TableTest {
 
     val result = testTable.updatedCells(IndexedSeq(replacement))
 
-    assertEquals("columns:,Qualifications,PrevWeek,PrevWeek,ThisWeek,,CommentCol,\n" +
-      "Row 1/CommentRow:,,,,,,,\n" +
-      "Row 2/Worker:,replaced,2c,,,,,\n" +
-      "Row 3/Worker:,3b,,,,,,\n" +
-      "Row 4/Day:,4b,,,,,,\n" +
-      "Row 5/:5a-untyped,,,,,5f-untyped,,\n" +
-      "Row 6/CommentRow:,,,,,,,\n",
+    assertEquals("columns:0/,1/Qualifications,2/PrevWeek,3/PrevWeek,4/ThisWeek,5/,6/CommentCol,\n" +
+      "0/CommentRow:,,,,,,,\n" +
+      "1/Worker:,replaced,2c,,,,,\n" +
+      "2/Worker:,3b,,,,,,\n" +
+      "3/Day:,4b,,,,,,\n" +
+      "4/:5a-untyped,,,,,5f-untyped,,\n" +
+      "5/CommentRow:,,,,,,,\n",
       result.toString())
   }
 
@@ -155,12 +155,12 @@ class TableTest {
     val result = testTable.resizeRows(cell3b.cellKey.rowKey, -1)
 
     assertEquals("One worker row should be gone",
-      "columns:,Qualifications,PrevWeek,PrevWeek,ThisWeek,,CommentCol,\n" +
-        "Row 1/CommentRow:,,,,,,,\n" +
-        "Row 2/Worker:,2b,2c,,,,,\n" +
-        "Row 3/Day:,4b,,,,,,\n" +
-        "Row 4/:5a-untyped,,,,,5f-untyped,,\n" +
-        "Row 5/CommentRow:,,,,,,,\n",
+      "columns:0/,1/Qualifications,2/PrevWeek,3/PrevWeek,4/ThisWeek,5/,6/CommentCol,\n" +
+        "0/CommentRow:,,,,,,,\n" +
+        "1/Worker:,2b,2c,,,,,\n" +
+        "2/Day:,4b,,,,,,\n" +
+        "3/:5a-untyped,,,,,5f-untyped,,\n" +
+        "4/CommentRow:,,,,,,,\n",
       result.toString())
 
     assertEquals(4, result.rowTypes.size)
@@ -171,11 +171,11 @@ class TableTest {
     val result = testTable.resizeRows(cell3b.cellKey.rowKey, -2)
 
     assertEquals("One worker row should be gone",
-      "columns:,Qualifications,PrevWeek,PrevWeek,ThisWeek,,CommentCol,\n" +
-        "Row 1/CommentRow:,,,,,,,\n" +
-        "Row 2/Day:,4b,,,,,,\n" +
-        "Row 3/:5a-untyped,,,,,5f-untyped,,\n" +
-        "Row 4/CommentRow:,,,,,,,\n",
+      "columns:0/,1/Qualifications,2/PrevWeek,3/PrevWeek,4/ThisWeek,5/,6/CommentCol,\n" +
+        "0/CommentRow:,,,,,,,\n" +
+        "1/Day:,4b,,,,,,\n" +
+        "2/:5a-untyped,,,,,5f-untyped,,\n" +
+        "3/CommentRow:,,,,,,,\n",
       result.toString())
 
     assertEquals(3, result.rowTypes.size)
@@ -186,14 +186,14 @@ class TableTest {
     val result = testTable.resizeRows(cell3b.cellKey.rowKey, 1, cellKey => StringCell(cellKey, "x"))
 
     assertEquals("One worker row should be added after 2 existing.",
-      "columns:,Qualifications,PrevWeek,PrevWeek,ThisWeek,,CommentCol,\n" +
-        "Row 1/CommentRow:,,,,,,,\n" +
-        "Row 2/Worker:,2b,2c,,,,,\n" +
-        "Row 3/Worker:,3b,,,,,,\n" +
-        "Row 4/Worker:x,x,x,x,x,x,x,\n" +
-        "Row 5/Day:,4b,,,,,,\n" +
-        "Row 6/:5a-untyped,,,,,5f-untyped,,\n" +
-        "Row 7/CommentRow:,,,,,,,\n",
+      "columns:0/,1/Qualifications,2/PrevWeek,3/PrevWeek,4/ThisWeek,5/,6/CommentCol,\n" +
+        "0/CommentRow:,,,,,,,\n" +
+        "1/Worker:,2b,2c,,,,,\n" +
+        "2/Worker:,3b,,,,,,\n" +
+        "3/Worker:x,x,x,x,x,x,x,\n" +
+        "4/Day:,4b,,,,,,\n" +
+        "5/:5a-untyped,,,,,5f-untyped,,\n" +
+        "6/CommentRow:,,,,,,,\n",
       result.toString())
   }
 
@@ -202,13 +202,13 @@ class TableTest {
     val result = testTable.resizeCols(cell3b.cellKey.colKey, 1, cellKey => StringCell(cellKey, "x"))
 
     assertEquals("One column should be added after B column.",
-      "columns:,Qualifications,Qualifications,PrevWeek,PrevWeek,ThisWeek,,CommentCol,\n" +
-        "Row 1/CommentRow:,,x,,,,,,\n" +
-        "Row 2/Worker:,2b,x,2c,,,,,\n" +
-        "Row 3/Worker:,3b,x,,,,,,\n" +
-        "Row 4/Day:,4b,x,,,,,,\n" +
-        "Row 5/:5a-untyped,,x,,,,5f-untyped,,\n" +
-        "Row 6/CommentRow:,,x,,,,,,\n",
+      "columns:0/,1/Qualifications,2/Qualifications,3/PrevWeek,4/PrevWeek,5/ThisWeek,6/,7/CommentCol,\n" +
+        "0/CommentRow:,,x,,,,,,\n" +
+        "1/Worker:,2b,x,2c,,,,,\n" +
+        "2/Worker:,3b,x,,,,,,\n" +
+        "3/Day:,4b,x,,,,,,\n" +
+        "4/:5a-untyped,,x,,,,5f-untyped,,\n" +
+        "5/CommentRow:,,x,,,,,,\n",
       result.toString())
   }
 
@@ -216,13 +216,13 @@ class TableTest {
   def testRemoveColumns = {
     val result = testTable.resizeCols(cell3b.cellKey.colKey, -1)
 
-    assertEquals("columns:,PrevWeek,PrevWeek,ThisWeek,,CommentCol,\n" +
-      "Row 1/CommentRow:,,,,,,\n" +
-      "Row 2/Worker:,2c,,,,,\n" +
-      "Row 3/Worker:,,,,,,\n" +
-      "Row 4/Day:,,,,,,\n" +
-      "Row 5/:5a-untyped,,,,5f-untyped,,\n" +
-      "Row 6/CommentRow:,,,,,,\n", result.toString())
+    assertEquals("columns:0/,1/PrevWeek,2/PrevWeek,3/ThisWeek,4/,5/CommentCol,\n" +
+      "0/CommentRow:,,,,,,\n" +
+      "1/Worker:,2c,,,,,\n" +
+      "2/Worker:,,,,,,\n" +
+      "3/Day:,,,,,,\n" +
+      "4/:5a-untyped,,,,5f-untyped,,\n" +
+      "5/CommentRow:,,,,,,\n", result.toString())
   }
 
   @Test
@@ -232,13 +232,13 @@ class TableTest {
 
     val result = testTable.updatedRegion(IndexedSeq(cell2b), IndexedSeq(replacement))
 
-    assertEquals("columns:,Qualifications,PrevWeek,PrevWeek,ThisWeek,,CommentCol,\n" +
-      "Row 1/CommentRow:,,,,,,,\n" +
-      "Row 2/Worker:,replaced,2c,,,,,\n" +
-      "Row 3/Worker:,3b,,,,,,\n" +
-      "Row 4/Day:,4b,,,,,,\n" +
-      "Row 5/:5a-untyped,,,,,5f-untyped,,\n" +
-      "Row 6/CommentRow:,,,,,,,\n",
+    assertEquals("columns:0/,1/Qualifications,2/PrevWeek,3/PrevWeek,4/ThisWeek,5/,6/CommentCol,\n" +
+      "0/CommentRow:,,,,,,,\n" +
+      "1/Worker:,replaced,2c,,,,,\n" +
+      "2/Worker:,3b,,,,,,\n" +
+      "3/Day:,4b,,,,,,\n" +
+      "4/:5a-untyped,,,,,5f-untyped,,\n" +
+      "5/CommentRow:,,,,,,,\n",
       result.toString())
   }
 
@@ -248,12 +248,12 @@ class TableTest {
 
     val result = testTable.updatedRegion(IndexedSeq(cell2b), IndexedSeq())
 
-    assertEquals("columns:,PrevWeek,PrevWeek,ThisWeek,,CommentCol,\n" +
-      "Row 1/CommentRow:,,,,,,\n" +
-      "Row 2/Worker:,,,,,,\n" +
-      "Row 3/Day:,,,,,,\n" +
-      "Row 4/:5a-untyped,,,,5f-untyped,,\n" +
-      "Row 5/CommentRow:,,,,,,\n",
+    assertEquals("columns:0/,1/PrevWeek,2/PrevWeek,3/ThisWeek,4/,5/CommentCol,\n" +
+      "0/CommentRow:,,,,,,\n" +
+      "1/Worker:,,,,,,\n" +
+      "2/Day:,,,,,,\n" +
+      "3/:5a-untyped,,,,5f-untyped,,\n" +
+      "4/CommentRow:,,,,,,\n",
       result.toString())
   }
 
@@ -262,12 +262,12 @@ class TableTest {
 
     val result = testTable.updatedRegion((cell2b.cellKey, cell4c.cellKey), IndexedSeq(StringCell(cell2b.cellKey, "foo")))
 
-    assertEquals("columns:,Qualifications,PrevWeek,PrevWeek,ThisWeek,,CommentCol,\n" +
-      "Row 1/CommentRow:,,,,,,,\n" +
-      "Row 2/Worker:,foo,2c,,,,,\n" +
-      "Row 3/Day:,4b,,,,,,\n" +
-      "Row 4/:5a-untyped,,,,,5f-untyped,,\n" +
-      "Row 5/CommentRow:,,,,,,,\n",
+    assertEquals("columns:0/,1/Qualifications,2/PrevWeek,3/PrevWeek,4/ThisWeek,5/,6/CommentCol,\n" +
+      "0/CommentRow:,,,,,,,\n" +
+      "1/Worker:,foo,2c,,,,,\n" +
+      "2/Day:,4b,,,,,,\n" +
+      "3/:5a-untyped,,,,,5f-untyped,,\n" +
+      "4/CommentRow:,,,,,,,\n",
       result.toString())
   }
 
@@ -278,12 +278,12 @@ class TableTest {
 
     val result = testTable.updatedRegion(IndexedSeq(cell2b, cell3b), IndexedSeq(replacement))
 
-    assertEquals("columns:,Qualifications,PrevWeek,PrevWeek,ThisWeek,,CommentCol,\n" +
-      "Row 1/CommentRow:,,,,,,,\n" +
-      "Row 2/Worker:,replaced,2c,,,,,\n" +
-      "Row 3/Day:,4b,,,,,,\n" +
-      "Row 4/:5a-untyped,,,,,5f-untyped,,\n" +
-      "Row 5/CommentRow:,,,,,,,\n",
+    assertEquals("columns:0/,1/Qualifications,2/PrevWeek,3/PrevWeek,4/ThisWeek,5/,6/CommentCol,\n" +
+      "0/CommentRow:,,,,,,,\n" +
+      "1/Worker:,replaced,2c,,,,,\n" +
+      "2/Day:,4b,,,,,,\n" +
+      "3/:5a-untyped,,,,,5f-untyped,,\n" +
+      "4/CommentRow:,,,,,,,\n",
       result.toString())
   }
 
@@ -295,37 +295,37 @@ class TableTest {
 
     val result = testTable.updatedRegion(IndexedSeq(cell2b, cell3b), IndexedSeq(replacement))
 
-    assertEquals("columns:,Qualifications,PrevWeek,PrevWeek,ThisWeek,,CommentCol,\n" +
-      "Row 1/CommentRow:,,,,,,,\n" +
-      "Row 2/Worker:,2b,2c,,,,,\n" +
-      "Row 3/Worker:,3b,,,,,,\n" +
-      "Row 4/Worker:,new,,,,,,\n" +
-      "Row 5/Day:,4b,,,,,,\n" +
-      "Row 6/:5a-untyped,,,,,5f-untyped,,\n" +
-      "Row 7/CommentRow:,,,,,,,\n",
+    assertEquals("columns:0/,1/Qualifications,2/PrevWeek,3/PrevWeek,4/ThisWeek,5/,6/CommentCol,\n" +
+      "0/CommentRow:,,,,,,,\n" +
+      "1/Worker:,2b,2c,,,,,\n" +
+      "2/Worker:,3b,,,,,,\n" +
+      "3/Worker:,new,,,,,,\n" +
+      "4/Day:,4b,,,,,,\n" +
+      "5/:5a-untyped,,,,,5f-untyped,,\n" +
+      "6/CommentRow:,,,,,,,\n",
       result.toString())
   }
 
   @Test
   def testToString = {
-    assertEquals("columns:,Qualifications,PrevWeek,PrevWeek,ThisWeek,,CommentCol,\n" +
-      "Row 1/CommentRow:,,,,,,,\n" +
-      "Row 2/Worker:,2b,2c,,,,,\n" +
-      "Row 3/Worker:,3b,,,,,,\n" +
-      "Row 4/Day:,4b,,,,,,\n" +
-      "Row 5/:5a-untyped,,,,,5f-untyped,,\n" +
-      "Row 6/CommentRow:,,,,,,,\n", testTable.toString())
+    assertEquals("columns:0/,1/Qualifications,2/PrevWeek,3/PrevWeek,4/ThisWeek,5/,6/CommentCol,\n" +
+      "0/CommentRow:,,,,,,,\n" +
+      "1/Worker:,2b,2c,,,,,\n" +
+      "2/Worker:,3b,,,,,,\n" +
+      "3/Day:,4b,,,,,,\n" +
+      "4/:5a-untyped,,,,,5f-untyped,,\n" +
+      "5/CommentRow:,,,,,,,\n", testTable.toString())
   }
 
   @Test
   def testToStringTypedCells = {
-    assertEquals("columns:,Qualifications,PrevWeek,PrevWeek,ThisWeek,,CommentCol,\n" +
-      "Row 1/CommentRow:i 123,d 123.0,,,,,,\n" +
-      "Row 2/Worker:,2b,2c,,,,,\n" +
-      "Row 3/Worker:,3b,,,,,,\n" +
-      "Row 4/Day:,4b,,,,,,\n" +
-      "Row 5/:5a-untyped,,,,,5f-untyped,,\n" +
-      "Row 6/CommentRow:,,,,,,,\n", testTableTypedCells.toString())
+    assertEquals("columns:0/,1/Qualifications,2/PrevWeek,3/PrevWeek,4/ThisWeek,5/,6/CommentCol,\n" +
+      "0/CommentRow:i 123,d 123.0,,,,,,\n" +
+      "1/Worker:,2b,2c,,,,,\n" +
+      "2/Worker:,3b,,,,,,\n" +
+      "3/Day:,4b,,,,,,\n" +
+      "4/:5a-untyped,,,,,5f-untyped,,\n" +
+      "5/CommentRow:,,,,,,,\n", testTableTypedCells.toString())
   }
 
   @Test

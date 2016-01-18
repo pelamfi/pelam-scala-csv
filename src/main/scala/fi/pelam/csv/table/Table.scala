@@ -577,12 +577,12 @@ final case class Table[RT, CT, M <: TableMetadata](
     builder.append("columns:")
 
     for (colKey <- colKeys) {
-      builder.append(s"${colTypes.get(colKey).map(_.toString).getOrElse("")},")
+      builder.append(s"${colKey.index}/${colTypes.get(colKey).map(_.toString).getOrElse("")},")
     }
 
     builder.append("\n")
 
-    builder.append(rowsToString(cells, rowKey => s"${rowKey}/${rowTypes.get(rowKey).map(_.toString).getOrElse("")}:"))
+    builder.append(rowsToString(cells, rowKey => s"${rowKey.index}/${rowTypes.get(rowKey).map(_.toString).getOrElse("")}:"))
 
     builder.toString()
   }
