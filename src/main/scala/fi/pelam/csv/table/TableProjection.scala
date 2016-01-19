@@ -25,7 +25,7 @@ import scala.collection.{SortedMap, SortedSet}
   * }}}
   */
 case class TableProjection[RT, CT, M <: TableMetadata](
-  full: Table[RT, CT, M],
+  baseTable: Table[RT, CT, M],
   rows: SortedSet[RowKey] = SortedSet(),
   cols: SortedSet[ColKey] = SortedSet()) {
 
@@ -34,50 +34,50 @@ case class TableProjection[RT, CT, M <: TableMetadata](
   type TableType = Table[RT, CT, M]
   type Projection = TableProjection[RT, CT, M]
 
-  def inverse: Projection = copy(rows = full.rowKeys -- rows, cols = full.colKeys -- cols)
+  def inverse: Projection = copy(rows = baseTable.rowKeys -- rows, cols = baseTable.colKeys -- cols)
 
-  def all: Projection = copy(cols = full.colKeys, rows = full.rowKeys)
+  def all: Projection = copy(cols = baseTable.colKeys, rows = baseTable.rowKeys)
 
-  def allCols: Projection = copy(cols = full.colKeys)
+  def allCols: Projection = copy(cols = baseTable.colKeys)
 
-  def allRows: Projection = copy(rows = full.rowKeys)
+  def allRows: Projection = copy(rows = baseTable.rowKeys)
 
   def withRowTypes(rowTypes: RT*): Projection = {
-    copy(rows = addByType[RT, RowKey](rows, rowTypes, full.rowsByType))
+    copy(rows = addByType[RT, RowKey](rows, rowTypes, baseTable.rowsByType))
   }
 
   def withRowTypes(rowTypes: TraversableOnce[RT]): Projection = {
-    copy(rows = addByType[RT, RowKey](rows, rowTypes, full.rowsByType))
+    copy(rows = addByType[RT, RowKey](rows, rowTypes, baseTable.rowsByType))
   }
 
   def withColTypes(colTypes: CT*): Projection = {
-    copy(cols = addByType[CT, ColKey](cols, colTypes, full.colsByType))
+    copy(cols = addByType[CT, ColKey](cols, colTypes, baseTable.colsByType))
   }
 
   def withColTypes(colTypes: TraversableOnce[CT]): Projection = {
-    copy(cols = addByType[CT, ColKey](cols, colTypes, full.colsByType))
+    copy(cols = addByType[CT, ColKey](cols, colTypes, baseTable.colsByType))
   }
 
   def withoutRowTypes(rowTypes: RT*): Projection = {
-    copy(rows = removeByType[RT, RowKey](rows, rowTypes, full.rowsByType))
+    copy(rows = removeByType[RT, RowKey](rows, rowTypes, baseTable.rowsByType))
   }
 
   def withoutRowTypes(rowTypes: TraversableOnce[RT]): Projection = {
-    copy(rows = removeByType[RT, RowKey](rows, rowTypes, full.rowsByType))
+    copy(rows = removeByType[RT, RowKey](rows, rowTypes, baseTable.rowsByType))
   }
 
   def withoutColTypes(colTypes: CT*): Projection = {
-    copy(cols = removeByType[CT, ColKey](cols, colTypes, full.colsByType))
+    copy(cols = removeByType[CT, ColKey](cols, colTypes, baseTable.colsByType))
   }
 
   def withoutColTypes(colTypes: TraversableOnce[CT]): Projection = {
-    copy(cols = removeByType[CT, ColKey](cols, colTypes, full.colsByType))
+    copy(cols = removeByType[CT, ColKey](cols, colTypes, baseTable.colsByType))
   }
 
   def rows(transform: SortedSet[RowKey] => TraversableOnce[RowKey]): Projection = {
     val modifiedRows = SortedSet[RowKey]() ++ transform(rows)
 
-    require(modifiedRows.foldLeft(true)((acc, rowKey) => acc && rowKey.inRange(full.rowCount)),
+    require(modifiedRows.foldLeft(true)((acc, rowKey) => acc && rowKey.inRange(baseTable.rowCount)),
       "Row keys must match rows in the table")
 
     copy(rows = modifiedRows)
@@ -86,7 +86,7 @@ case class TableProjection[RT, CT, M <: TableMetadata](
   def cols(transform: SortedSet[ColKey] => TraversableOnce[ColKey]): Projection = {
     val modifiedCols = SortedSet[ColKey]() ++ transform(cols)
 
-    require(modifiedCols.foldLeft(true)((acc, colKey) => acc && colKey.inRange(full.colCount)),
+    require(modifiedCols.foldLeft(true)((acc, colKey) => acc && colKey.inRange(baseTable.colCount)),
       "Column keys must match colmns in the table")
 
     copy(cols = modifiedCols)
@@ -96,9 +96,9 @@ case class TableProjection[RT, CT, M <: TableMetadata](
    * Construct a copy of the table with only selected a subset of rows and columns.
    */
   lazy val projected: TableType = {
-    val cells = full.cells
-    val rowTypes = full.rowTypes
-    val colTypes = full.colTypes
+    val cells = baseTable.cells
+    val rowTypes = baseTable.rowTypes
+    val colTypes = baseTable.colTypes
 
     var rowIndex = 0
     var colIndex = 0
@@ -126,7 +126,7 @@ case class TableProjection[RT, CT, M <: TableMetadata](
 
     val projectedColTypes = renumberTypeMapByMap(colTypes.filterKeys(cols.contains(_)), colsToIndex)
 
-    Table(projectedCells, projectedRowTypes, projectedColTypes, full.metadata)
+    Table(projectedCells, projectedRowTypes, projectedColTypes, baseTable.metadata)
   }
 
   def spannedRegion: Table.Region = {
