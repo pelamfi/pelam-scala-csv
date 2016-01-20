@@ -199,7 +199,22 @@ class TableTest {
 
   @Test
   def testAddColumns = {
-    val result = testTable.resizeCols(cell3b.cellKey.colKey, 1, cellKey => StringCell(cellKey, "x"))
+    val result = testTable.resizeCols(cell3b.cellKey.colKey, 1, cellKey => StringCell(cellKey, "x"), updateSide = Table.LeftColumn)
+
+    assertEquals("One column should be added after B column.",
+      "columns:0/,1/Qualifications,2/Qualifications,3/PrevWeek,4/PrevWeek,5/ThisWeek,6/,7/CommentCol,\n" +
+        "0/CommentRow:,x,,,,,,,\n" +
+        "1/Worker:,x,2b,2c,,,,,\n" +
+        "2/Worker:,x,3b,,,,,,\n" +
+        "3/Day:,x,4b,,,,,,\n" +
+        "4/:5a-untyped,x,,,,,5f-untyped,,\n" +
+        "5/CommentRow:,x,,,,,,,\n",
+      result.toString())
+  }
+
+  @Test
+  def testAddColumnsRight = {
+    val result = testTable.resizeCols(cell3b.cellKey.colKey, 1, cellKey => StringCell(cellKey, "x"), updateSide = Table.RightColumn)
 
     assertEquals("One column should be added after B column.",
       "columns:0/,1/Qualifications,2/Qualifications,3/PrevWeek,4/PrevWeek,5/ThisWeek,6/,7/CommentCol,\n" +

@@ -26,6 +26,15 @@ import fi.pelam.csv.util.SortedBiMap._
 import scala.collection.{SortedMap, SortedSet}
 
 /**
+ * This class is an immutable container for [[fi.pelam.csv.cell.Cell Cells]] with optional
+ * row and column types. The ideas in the API roughly follow popular spread sheet programs.
+ *
+ * The cells are stored in rows which are numbered conceptually from top to bottom
+ * and then in columns which are numbered from left to right.
+ *
+ * The row and column types are an additional abstraction with the purpose of simplifying
+ * machine reading of complex spread sheets.
+ *
  * This class is part of the the higher level API for reading,
  * writing and processing CSV data.
  *
@@ -34,15 +43,14 @@ import scala.collection.{SortedMap, SortedSet}
  * the same CSV file and the structure of the CSV file is not rigid, this API may
  * be a better fit.
  *
- * This class is an immutable container for [[fi.pelam.csv.cell.Cell Cells]] with optional
- * row and column types.
- *
- * Several methods are provided for getting cells based on row and column types.
+ * Several methods are provided for getting cells based on the row and column types.
  * For example
  *
  * == Example ==
  * This example constructs a table directly, although usually it is done via a
- * [[TableReader]]. `String` values are simply used for row and column types.
+ * [[TableReader]]. In this example, simple `String` values are used for row
+ * and column types, although usually an enumeration or
+ * case object type solution is cleaner and safer.
  *
  * {{{
  * val table = Table(
@@ -69,6 +77,13 @@ import scala.collection.{SortedMap, SortedSet}
  * // Will give List(1,2)
  * }}}
  *
+ * == Note on row and column numbers ==
+ *
+ * Internally rows and columns have zero based index numbers, but in some cases
+ * like in `toString` methods of `Cell` and `CellKey` the index numbers are represented similarly
+ * to popular spread sheet programs. In that csae row numbers are one based and column
+ * numbers are alphabetic.
+
  * @constructor The actual constructor is on the companion object.
  *
  * @param cells All cells in a structure of nested `IndexedSeq`s. The order is first rows, then columns.
@@ -175,14 +190,19 @@ final case class Table[RT, CT, M <: TableMetadata](
   /**
    * @param colKey where new columns are added or old ones deleted
    *               If columns are deleted this will be the first columns to go and further columns will be the
-   *               ones before this. If columsns are added, they are added after this column with the same
+   *               ones before this. If columns are added, they are added before this column with the same
    *               type as this column.
    * @param value for negative values, rows left of `colKey` are deleted.
    *              For positive values columns at `colKey` are added.
    *              For zero, this table is returned.
+   * @param updateSide Allows adding the new colums _after_ the column indicated by `colKey`.
    * @return modified table
    */
-  def resizeCols(colKey: ColKey, value: Int, fillerGenerator: CellGenerator = emptyStringCell): TableType = value match {
+  // TODO: Direction should be in resizeRows and also apply to deleting rows
+  def resizeCols(colKey: ColKey,
+    value: Int,
+    fillerGenerator: CellGenerator = emptyStringCell,
+    updateSide: HorizontalDirection = LeftColumn): TableType = value match {
     case value if value < 0 => {
       val keepFromStart = colKey.index + value + 1
       val dropAndKeepFromEnd = colKey.index + 1
@@ -202,9 +222,14 @@ final case class Table[RT, CT, M <: TableMetadata](
     }
 
     case value if value > 0 => {
-      val newIndices = colKey.index + 1 until colKey.index + value + 1
-      val keepFromStart = colKey.index + 1
-      val dropAndKeepFromEnd = colKey.index + 1
+      val offset = updateSide match {
+        case LeftColumn => 0
+        case RightColumn => 1
+      }
+
+      val newIndices = colKey.index + offset until colKey.index + value + offset
+      val keepFromStart = colKey.index + offset
+      val dropAndKeepFromEnd = colKey.index + offset
 
       val colsAdded = for ((row, rowIndex) <- cells.zipWithIndex) yield {
         val newCols = for (colIndex <- newIndices) yield {
@@ -324,7 +349,7 @@ final case class Table[RT, CT, M <: TableMetadata](
 
   def resized(resizeCellKey: CellKey, rowsResize: Int, colsResize: Int, fillerGenerator: CellGenerator): TableType = {
     val resizedTable = resizeRows(resizeCellKey.rowKey, rowsResize, fillerGenerator)
-    val resizedTable2 = resizedTable.resizeCols(resizeCellKey.colKey, colsResize, fillerGenerator)
+    val resizedTable2 = resizedTable.resizeCols(resizeCellKey.colKey, colsResize, fillerGenerator, updateSide = RightColumn)
     resizedTable2
   }
 
@@ -689,5 +714,11 @@ object Table {
 
     builder.toString()
   }
+
+  sealed trait HorizontalDirection
+
+  case object LeftColumn extends HorizontalDirection
+
+  case object RightColumn extends HorizontalDirection
 
 }
