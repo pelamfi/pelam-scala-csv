@@ -286,11 +286,11 @@ final case class Table[RT, CT, M <: TableMetadata](
     * tightly fill the `targetRegion`. If the cell counts don't match,
    * `targetRegion` is shrinked or grown to fit all `replacementCells`
    */
-  def updatedColumns(targetRegion: Region,
+  def updatedRows(targetRegion: Region,
     replacementCells: TraversableOnce[Cell],
     fillerGenerator: CellGenerator = emptyStringCell): TableType = {
 
-    val renumbered = renumberDown(replacementCells, targetRegion)
+    val renumbered = renumberAsRows(replacementCells, targetRegion)
 
     updatedRegion(targetRegion, renumbered, fillerGenerator)
   }
@@ -301,11 +301,11 @@ final case class Table[RT, CT, M <: TableMetadata](
     * tightly fill the `targetRegion`. If the cell counts don't match,
     * `targetRegion` is shrinked or grown to fit all `replacementCells`
     */
-  def updatedRows(targetRegion: Region,
+  def updatedColumns(targetRegion: Region,
     replacementCells: TraversableOnce[Cell],
     fillerGenerator: CellGenerator = emptyStringCell): TableType = {
 
-    val renumbered = renumberRight(replacementCells, targetRegion)
+    val renumbered = renumberAsColumns(replacementCells, targetRegion)
 
     updatedRegion(targetRegion, renumbered, fillerGenerator)
   }
