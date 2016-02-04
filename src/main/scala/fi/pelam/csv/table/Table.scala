@@ -170,7 +170,8 @@ final case class Table[RT, CT, M <: TableMetadata](
 
       val newRows = for (rowIndex <- newIndices) yield {
         for (colIndex <- 0 until colCount) yield {
-          fillerGenerator(CellKey(rowIndex, colIndex))
+          val cellKey = CellKey(rowIndex, colIndex)
+          fillerGenerator(cellKey).updatedCellKey(cellKey)
         }
       }
 
@@ -233,7 +234,8 @@ final case class Table[RT, CT, M <: TableMetadata](
 
       val colsAdded = for ((row, rowIndex) <- cells.zipWithIndex) yield {
         val newCols = for (colIndex <- newIndices) yield {
-          fillerGenerator(CellKey(rowIndex, colIndex))
+          val cellKey = CellKey(rowIndex, colIndex)
+          fillerGenerator(cellKey).updatedCellKey(cellKey)
         }
 
         val tailRenumbered = for (cell <- row.drop(dropAndKeepFromEnd)) yield {
@@ -284,7 +286,7 @@ final case class Table[RT, CT, M <: TableMetadata](
     * Otherwise same as `updatedRegion`, but `replacementCells` are renumbered
     * from left to right and top to bottom to
     * tightly fill the `targetRegion`. If the cell counts don't match,
-   * `targetRegion` is shrinked or grown to fit all `replacementCells`
+   * `targetRegion` is shrinked or grown downwards to fit all `replacementCells`
    */
   def updatedRows(targetRegion: Region,
     replacementCells: TraversableOnce[Cell],
@@ -299,7 +301,7 @@ final case class Table[RT, CT, M <: TableMetadata](
     * Otherwise same as `updatedRegion`, but `replacementCells` are renumbered
     * from top to bottom and left to right
     * tightly fill the `targetRegion`. If the cell counts don't match,
-    * `targetRegion` is shrinked or grown to fit all `replacementCells`
+   * `targetRegion` is shrinked or grown to the left to fit all `replacementCells`
     */
   def updatedColumns(targetRegion: Region,
     replacementCells: TraversableOnce[Cell],
@@ -336,7 +338,9 @@ final case class Table[RT, CT, M <: TableMetadata](
    *                      with respect to the top left corner of `targetRegion`.
    *
    *
-   * @param fillerGenerator When new cells need to be created, this is used.
+   * @param fillerGenerator When new cells need to be created, this is used. The cell does not need
+   *                        to have correct cellKey, a copy with the correct cellKey will be made
+   *                        if necessary.
    */
   def resized(targetRegion: (CellKey, CellKey), resizedRegion: (CellKey, CellKey), fillerGenerator: CellGenerator): TableType = {
     val topLeftMinRegion = topLeftMin(resizedRegion, targetRegion)
