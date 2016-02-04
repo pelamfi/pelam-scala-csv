@@ -44,7 +44,13 @@ final case class StringCell(override val cellKey: CellKey,
    */
   override def value = serializedString
 
-  override def updatedCellKey(cellKey: CellKey) = copy(cellKey = cellKey)
+  override def updatedCellKey(cellKey: CellKey) = {
+    if (this.cellKey == cellKey) {
+      this
+    } else {
+      copy(cellKey = cellKey)
+    }
+  }
 
   /**
    * Shorter version of `toString` to be used in debug table outputs.
