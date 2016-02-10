@@ -283,9 +283,14 @@ final case class Table[RT, CT, M <: TableMetadata](
   }
 
   /**
-    * Otherwise same as `updatedRegion`, but `replacementCells` are renumbered
-    * from left to right and top to bottom to
-    * tightly fill the `targetRegion`.
+   * This method kind of squeezes given cells into the given region row by
+   * row.
+   *
+   * If the sizes don't match the region is resized vertically as needed.
+   *
+   * Otherwise same as `updatedRegion`, but `replacementCells` are renumbered
+   * from left to right and top to bottom to
+   * tightly fill the `targetRegion`.
    *
    * In addition, if the cell counts don't match,
    * `targetRegion` is shrinked or grown by adding or removing rows to fit all `replacementCells`
@@ -300,9 +305,14 @@ final case class Table[RT, CT, M <: TableMetadata](
   }
 
   /**
-    * Otherwise same as `updatedRegion`, but `replacementCells` are renumbered
-    * from top to bottom and left to right
-    * tightly fill the `targetRegion`.
+   * This method kind of squeezes given cells into the given region column by
+   * column.
+   *
+   * If the sizes don't match the region is resized horizontally as needed.
+   *
+   * Otherwise same as `updatedRegion`, but `replacementCells` are renumbered
+   * from top to bottom and left to right
+   * tightly fill the `targetRegion`.
    *
    * In addition, if the cell counts don't match,
    * `targetRegion` is shrinked or grown by adding or removing columns to fit all `replacementCells`
