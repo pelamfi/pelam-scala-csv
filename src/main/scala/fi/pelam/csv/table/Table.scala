@@ -283,17 +283,18 @@ final case class Table[RT, CT, M <: TableMetadata](
   }
 
   /**
+   * Return a new table with `replacementCells` inserted into the table
+   * as rows with the width of the `targetRegion`.
+   *
    * This method kind of squeezes given cells into the given region row by
    * row.
    *
-   * If the sizes don't match the region is resized vertically as needed.
+   * If the given `replacementCells` don't fit snugly into
+   * the region, the region is resized vertically as needed.
    *
-   * Otherwise same as `updatedRegion`, but `replacementCells` are renumbered
-   * from left to right and top to bottom to
-   * tightly fill the `targetRegion`.
-   *
-   * In addition, if the cell counts don't match,
-   * `targetRegion` is shrinked or grown by adding or removing rows to fit all `replacementCells`
+   * Another way to define this method, is that it is same as `updatedRegion`,
+   * but `replacementCells` are renumbered from left to right and top to
+   * bottom into the `targetRegion`.
    */
   def updatedRows(targetRegion: Region,
     replacementCells: TraversableOnce[Cell],
@@ -305,18 +306,19 @@ final case class Table[RT, CT, M <: TableMetadata](
   }
 
   /**
+   * Return a new table with `replacementCells` inserted into the table
+   * as columns with the height of the `targetRegion`.
+   *
    * This method kind of squeezes given cells into the given region column by
    * column.
    *
-   * If the sizes don't match the region is resized horizontally as needed.
+   * If the given `replacementCells` don't fit snugly into
+   * the region, the region is resized horizontally as needed.
    *
-   * Otherwise same as `updatedRegion`, but `replacementCells` are renumbered
-   * from top to bottom and left to right
-   * tightly fill the `targetRegion`.
-   *
-   * In addition, if the cell counts don't match,
-   * `targetRegion` is shrinked or grown by adding or removing columns to fit all `replacementCells`
-    */
+   * Another way to define this method, is that it is same as `updatedRegion`,
+   * but `replacementCells` are renumbered from top to bottom and left to right
+   * into the `targetRegion`.
+   */
   def updatedCols(targetRegion: Region,
     replacementCells: TraversableOnce[Cell],
     fillerGenerator: CellGenerator = emptyStringCell): TableType = {
@@ -327,14 +329,19 @@ final case class Table[RT, CT, M <: TableMetadata](
   }
 
   /**
-   * A method for resizing a table based on rectangular regions.
-   * This method can grow or shrink a region as needed.
+   * Return a new table with different dimensions.
+   *
+   * The resizing is based on two rectangular regions `targetRegion` and
+   * `resizedRegion`.
+   *
+   * The idea is that this method can grow or shrink the region specified
+   * by `targetRegion` as needed to match the `resizedRegion`.
    *
    * @param targetRegion defines a rectangular region of cells to be resized.
    *                     The idea is that `targetRegion` will be resized to match
-   *                     the `resizedRegion`. See below for more details.
+   *                     the `resizedRegion`.
    *
-   * @param resizedRegion a rectangular region to define the new size of
+   * @param resizedRegion is a rectangular region to define the new size for the
    *                      `targetRegion`.
    *
    *                      The idea is that `resizedRegion` can define
@@ -351,7 +358,6 @@ final case class Table[RT, CT, M <: TableMetadata](
    *                      There is one limitation however. The top left corner of
    *                      `resizedRegion` must be equal to or towards down and right
    *                      with respect to the top left corner of `targetRegion`.
-   *
    *
    * @param fillerGenerator When new cells need to be created, this is used. The cell does not need
    *                        to have correct cellKey, a copy with the correct cellKey will be made
