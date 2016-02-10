@@ -33,6 +33,10 @@ standardized format.
     * Pluggable functions for defining Row, Column and Cell types.
     * Management of locales. Office apps change CSV format based on locale.
 
+## Version History
+
+  * 1.1.0 Added table projection features and table resizing features.
+  * 1.0.0 Initial release
 
 ## License
 
