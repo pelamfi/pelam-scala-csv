@@ -11,7 +11,7 @@ class TableUtilTest {
   def testRenumberDown: Unit = {
     assertEquals("List(StringCell with value '4b' at Row 2, Column B (1), " +
       "StringCell with value '3c' at Row 3, Column B (1))",
-      renumberAsRows(List(cell4b, cell3c), (cell2b.cellKey, cell3c.cellKey)).toList.toString())
+      renumberedAsRows(List(cell4b, cell3c), (cell2b.cellKey, cell3c.cellKey)).toList.toString())
   }
 
   @Test
@@ -20,6 +20,6 @@ class TableUtilTest {
       "StringCell with value '3c' at Row 2, Column C (2), " +
       "StringCell with value '4c' at Row 3, Column B (1)" +
       ")",
-      renumberAsRows(List(cell4b, cell3c, cell4c), (cell2b.cellKey, cell3d.cellKey)).toList.toString())
+      renumberedAsRows(List(cell4b, cell3c, cell4c), (cell2b.cellKey, cell3d.cellKey)).toList.toString())
   }
 }

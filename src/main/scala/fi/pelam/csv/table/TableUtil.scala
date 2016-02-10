@@ -150,7 +150,7 @@ object TableUtil {
    * If there are more `cells` than can fit in `targetRegion` then the
    * numbering continues "below" `targetRegion`.
    */
-  private[table] def renumberAsRows(cells: TraversableOnce[Cell], targetRegion: Region): TraversableOnce[Cell] = {
+  private[table] def renumberedAsRows(cells: TraversableOnce[Cell], targetRegion: Region): TraversableOnce[Cell] = {
     val top = targetRegion._1.rowIndex
     val left = targetRegion._1.colIndex
     var rowIndex = top
@@ -176,7 +176,7 @@ object TableUtil {
     * If there are more `cells` than can fit in `targetRegion` then the
     * numbering continues right of `targetRegion`.
     */
-  private[table] def renumberAsColumns(cells: TraversableOnce[Cell], targetRegion: Region): TraversableOnce[Cell] = {
+  private[table] def renumberedAsCols(cells: TraversableOnce[Cell], targetRegion: Region): TraversableOnce[Cell] = {
     val top = targetRegion._1.rowIndex
     val left = targetRegion._1.colIndex
     var rowIndex = top

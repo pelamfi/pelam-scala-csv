@@ -152,7 +152,7 @@ class TableTest {
 
   @Test
   def testRemoveRows = {
-    val result = testTable.resizeRows(cell3b.cellKey.rowKey, -1)
+    val result = testTable.resizedRows(cell3b.cellKey.rowKey, -1)
 
     assertEquals("One worker row should be gone",
       "columns:0/,1/Qualifications,2/PrevWeek,3/PrevWeek,4/ThisWeek,5/,6/CommentCol,\n" +
@@ -168,7 +168,7 @@ class TableTest {
 
   @Test
   def testRemoveRows2 = {
-    val result = testTable.resizeRows(cell3b.cellKey.rowKey, -2)
+    val result = testTable.resizedRows(cell3b.cellKey.rowKey, -2)
 
     assertEquals("One worker row should be gone",
       "columns:0/,1/Qualifications,2/PrevWeek,3/PrevWeek,4/ThisWeek,5/,6/CommentCol,\n" +
@@ -183,7 +183,7 @@ class TableTest {
 
   @Test
   def testAddRows = {
-    val result = testTable.resizeRows(cell3b.cellKey.rowKey, 1, cellKey => StringCell(cellKey, "x"))
+    val result = testTable.resizedRows(cell3b.cellKey.rowKey, 1, cellKey => StringCell(cellKey, "x"))
 
     assertEquals("One worker row should be added after 2 existing.",
       "columns:0/,1/Qualifications,2/PrevWeek,3/PrevWeek,4/ThisWeek,5/,6/CommentCol,\n" +
@@ -199,7 +199,7 @@ class TableTest {
 
   @Test
   def testAddColumns = {
-    val result = testTable.resizeCols(cell3b.cellKey.colKey, 1, cellKey => StringCell(cellKey, "x"), updateSide = Table.LeftColumn)
+    val result = testTable.resizedCols(cell3b.cellKey.colKey, 1, cellKey => StringCell(cellKey, "x"), updateSide = Table.LeftColumn)
 
     assertEquals("One column should be added after B column.",
       "columns:0/,1/Qualifications,2/Qualifications,3/PrevWeek,4/PrevWeek,5/ThisWeek,6/,7/CommentCol,\n" +
@@ -214,7 +214,7 @@ class TableTest {
 
   @Test
   def testAddColumnsRight = {
-    val result = testTable.resizeCols(cell3b.cellKey.colKey, 1, cellKey => StringCell(cellKey, "x"), updateSide = Table.RightColumn)
+    val result = testTable.resizedCols(cell3b.cellKey.colKey, 1, cellKey => StringCell(cellKey, "x"), updateSide = Table.RightColumn)
 
     assertEquals("One column should be added after B column.",
       "columns:0/,1/Qualifications,2/Qualifications,3/PrevWeek,4/PrevWeek,5/ThisWeek,6/,7/CommentCol,\n" +
@@ -229,7 +229,7 @@ class TableTest {
 
   @Test
   def testRemoveColumns = {
-    val result = testTable.resizeCols(cell3b.cellKey.colKey, -1)
+    val result = testTable.resizedCols(cell3b.cellKey.colKey, -1)
 
     assertEquals("columns:0/,1/PrevWeek,2/PrevWeek,3/ThisWeek,4/,5/CommentCol,\n" +
       "0/CommentRow:,,,,,,\n" +

@@ -153,7 +153,7 @@ final case class Table[RT, CT, M <: TableMetadata](
    *              For zero, this table is returned.
    * @return modified table
    */
-  def resizeRows(rowKey: RowKey, value: Int, fillerGenerator: CellGenerator = emptyStringCell): TableType = value match {
+  def resizedRows(rowKey: RowKey, value: Int, fillerGenerator: CellGenerator = emptyStringCell): TableType = value match {
     case value if value < 0 => {
       val keepFromStart = rowKey.index + value + 1
       val dropAndKeepFromEnd = rowKey.index + 1
@@ -200,7 +200,7 @@ final case class Table[RT, CT, M <: TableMetadata](
    * @return modified table
    */
   // TODO: Direction should be in resizeRows and also apply to deleting rows
-  def resizeCols(colKey: ColKey,
+  def resizedCols(colKey: ColKey,
     value: Int,
     fillerGenerator: CellGenerator = emptyStringCell,
     updateSide: HorizontalDirection = LeftColumn): TableType = value match {
@@ -263,7 +263,7 @@ final case class Table[RT, CT, M <: TableMetadata](
    *                         The `replacementCells` can define (span) a different
    *                         rectangular region than the targetRegion.
    *
-   *                         See [[.resizeRegion]] for details on how the resizing works.
+   *                         See [[resized]] for details on how the resizing works.
    *
    * @param fillerGenerator When new cells need to be created, this is used.
    *
@@ -285,14 +285,16 @@ final case class Table[RT, CT, M <: TableMetadata](
   /**
     * Otherwise same as `updatedRegion`, but `replacementCells` are renumbered
     * from left to right and top to bottom to
-    * tightly fill the `targetRegion`. If the cell counts don't match,
-   * `targetRegion` is shrinked or grown downwards to fit all `replacementCells`
+    * tightly fill the `targetRegion`.
+   *
+   * In addition, if the cell counts don't match,
+   * `targetRegion` is shrinked or grown by adding or removing rows to fit all `replacementCells`
    */
   def updatedRows(targetRegion: Region,
     replacementCells: TraversableOnce[Cell],
     fillerGenerator: CellGenerator = emptyStringCell): TableType = {
 
-    val renumbered = renumberAsRows(replacementCells, targetRegion)
+    val renumbered = renumberedAsRows(replacementCells, targetRegion)
 
     updatedRegion(targetRegion, renumbered, fillerGenerator)
   }
@@ -300,27 +302,30 @@ final case class Table[RT, CT, M <: TableMetadata](
   /**
     * Otherwise same as `updatedRegion`, but `replacementCells` are renumbered
     * from top to bottom and left to right
-    * tightly fill the `targetRegion`. If the cell counts don't match,
-   * `targetRegion` is shrinked or grown to the left to fit all `replacementCells`
+    * tightly fill the `targetRegion`.
+   *
+   * In addition, if the cell counts don't match,
+   * `targetRegion` is shrinked or grown by adding or removing columns to fit all `replacementCells`
     */
-  def updatedColumns(targetRegion: Region,
+  def updatedCols(targetRegion: Region,
     replacementCells: TraversableOnce[Cell],
     fillerGenerator: CellGenerator = emptyStringCell): TableType = {
 
-    val renumbered = renumberAsColumns(replacementCells, targetRegion)
+    val renumbered = renumberedAsCols(replacementCells, targetRegion)
 
     updatedRegion(targetRegion, renumbered, fillerGenerator)
   }
 
   /**
-   * A region based resize method for table that can grow or shrink a region
-   * as needed.
+   * A method for resizing a table based on rectangular regions.
+   * This method can grow or shrink a region as needed.
    *
-   * @param targetRegion defines a rectangular region of cells to be replaced. Region
-   *                     spanned by `replacementCells` does not need to fit targetRegion.
-   *                     Table will be resized to match. See below for more details.
+   * @param targetRegion defines a rectangular region of cells to be resized.
+   *                     The idea is that `targetRegion` will be resized to match
+   *                     the `resizedRegion`. See below for more details.
    *
-   * @param resizedRegion a rectangular region to replace `targetRegion`.
+   * @param resizedRegion a rectangular region to define the new size of
+   *                      `targetRegion`.
    *
    *                      The idea is that `resizedRegion` can define
    *                      (span) a different rectangular region than the
@@ -329,11 +334,11 @@ final case class Table[RT, CT, M <: TableMetadata](
    *                      If there are extra cells in the `targetRegion`, rows and columns
    *                      are deleted from the "ends" of the `targetRegion`.
    *
-   *                      If the `resizedCells` doesn't fit in `targetRegion`, `targetRegion`
-   *                      is expanded to contain it. New rows and columns are generated
-   *                      with `fillerGenerator` as needed.
+   *                      If the `resizedRegion` doesn't fit in `targetRegion`, the
+   *                      `targetRegion` is expanded to contain it.
+   *                      New rows and columns are generated with `fillerGenerator` as needed.
    *
-   *                      There is one limitation however. the top left corner of
+   *                      There is one limitation however. The top left corner of
    *                      `resizedRegion` must be equal to or towards down and right
    *                      with respect to the top left corner of `targetRegion`.
    *
@@ -352,8 +357,8 @@ final case class Table[RT, CT, M <: TableMetadata](
   }
 
   def resized(resizeCellKey: CellKey, rowsResize: Int, colsResize: Int, fillerGenerator: CellGenerator): TableType = {
-    val resizedTable = resizeRows(resizeCellKey.rowKey, rowsResize, fillerGenerator)
-    val resizedTable2 = resizedTable.resizeCols(resizeCellKey.colKey, colsResize, fillerGenerator, updateSide = RightColumn)
+    val resizedTable = resizedRows(resizeCellKey.rowKey, rowsResize, fillerGenerator)
+    val resizedTable2 = resizedTable.resizedCols(resizeCellKey.colKey, colsResize, fillerGenerator, updateSide = RightColumn)
     resizedTable2
   }
 
