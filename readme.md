@@ -222,6 +222,8 @@ TBD
 
 ## TODO list
 
+  * TODO: Examples for projection API
+  * TODO: Examples for new table updating methods
   * TODO: Some simple demo project
   * TODO: Configure Gradle to build binaries for multiple scala versions if necessary.
   * TODO: Some performance tests and profiling to at least have some idea of possible performance disasters.
