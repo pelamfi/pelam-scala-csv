@@ -41,6 +41,19 @@ final case class IntegerCell(override val cellKey: CellKey,
   (implicit override val formatter: IntegerCell.NumberFormatter = IntegerCell.defaultFormatter)
   extends Cell with NumberCell[Int] {
 
+  override def updatedCellKey(cellKey: CellKey) = {
+    if (this.cellKey == cellKey) {
+      this
+    } else {
+      copy(cellKey = cellKey)
+    }
+  }
+
+  /**
+   * Shorter version of `toString` to be used in debug table outputs.
+   * Should identify cell type and value in small amount of text.
+   */
+  override def shortString(): String = "i " + value
 }
 
 /**

@@ -35,6 +35,10 @@ package fi.pelam.csv.cell
  */
 // @formatter:on
 abstract class Cell {
+  /**
+   * Make a copy of this cell, but with different cell key.
+   */
+  def updatedCellKey(key: CellKey): Cell
 
   /**
    * Each cell directly contains information about its coordinates in the CSV data.
@@ -90,6 +94,16 @@ abstract class Cell {
    * For example IntegerCell returns Int.
    */
   def value: Any
+
+
+  /**
+   * Shorter version of `toString` to be used in debug table outputs.
+   * Should identify cell type and value in small amount of text.
+   *
+   * The `cellKey` should not be in the return value.
+   */
+  def shortString(): String
+
 
   override def toString() = this.getClass().getSimpleName() + s" with value '$value' at $cellKey"
 }

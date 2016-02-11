@@ -151,6 +151,7 @@ import fi.pelam.csv.util.{Pipeline, SortedBiMap}
  *           This specifies the character set and separator to use when reading the CSV data from the input stream.
  */
 // @formatter:on IntelliJ 14.1 (Scala plugin) formatter messes up Scaladoc
+// TODO: pelam-scala-csv TableReader API could support reparsing table, but without going through serialization to CSV
 class TableReader[RT, CT, M <: TableMetadata](
   val openStream: TableReader.StreamOpener,
   val tableMetadata: M = SimpleMetadata(),

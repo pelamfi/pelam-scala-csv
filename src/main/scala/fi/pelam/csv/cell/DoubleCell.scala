@@ -26,9 +26,23 @@ final case class DoubleCell(override val cellKey: CellKey,
   (implicit val formatter: DoubleCell.NumberFormatter = DoubleCell.defaultFormatter)
   extends Cell {
 
+  override def updatedCellKey(cellKey: CellKey) = {
+    if (this.cellKey == cellKey) {
+      this
+    } else {
+      copy(cellKey = cellKey)
+    }
+  }
+
   def serializedString: String = {
     formatter(value)
   }
+
+  /**
+   * Shorter version of `toString` to be used in debug table outputs.
+   * Should identify cell type and value in small amount of text.
+   */
+  override def shortString(): String = "d " + value
 }
 
 /**

@@ -41,9 +41,15 @@ final case class ColKey(index: Int) extends AxisKey[ColKey] {
   override def toString(): String = {
     s"Column ${toAlphabetical(index)} (${index})"
   }
+
+  override def updated(newIndex: Int) = copy(index = newIndex)
+
+  override def withOffset(offset: Int) = copy(index = index + offset)
 }
 
 object ColKey {
+  val zero: ColKey = ColKey(0)
+  val invalid: ColKey = ColKey(Int.MinValue / 2)
 
   /**
    * Converts integer into letters as is typically done for column numbers in spreadsheet programs.

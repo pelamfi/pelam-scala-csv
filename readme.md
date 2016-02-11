@@ -33,6 +33,10 @@ standardized format.
     * Pluggable functions for defining Row, Column and Cell types.
     * Management of locales. Office apps change CSV format based on locale.
 
+## Version History
+
+  * 1.1.0 Added table projection features and table resizing features.
+  * 1.0.0 Initial release
 
 ## License
 
@@ -218,6 +222,8 @@ TBD
 
 ## TODO list
 
+  * TODO: Examples for projection API
+  * TODO: Examples for new table updating methods
   * TODO: Some simple demo project
   * TODO: Configure Gradle to build binaries for multiple scala versions if necessary.
   * TODO: Some performance tests and profiling to at least have some idea of possible performance disasters.

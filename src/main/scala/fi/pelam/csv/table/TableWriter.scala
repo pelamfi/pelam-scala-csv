@@ -18,7 +18,7 @@
 
 package fi.pelam.csv.table
 
-import java.io.OutputStreamWriter
+import java.io.{OutputStreamWriter, StringWriter, Writer}
 
 import fi.pelam.csv.stream.CsvWriter
 
@@ -58,19 +58,36 @@ final class TableWriter[RT, CT, M <: TableMetadata](table: Table[RT, CT, M]) {
     try {
       val writer = new OutputStreamWriter(output, table.metadata.charset)
 
-      val csvWriter = new CsvWriter(writer, table.metadata.separator)
-
-      val cells = table.getCells()
-
-      csvWriter.write(cells)
-
-      // Add the final line end
-      csvWriter.goToNextRow()
-
-      writer.close()
+      writeInt(writer)
     } finally {
       output.close()
     }
+  }
+
+  /**
+   * This is intended for debugging purposes only.
+   *
+   * Using this method for general output will incur unnecessary conversion
+   * to String object. There is also a risk of getting messed up data due to
+   * character set problems.
+   */
+  def writeToString: String = {
+    val sw = new StringWriter()
+    writeInt(sw)
+    sw.toString()
+  }
+
+  private def writeInt(writer: Writer): Unit = {
+    val csvWriter = new CsvWriter(writer, table.metadata.separator)
+
+    val cells = table.getCells()
+
+    csvWriter.write(cells)
+
+    // Add the final line end
+    csvWriter.goToNextRow()
+
+    writer.close()
   }
 
 }

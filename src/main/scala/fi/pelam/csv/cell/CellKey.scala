@@ -61,12 +61,12 @@ final case class CellKey(rowIndex: Int, colIndex: Int) extends Ordered[CellKey] 
   /**
    * Extracts the row key component.
    */
-  val rowKey = RowKey(rowIndex)
+  def rowKey = RowKey(rowIndex)
 
   /**
    * Extracts the column key component.
    */
-  val colKey = ColKey(colIndex)
+  def colKey = ColKey(colIndex)
 
   /**
    * This is equivalent to `CellKey.unapply(cellKey).get`.
@@ -91,6 +91,10 @@ final case class CellKey(rowIndex: Int, colIndex: Int) extends Ordered[CellKey] 
     // Original idea from http://stackoverflow.com/a/19348339/1148030
     indicesTupleOrdering.compare(this.indices, that.indices)
   }
+
+  def withRowOffset(offset: Int) = copy(rowIndex = rowIndex + offset)
+
+  def withColOffset(offset: Int) = copy(colIndex = colIndex + offset)
 }
 
 object CellKey {
@@ -103,4 +107,7 @@ object CellKey {
   type IndicesTuple = (Int, Int)
 
   private val indicesTupleOrdering = implicitly(Ordering[IndicesTuple])
+
+  val invalid = CellKey(RowKey.invalid, ColKey.invalid)
+
 }

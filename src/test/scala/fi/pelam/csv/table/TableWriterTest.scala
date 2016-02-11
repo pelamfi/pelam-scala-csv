@@ -21,13 +21,12 @@ package fi.pelam.csv.table
 import java.io.ByteArrayOutputStream
 import java.nio.charset.StandardCharsets
 
-import com.google.common.io.{ByteSource, Resources}
+import com.google.common.io.Resources
 import fi.pelam.csv.cell.{CellKey, StringCell}
 import org.junit.Assert._
 import org.junit.Test
 
 class TableWriterTest {
-  import TableTest._
   import TableReaderTest._
   import TableWriterTest._
 
@@ -35,7 +34,7 @@ class TableWriterTest {
 
   @Test
   def testWrite: Unit = {
-    val table = TableTest.table.updatedCells(foo, bar)
+    val table = TableTest.testTableTypedCells
 
     val writer = new TableWriter(table)
 
@@ -43,7 +42,7 @@ class TableWriterTest {
 
     val written = new String(outputStream.toByteArray(), table.metadata.charset)
 
-    assertEquals(",,,,,\n,foo,,,,\n,bar,,,,\n,,,,,\n,,,,,\n", written)
+    assertEquals("123,123,,,,,\n,2b,2c,,,,\n,3b,,,,,\n,4b,,,,,\n5a-untyped,,,,,5f-untyped,\n,,,,,,\n", written)
   }
 
   @Test
