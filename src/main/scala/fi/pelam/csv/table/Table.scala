@@ -272,7 +272,7 @@ final case class Table[RT, CT, M <: TableMetadata](
     *                         The `replacementCells` can define (span) a different
     *                         rectangular region than the targetRegion.
     *
-    *                         See [[resized]] for details on how the resizing works.
+    *                         See `resized` for details on how the resizing works.
     *
     * @param fillerGenerator When new cells need to be created, this is used.
     *
