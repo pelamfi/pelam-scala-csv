@@ -26,101 +26,102 @@ import fi.pelam.csv.util.SortedBiMap._
 import scala.collection.{SortedMap, SortedSet}
 
 /**
- * This class is an immutable container for [[fi.pelam.csv.cell.Cell Cells]] with optional
- * row and column types. The ideas in the API roughly follow popular spread sheet programs.
- *
- * The cells are stored in rows which are numbered conceptually from top to bottom
- * and then in columns which are numbered from left to right.
- *
- * The row and column types are an additional abstraction with the purpose of simplifying
- * machine reading of complex spread sheets.
- *
- * This class is part of the the higher level API for reading,
- * writing and processing CSV data.
- *
- * [[fi.pelam.csv.stream.CsvReader The simpler stream based API]] is enough for
- * many scenarios, but if several different sets of data will be pulled from
- * the same CSV file and the structure of the CSV file is not rigid, this API may
- * be a better fit.
- *
- * Several methods are provided for getting cells based on the row and column types.
- * For example
- *
- * == Example ==
- * This example constructs a table directly, although usually it is done via a
- * [[TableReader]]. In this example, simple `String` values are used for row
- * and column types, although usually an enumeration or
- * case object type solution is cleaner and safer.
- *
- * {{{
- * val table = Table(
- *   List(StringCell(CellKey(0, 0), "name"),
- *     StringCell(CellKey(0, 1), "value"),
- *     StringCell(CellKey(1, 0), "foo"),
- *     IntegerCell(CellKey(1, 1), 1),
- *     StringCell(CellKey(2, 0), "bar"),
- *     IntegerCell(CellKey(2, 1), 2)
- *   ),
- *
- *   SortedBiMap(RowKey(0) -> "header",
- *     RowKey(1) -> "data",
- *     RowKey(2) -> "data"),
- *
- *   SortedBiMap(ColKey(0) -> "name",
- *     ColKey(1) -> "number")
- *  )
- *
- * table.getSingleCol("name", "data").map(_.value).toList
- * // Will give List("foo","bar")
- *
- * table.getSingleCol("number", "data").map(_.value).toList)
- * // Will give List(1,2)
- * }}}
- *
- * == Note on row and column numbers ==
- *
- * Internally rows and columns have zero based index numbers, but in some cases
- * like in `toString` methods of `Cell` and `CellKey` the index numbers are represented similarly
- * to popular spread sheet programs. In that csae row numbers are one based and column
- * numbers are alphabetic.
+  * This class is an immutable container for [[fi.pelam.csv.cell.Cell Cells]] with optional
+  * row and column types. The ideas in the API roughly follow popular spread sheet programs.
+  *
+  * The cells are stored in rows which are numbered conceptually from top to bottom
+  * and then in columns which are numbered from left to right.
+  *
+  * The row and column types are an additional abstraction with the purpose of simplifying
+  * machine reading of complex spread sheets.
+  *
+  * This class is part of the the higher level API for reading,
+  * writing and processing CSV data.
+  *
+  * [[fi.pelam.csv.stream.CsvReader The simpler stream based API]] is enough for
+  * many scenarios, but if several different sets of data will be pulled from
+  * the same CSV file and the structure of the CSV file is not rigid, this API may
+  * be a better fit.
+  *
+  * Several methods are provided for getting cells based on the row and column types.
+  * For example
+  *
+  * == Example ==
+  * This example constructs a table directly, although usually it is done via a
+  * [[TableReader]]. In this example, simple `String` values are used for row
+  * and column types, although usually an enumeration or
+  * case object type solution is cleaner and safer.
+  *
+  * {{{
+  * val table = Table(
+  *   List(StringCell(CellKey(0, 0), "name"),
+  *     StringCell(CellKey(0, 1), "value"),
+  *     StringCell(CellKey(1, 0), "foo"),
+  *     IntegerCell(CellKey(1, 1), 1),
+  *     StringCell(CellKey(2, 0), "bar"),
+  *     IntegerCell(CellKey(2, 1), 2)
+  *   ),
+  *
+  *   SortedBiMap(RowKey(0) -> "header",
+  *     RowKey(1) -> "data",
+  *     RowKey(2) -> "data"),
+  *
+  *   SortedBiMap(ColKey(0) -> "name",
+  *     ColKey(1) -> "number")
+  *  )
+  *
+  * table.getSingleCol("name", "data").map(_.value).toList
+  * // Will give List("foo","bar")
+  *
+  * table.getSingleCol("number", "data").map(_.value).toList)
+  * // Will give List(1,2)
+  * }}}
+  *
+  * == Note on row and column numbers ==
+  *
+  * Internally rows and columns have zero based index numbers, but in some cases
+  * like in `toString` methods of `Cell` and `CellKey` the index numbers are represented similarly
+  * to popular spread sheet programs. In that csae row numbers are one based and column
+  * numbers are alphabetic.
 
- * @constructor The actual constructor is on the companion object.
- *
- * @param cells All cells in a structure of nested `IndexedSeq`s. The order is first rows, then columns.
- *
- * @param rowTypes A bidirectional map mapping rows to their row types and vice versa.
- *                 Multiple rows can have the same type.
- *
- * @param colTypes A bidirectional map mapping columns to their column types and vice versa.
- *                 Multiple columns can have the same type.
- *
- * @param metadata User extensible metadata that is piggybacked in the `Table` instance.
- *
- * @tparam RT The client specific row type.
- *
- * @tparam CT The client specific column type.
- *
- * @tparam M The type of the `metadata` parameter. Must be a sub type of [[TableMetadata]].
- *           This specifies the character set and separator to use when reading the CSV data from the input stream.
- */
+  * @constructor The actual constructor is on the companion object.
+  *
+  * @param cells All cells in a structure of nested `IndexedSeq`s. The order is first rows, then columns.
+  *
+  * @param rowTypes A bidirectional map mapping rows to their row types and vice versa.
+  *                 Multiple rows can have the same type.
+  *
+  * @param colTypes A bidirectional map mapping columns to their column types and vice versa.
+  *                 Multiple columns can have the same type.
+  *
+  * @param metadata User extensible metadata that is piggybacked in the `Table` instance.
+  *
+  * @tparam RT The client specific row type.
+  *
+  * @tparam CT The client specific column type.
+  *
+  * @tparam M The type of the `metadata` parameter. Must be a sub type of [[TableMetadata]].
+  *           This specifies the character set and separator to use when reading the CSV data from the input stream.
+  */
 // TODO: Reorder methods
 final case class Table[RT, CT, M <: TableMetadata](
   cells: IndexedSeq[IndexedSeq[Cell]],
   rowTypes: SortedBiMap[RowKey, RT],
   colTypes: SortedBiMap[ColKey, CT],
   metadata: M) {
+
   import Table._
 
   /**
-   * The vertical size of this table. The table has strict rectangular form.
-   * Unused cells simply contain empty `StringCell`s.
-   */
+    * The vertical size of this table. The table has strict rectangular form.
+    * Unused cells simply contain empty `StringCell`s.
+    */
   val rowCount: Int = cells.size
 
   /**
-   * The horizontal size of this table. The table has strict rectangular form.
-   * Unused cells simply contain empty `StringCell`s.
-   */
+    * The horizontal size of this table. The table has strict rectangular form.
+    * Unused cells simply contain empty `StringCell`s.
+    */
   val colCount: Int = cells.lift(0).map(_.size).getOrElse(0)
 
   require(rowTypes.keys.foldLeft(true)((acc, rowKey) => acc && rowKey.inRange(rowCount)),
@@ -143,16 +144,19 @@ final case class Table[RT, CT, M <: TableMetadata](
 
   def getRow(cellKey: CellKey) = cells(cellKey.rowIndex)
 
-  /**
-   * @param rowKey where new rows are added or old rows deleted.
-   *               If rows are deleted this will be the first row to go and further rows will be the
-   *               ones before this. If rows are added, they are added after this row with the same
-   *               type as this row.
-   * @param value for negative values, rows above `rowKey` are deleted
-   *              For positive values rows at `rowKey` are added.
-   *              For zero, this table is returned.
-   * @return modified table
-   */
+  /** Returns a modified a table with the specified amount of rows added or removed.
+    *
+    * @param rowKey where new rows are added or old rows deleted.
+    *               If rows are deleted this will be the first row to go and further rows will be the
+    *               ones before this. If rows are added, they are added after this row with the same
+    *               type as this row.
+    *
+    * @param value for negative values, rows above `rowKey` are deleted
+    *              For positive values rows at `rowKey` are added.
+    *              For zero, this table is returned.
+    *
+    * @return a modified copy of the table
+    */
   def resizedRows(rowKey: RowKey, value: Int, fillerGenerator: CellGenerator = emptyStringCell): TableType = value match {
     case value if value < 0 => {
       val keepFromStart = rowKey.index + value + 1
@@ -189,16 +193,21 @@ final case class Table[RT, CT, M <: TableMetadata](
   }
 
   /**
-   * @param colKey where new columns are added or old ones deleted
-   *               If columns are deleted this will be the first columns to go and further columns will be the
-   *               ones before this. If columns are added, they are added before this column with the same
-   *               type as this column.
-   * @param value for negative values, rows left of `colKey` are deleted.
-   *              For positive values columns at `colKey` are added.
-   *              For zero, this table is returned.
-   * @param updateSide Allows adding the new colums _after_ the column indicated by `colKey`.
-   * @return modified table
-   */
+    * Returns a modified a table with the specified amount of columns added or removed.
+    *
+    * @param colKey where new columns are added or old ones deleted
+    *               If columns are deleted this will be the first column to go and further columns will be the
+    *               ones before this. If columns are added, they are added before this column with the same
+    *               type as this column.
+    *
+    * @param value for negative values, rows left of `colKey` are deleted.
+    *              For positive values columns at `colKey` are added.
+    *              For zero, this table is returned.
+    *
+    * @param updateSide Allows adding the new colums _after_ the column indicated by `colKey`.
+    *
+    * @return a modified copy of the table
+    */
   // TODO: Direction should be in resizeRows and also apply to deleting rows
   def resizedCols(colKey: ColKey,
     value: Int,
@@ -254,21 +263,21 @@ final case class Table[RT, CT, M <: TableMetadata](
   }
 
   /**
-   * @param targetRegion defines a rectangular region of cells to be replaced. Region
-   *                     spanned by `replacementCells` does not need to fit targetRegion.
-   *                     Table will be resized to match. See below for more details.
-   *
-   * @param replacementCells a rectangular region of cells to replace `targetRegion`.
-   *                         Gaps are ok.
-   *                         The `replacementCells` can define (span) a different
-   *                         rectangular region than the targetRegion.
-   *
-   *                         See [[resized]] for details on how the resizing works.
-   *
-   * @param fillerGenerator When new cells need to be created, this is used.
-   *
-   * @return a new table with the replaced cells. Original table is not modified.
-   */
+    * @param targetRegion defines a rectangular region of cells to be replaced. Region
+    *                     spanned by `replacementCells` does not need to fit targetRegion.
+    *                     Table will be resized to match. See below for more details.
+    *
+    * @param replacementCells a rectangular region of cells to replace `targetRegion`.
+    *                         Gaps are ok.
+    *                         The `replacementCells` can define (span) a different
+    *                         rectangular region than the targetRegion.
+    *
+    *                         See [[resized]] for details on how the resizing works.
+    *
+    * @param fillerGenerator When new cells need to be created, this is used.
+    *
+    * @return a new table with the replaced cells. Original table is not modified.
+    */
   def updatedRegion(targetRegion: Region,
     replacementCells: TraversableOnce[Cell],
     fillerGenerator: CellGenerator = emptyStringCell): TableType = {
@@ -283,19 +292,19 @@ final case class Table[RT, CT, M <: TableMetadata](
   }
 
   /**
-   * Return a new table with `replacementCells` inserted into the table
-   * as rows with the width of the `targetRegion`.
-   *
-   * This method kind of squeezes given cells into the given region row by
-   * row.
-   *
-   * If the given `replacementCells` don't fit snugly into
-   * the region, the region is resized vertically as needed.
-   *
-   * Another way to define this method, is that it is same as `updatedRegion`,
-   * but `replacementCells` are renumbered from left to right and top to
-   * bottom into the `targetRegion`.
-   */
+    * Return a new table with `replacementCells` inserted into the table
+    * as rows with the width of the `targetRegion`.
+    *
+    * This method kind of squeezes given cells into the given region row by
+    * row.
+    *
+    * If the given `replacementCells` don't fit snugly into
+    * the region, the region is resized vertically as needed.
+    *
+    * Another way to define this method, is that it is same as `updatedRegion`,
+    * but `replacementCells` are renumbered from left to right and top to
+    * bottom into the `targetRegion`.
+    */
   def updatedRows(targetRegion: Region,
     replacementCells: TraversableOnce[Cell],
     fillerGenerator: CellGenerator = emptyStringCell): TableType = {
@@ -306,19 +315,19 @@ final case class Table[RT, CT, M <: TableMetadata](
   }
 
   /**
-   * Return a new table with `replacementCells` inserted into the table
-   * as columns with the height of the `targetRegion`.
-   *
-   * This method kind of squeezes given cells into the given region column by
-   * column.
-   *
-   * If the given `replacementCells` don't fit snugly into
-   * the region, the region is resized horizontally as needed.
-   *
-   * Another way to define this method, is that it is same as `updatedRegion`,
-   * but `replacementCells` are renumbered from top to bottom and left to right
-   * into the `targetRegion`.
-   */
+    * Return a new table with `replacementCells` inserted into the table
+    * as columns with the height of the `targetRegion`.
+    *
+    * This method kind of squeezes given cells into the given region column by
+    * column.
+    *
+    * If the given `replacementCells` don't fit snugly into
+    * the region, the region is resized horizontally as needed.
+    *
+    * Another way to define this method, is that it is same as `updatedRegion`,
+    * but `replacementCells` are renumbered from top to bottom and left to right
+    * into the `targetRegion`.
+    */
   def updatedCols(targetRegion: Region,
     replacementCells: TraversableOnce[Cell],
     fillerGenerator: CellGenerator = emptyStringCell): TableType = {
@@ -329,40 +338,40 @@ final case class Table[RT, CT, M <: TableMetadata](
   }
 
   /**
-   * Return a new table with different dimensions.
-   *
-   * The resizing is based on two rectangular regions `targetRegion` and
-   * `resizedRegion`.
-   *
-   * The idea is that this method can grow or shrink the region specified
-   * by `targetRegion` as needed to match the `resizedRegion`.
-   *
-   * @param targetRegion defines a rectangular region of cells to be resized.
-   *                     The idea is that `targetRegion` will be resized to match
-   *                     the `resizedRegion`.
-   *
-   * @param resizedRegion is a rectangular region to define the new size for the
-   *                      `targetRegion`.
-   *
-   *                      The idea is that `resizedRegion` can define
-   *                      (span) a different rectangular region than the
-   *                      `targetRegion`.
-   *
-   *                      If there are extra cells in the `targetRegion`, rows and columns
-   *                      are deleted from the "ends" of the `targetRegion`.
-   *
-   *                      If the `resizedRegion` doesn't fit in `targetRegion`, the
-   *                      `targetRegion` is expanded to contain it.
-   *                      New rows and columns are generated with `fillerGenerator` as needed.
-   *
-   *                      There is one limitation however. The top left corner of
-   *                      `resizedRegion` must be equal to or towards down and right
-   *                      with respect to the top left corner of `targetRegion`.
-   *
-   * @param fillerGenerator When new cells need to be created, this is used. The cell does not need
-   *                        to have correct cellKey, a copy with the correct cellKey will be made
-   *                        if necessary.
-   */
+    * Return a new table with different dimensions.
+    *
+    * The resizing is based on two rectangular regions `targetRegion` and
+    * `resizedRegion`.
+    *
+    * The idea is that this method can grow or shrink the region specified
+    * by `targetRegion` as needed to match the `resizedRegion`.
+    *
+    * @param targetRegion defines a rectangular region of cells to be resized.
+    *                     The idea is that `targetRegion` will be resized to match
+    *                     the `resizedRegion`.
+    *
+    * @param resizedRegion is a rectangular region to define the new size for the
+    *                      `targetRegion`.
+    *
+    *                      The idea is that `resizedRegion` can define
+    *                      (span) a different rectangular region than the
+    *                      `targetRegion`.
+    *
+    *                      If there are extra cells in the `targetRegion`, rows and columns
+    *                      are deleted from the "ends" of the `targetRegion`.
+    *
+    *                      If the `resizedRegion` doesn't fit in `targetRegion`, the
+    *                      `targetRegion` is expanded to contain it.
+    *                      New rows and columns are generated with `fillerGenerator` as needed.
+    *
+    *                      There is one limitation however. The top left corner of
+    *                      `resizedRegion` must be equal to or towards down and right
+    *                      with respect to the top left corner of `targetRegion`.
+    *
+    * @param fillerGenerator When new cells need to be created, this is used. The cell does not need
+    *                        to have correct cellKey, a copy with the correct cellKey will be made
+    *                        if necessary.
+    */
   def resized(targetRegion: (CellKey, CellKey), resizedRegion: (CellKey, CellKey), fillerGenerator: CellGenerator): TableType = {
     val topLeftMinRegion = topLeftMin(resizedRegion, targetRegion)
     val heightResize: Int = height(topLeftMinRegion) - height(targetRegion)
@@ -372,28 +381,32 @@ final case class Table[RT, CT, M <: TableMetadata](
     resizedTable
   }
 
+  /**
+    * Returns a copy of the table with specified amounts of rows and columns added or removed.
+    *
+    * Basically the same as first doing `resizedRows` and then `resizedCols`.
+    */
   def resized(resizeCellKey: CellKey, rowsResize: Int, colsResize: Int, fillerGenerator: CellGenerator): TableType = {
-    val resizedTable = resizedRows(resizeCellKey.rowKey, rowsResize, fillerGenerator)
-    val resizedTable2 = resizedTable.resizedCols(resizeCellKey.colKey, colsResize, fillerGenerator, updateSide = RightColumn)
-    resizedTable2
+    val rowsResized = resizedRows(resizeCellKey.rowKey, rowsResize, fillerGenerator)
+    rowsResized.resizedCols(resizeCellKey.colKey, colsResize, fillerGenerator, updateSide = RightColumn)
   }
 
   /**
-   * This method is a shorthand for `rowTypes.reverse`.
-   * @return a map from row types to matching [[fi.pelam.csv.cell.RowKey RowKeys]] (row indices)
-   */
+    * This method is a shorthand for `rowTypes.reverse`.
+    * @return a map from row types to matching [[fi.pelam.csv.cell.RowKey RowKeys]] (row indices)
+    */
   def rowsByType: SortedMap[RT, IndexedSeq[RowKey]] = rowTypes.reverse
 
   /**
-   * This method is a shorthand for `colTypes.reverse`.
-   * @return a map from column types to matching [[fi.pelam.csv.cell.ColKey ColKeys]] (column indices)
-   */
+    * This method is a shorthand for `colTypes.reverse`.
+    * @return a map from column types to matching [[fi.pelam.csv.cell.ColKey ColKeys]] (column indices)
+    */
   def colsByType: SortedMap[CT, IndexedSeq[ColKey]] = colTypes.reverse
 
   /**
-   * Return a new table with given cells replacing the previous cells
-   * at each the location `cell.cellKey`.
-   */
+    * Return a new table with given cells replacing the previous cells
+    * at each the location `cell.cellKey`.
+    */
   def updatedCells(newCells: TraversableOnce[Cell]): TableType = {
 
     var updatedCells = cells
@@ -412,11 +425,11 @@ final case class Table[RT, CT, M <: TableMetadata](
   }
 
   /**
-   * A convenient form for returning a new table with specified cells updated.
-   * {{{
-   *   val updated = table.updatedCells(StringCell(CellKey(0, 0), "foo"), StringCell(CellKey(1, 0), "bar"),
-   * }}}
-   */
+    * A convenient form for returning a new table with specified cells updated.
+    * {{{
+    *   val updated = table.updatedCells(StringCell(CellKey(0, 0), "foo"), StringCell(CellKey(1, 0), "bar"),
+    * }}}
+    */
   def updatedCells(cells: Cell*): TableType = updatedCells(cells)
 
   private[csv] def checkRowInsideTable(rowIndex: Int) = {
@@ -434,9 +447,9 @@ final case class Table[RT, CT, M <: TableMetadata](
   }
 
   /**
-   * Return a new table with given cell replacing the previous cell
-   * in the location `cell.cellKey`.
-   */
+    * Return a new table with given cell replacing the previous cell
+    * in the location `cell.cellKey`.
+    */
   def updatedCell(cell: Cell): TableType = {
     val rowIndex = cell.rowIndex
     val colIndex = cell.colIndex
@@ -450,22 +463,22 @@ final case class Table[RT, CT, M <: TableMetadata](
   }
 
   /**
-   * Get all cells in a single sequence.
-   * One way to think about this is that the rows are catenated one after the other.
-   */
+    * Get all cells in a single sequence.
+    * One way to think about this is that the rows are catenated one after the other.
+    */
   def getCells(): IndexedSeq[Cell] = {
     for (i <- 0 until rowCount;
          j <- 0 until colCount) yield cells(i)(j)
   }
 
   /**
-   * Get cell at specific row, column address.
-   */
+    * Get cell at specific row, column address.
+    */
   def getCell(key: CellKey) = cells(key.rowIndex)(key.colIndex)
 
   /**
-   * Get a full rows from table defined by `rowType`.
-   */
+    * Get a full rows from table defined by `rowType`.
+    */
   def getRows(rowType: RT): IndexedSeq[IndexedSeq[Cell]] = {
     val rowKeys = rowTypes.reverse(rowType)
     for (rowKey <- rowKeys) yield {
@@ -474,121 +487,121 @@ final case class Table[RT, CT, M <: TableMetadata](
   }
 
   /**
-   * Get a cell from specified row matching the specified column type.
-   * This method throws an error if more than 1 or zero cells match the criteria.
-   * Example:
-   * {{{
-   *   // Get the user name cell from the 11th row.
-   *   table.getSingleCell(RowKey(10), ColumnTypeUserName)
-   * }}}
-   *
-   * @param rowKey identifies the row to target.
-   * @param colType identifies the column type which must correspond to exactly 1 column.
-   * @return the matching cell object.
-   */
+    * Get a cell from specified row matching the specified column type.
+    * This method throws an error if more than 1 or zero cells match the criteria.
+    * Example:
+    * {{{
+    *   // Get the user name cell from the 11th row.
+    *   table.getSingleCell(RowKey(10), ColumnTypeUserName)
+    * }}}
+    *
+    * @param rowKey identifies the row to target.
+    * @param colType identifies the column type which must correspond to exactly 1 column.
+    * @return the matching cell object.
+    */
   def getSingleCell(rowKey: RowKey, colType: CT): Cell = {
     val colKey = getSingleColKeyByType(colType)
     getCell(CellKey(rowKey, colKey))
   }
 
   /**
-   * Get all cells from the specified row.
-   */
+    * Get all cells from the specified row.
+    */
   def getCells(rowKey: RowKey): IndexedSeq[Cell] = {
     cells(rowKey.index)
   }
 
   /**
-   * Get all cells from the specified column
-   */
+    * Get all cells from the specified column
+    */
   def getCells(colKey: ColKey): IndexedSeq[Cell] = {
     for (i <- 0 until rowCount) yield cells(i)(colKey.index)
   }
 
   /**
-   * Get cell keys corresponding to all cells on the specified row.
-   */
+    * Get cell keys corresponding to all cells on the specified row.
+    */
   def getCellKeys(rowKey: RowKey): IndexedSeq[CellKey] = {
     for (i <- 0 until colCount) yield CellKey(rowKey, i)
   }
 
   /**
-   * Get cell keys corresponding to all cells on the specified column.
-   */
+    * Get cell keys corresponding to all cells on the specified column.
+    */
   def getCellKeys(colKey: ColKey): IndexedSeq[CellKey] = {
     for (i <- 0 until rowCount) yield CellKey(i, colKey)
   }
 
   /**
-   * Gets a selected set of cells from a particular row.
-   * The cells will be picked from columns having a column type (`CT`)
-   * for which `colTypeMatcher` returns true.
-   * Throws an exception if `RT` fits more than one or zero rows.
-   * Here is an imaginary example: {{{
-   *   // Gets the extra notes on projects and clients
-   *   table.getSingleRow(ExtraNotesRow, Set(ProjectColumn, ClientColumn))
-   * }}}
-   */
+    * Gets a selected set of cells from a particular row.
+    * The cells will be picked from columns having a column type (`CT`)
+    * for which `colTypeMatcher` returns true.
+    * Throws an exception if `RT` fits more than one or zero rows.
+    * Here is an imaginary example: {{{
+    *   // Gets the extra notes on projects and clients
+    *   table.getSingleRow(ExtraNotesRow, Set(ProjectColumn, ClientColumn))
+    * }}}
+    */
   def getSingleRow(rowType: RT, colTypeMatcher: CT => Boolean): IndexedSeq[Cell] = {
     getSingleRow(getSingleRowKeyByType(rowType), colTypeMatcher)
   }
 
   /**
-   * Gets a selected set of cells from a particular column.
-   * The cells will be picked from rows having a row type (`RT`)
-   * for which `rowTypeMatcher` returns true.
-   * Throws an exception if `CT` fits more than one or zero columns.
-   * Here is an imaginary example: {{{
-   *   // Gets the street address for two types of addresses
-   *   table.getSingleCol(Set(HomeAddressRow, BillingAddressRow), StreetAddressColumn)
-   * }}}
-   */
+    * Gets a selected set of cells from a particular column.
+    * The cells will be picked from rows having a row type (`RT`)
+    * for which `rowTypeMatcher` returns true.
+    * Throws an exception if `CT` fits more than one or zero columns.
+    * Here is an imaginary example: {{{
+    *   // Gets the street address for two types of addresses
+    *   table.getSingleCol(Set(HomeAddressRow, BillingAddressRow), StreetAddressColumn)
+    * }}}
+    */
   def getSingleCol(rowTypeMatcher: RT => Boolean, colType: CT): IndexedSeq[Cell] = {
     getSingleCol(rowTypeMatcher, getSingleColKeyByType(colType))
   }
 
   /**
-   * Otherwise same as `getSingleRow(RT, colTypeMatcher)`, but
-   * a single bare column type is specified instead of the more general
-   * predicate form.
-   */
+    * Otherwise same as `getSingleRow(RT, colTypeMatcher)`, but
+    * a single bare column type is specified instead of the more general
+    * predicate form.
+    */
   def getSingleRow(rowType: RT, colType: CT): IndexedSeq[Cell] = {
     getSingleRow(getSingleRowKeyByType(rowType), (ct: CT) => ct == colType)
   }
 
   /**
-   * Otherwise same as `getSingleCol(rowTypeMatcher, CT)`, but
-   * a single bare row type is specified instead of the more general
-   * predicate form.
-   */
+    * Otherwise same as `getSingleCol(rowTypeMatcher, CT)`, but
+    * a single bare row type is specified instead of the more general
+    * predicate form.
+    */
   def getSingleCol(rowType: RT, colType: CT): IndexedSeq[Cell] = {
     getSingleCol((rt: RT) => rt == rowType, getSingleColKeyByType(colType))
   }
 
   /**
-   * Otherwise same as `getSingleRow(RT, colTypeMatcher)`, but
-   * row is addressed directly with `RowKey` (row index) and
-   * a single bare column type is specified instead of the more general
-   * predicate form.
-   */
+    * Otherwise same as `getSingleRow(RT, colTypeMatcher)`, but
+    * row is addressed directly with `RowKey` (row index) and
+    * a single bare column type is specified instead of the more general
+    * predicate form.
+    */
   def getSingleRow(rowKey: RowKey, colType: CT): IndexedSeq[Cell] = {
     getSingleRow(rowKey, (ct: CT) => ct == colType)
   }
 
   /**
-   * Otherwise same as `getSingleCol(rowTypeMatcher, CT)`, but
-   * the column is addressed directly with `colKey` (column index) and
-   * a single bare row type is specified instead of the more general
-   * predicate form.
-   */
+    * Otherwise same as `getSingleCol(rowTypeMatcher, CT)`, but
+    * the column is addressed directly with `colKey` (column index) and
+    * a single bare row type is specified instead of the more general
+    * predicate form.
+    */
   def getSingleCol(rowType: RT, colKey: ColKey): IndexedSeq[Cell] = {
     getSingleCol((rt: RT) => rt == rowType, colKey)
   }
 
   /**
-   * Otherwise same as `getSingleRow(RT, colTypeMatcher)`, but
-   * row is addressed directly with `RowKey` (row index).
-   */
+    * Otherwise same as `getSingleRow(RT, colTypeMatcher)`, but
+    * row is addressed directly with `RowKey` (row index).
+    */
   def getSingleRow(rowKey: RowKey, colTypeMatcher: CT => Boolean): IndexedSeq[Cell] = {
     for (cellKey <- getCellKeys(rowKey);
          colKey = cellKey.colKey;
@@ -598,9 +611,9 @@ final case class Table[RT, CT, M <: TableMetadata](
   }
 
   /**
-   * Otherwise same as `getSingleCol(rowTypeMatcher, CT)`, but
-   * the column is addressed directly with `colKey` (column index).
-   */
+    * Otherwise same as `getSingleCol(rowTypeMatcher, CT)`, but
+    * the column is addressed directly with `colKey` (column index).
+    */
   def getSingleCol(rowTypeMatcher: RT => Boolean, colKey: ColKey): IndexedSeq[Cell] = {
     for (cellKey <- getCellKeys(colKey);
          rowKey = cellKey.rowKey;
@@ -610,15 +623,15 @@ final case class Table[RT, CT, M <: TableMetadata](
   }
 
   /**
-   * Find a single row with given type.
-   * Throws if the number of rows with given type is not 1
-   */
+    * Find a single row with given type.
+    * Throws if the number of rows with given type is not 1
+    */
   def getSingleRowKeyByType(rowType: RT) = getSingleKeyByType(rowTypes.reverse, rowType, "row")
 
   /**
-   * Find a single column with given type.
-   * Throws if the number of columns with given type is not 1
-   */
+    * Find a single column with given type.
+    * Throws if the number of columns with given type is not 1
+    */
   def getSingleColKeyByType(colType: CT) = getSingleKeyByType(colTypes.reverse, colType, "column")
 
   override def toString() = {
@@ -660,13 +673,13 @@ final case class Table[RT, CT, M <: TableMetadata](
 object Table {
 
   /**
-   * Defines a rectangular region. Both row and column index
-   * of first `CellKey` must be smaller or equal to the indices
-   * of the second `CellKey`.
-   *
-   * Region is defined as an half open range ie CellKey 2 is not
-   * included in the region.
-   */
+    * Defines a rectangular region. Both row and column index
+    * of first `CellKey` must be smaller or equal to the indices
+    * of the second `CellKey`.
+    *
+    * Region is defined as an half open range ie CellKey 2 is not
+    * included in the region.
+    */
   type Region = (CellKey, CellKey)
 
   type CellGenerator = (CellKey) => Cell
@@ -698,16 +711,16 @@ object Table {
   }
 
   /**
-   * This is the main constructor for table. Often this is not used directly, but through [[TableReader]].
-   *
-   * @param cells The cells to be used in the table in any order.
-   * @param rowTypes a map that contains types for rows using the client code defined objects.
-   * @param colTypes a map that contains types for columns using the client code defined objects.
-   * @param metadata a user customizable metadata object than can piggyback additional information to this table object.
-   * @tparam RT Client specified object type used for typing rows in CSV data.
-   * @tparam CT Client specified object type used for typing columns in CSV data.
-   * @return constructed Table object
-   */
+    * This is the main constructor for table. Often this is not used directly, but through [[TableReader]].
+    *
+    * @param cells The cells to be used in the table in any order.
+    * @param rowTypes a map that contains types for rows using the client code defined objects.
+    * @param colTypes a map that contains types for columns using the client code defined objects.
+    * @param metadata a user customizable metadata object than can piggyback additional information to this table object.
+    * @tparam RT Client specified object type used for typing rows in CSV data.
+    * @tparam CT Client specified object type used for typing columns in CSV data.
+    * @return constructed Table object
+    */
   def apply[RT, CT, M <: TableMetadata](
     cells: TraversableOnce[Cell] = IndexedSeq(),
     rowTypes: SortedBiMap[RowKey, RT] = SortedBiMap[RowKey, RT](),
