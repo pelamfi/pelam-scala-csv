@@ -10,7 +10,7 @@ problematic or missing.
 
 ## ScalaDoc
 
-[A recent build of the ScalaDoc is available here.](https://pelam-scala-csv-doc.s3.amazonaws.com/pelamfi/pelam-scala-csv/43/43.1/home/travis/build/pelamfi/pelam-scala-csv/build/docs/scaladoc/index.html#fi.pelam.csv.package)
+[A recent build of the ScalaDoc is available here.](https://pelam-scala-csv-doc.s3.amazonaws.com/pelamfi/pelam-scala-csv/58/58.1/home/travis/build/pelamfi/pelam-scala-csv/build/docs/scaladoc/index.html#fi.pelam.csv.package)
 
 ## Main points
 
