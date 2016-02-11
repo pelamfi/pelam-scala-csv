@@ -46,18 +46,18 @@ and [online](http://www.apache.org/licenses/LICENSE-2.0).
 
 
 ## Maven coordinates
-[The Maven Central Repository entry is here.](http://search.maven.org/#artifactdetails%7Cfi.pelam%7Cpelam-scala-csv%7C1.0.0%7Cjar)
+[The Maven Central Repository entry is here.](http://search.maven.org/#artifactdetails%7Cfi.pelam%7Cpelam-scala-csv%7C1.1.0%7Cjar)
 
 ### Gradle
 
 ```groovy
-compile 'fi.pelam:pelam-scala-csv:1.0.0'
+compile 'fi.pelam:pelam-scala-csv:1.1.0'
 ```
 
 ### SBT
 
 ```scala
-libraryDependencies += "fi.pelam" % "pelam-scala-csv" % "1.0.0"
+libraryDependencies += "fi.pelam" % "pelam-scala-csv" % "1.1.0"
 ```
 
 ### Maven
@@ -66,7 +66,7 @@ libraryDependencies += "fi.pelam" % "pelam-scala-csv" % "1.0.0"
 <dependency>
     <groupId>fi.pelam</groupId>
     <artifactId>pelam-scala-csv</artifactId>
-    <version>1.0.0</version>
+    <version>1.1.0</version>
 </dependency>
 ```
 
@@ -223,7 +223,7 @@ TBD
 ## TODO list
 
   * TODO: Examples for projection API
-  * TODO: Examples for new table updating methods
+  * TODO: Examples for new table updating methods/Users/pete/git-junk/pelam-scala-csv-2016
   * TODO: Some simple demo project
   * TODO: Configure Gradle to build binaries for multiple scala versions if necessary.
   * TODO: Some performance tests and profiling to at least have some idea of possible performance disasters.
