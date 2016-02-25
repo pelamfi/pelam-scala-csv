@@ -132,10 +132,10 @@ import fi.pelam.csv.util.{Pipeline, SortedBiMap}
  *  - `cellUpgradeStage` Upgrade cells based on cell types, which are combined from row and column types. The `cellUpgrader`
  * parameter is used in this stage.
  *
- * @param openInputStream A function that returns input stream from which the data should be read.
+ * @param openStream A function that returns input stream from which the data should be read.
  *                        The function is called once for every `read` call.
  *
- * @param metadata A custom metadata object which will be passed to the resulting `Table` object.
+ * @param tableMetadata A custom metadata object which will be passed to the resulting `Table` object.
  *
  * @param rowTyper Partial function used in `rowTypeDetectionStage`
  *
