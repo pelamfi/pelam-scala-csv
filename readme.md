@@ -87,7 +87,7 @@ normally returned by the reader.
    import fi.pelam.csv.stream._
 
    val csvData =
-       "apple,1.0.09,3\n" +
+       "apple,0.99,3\n" +
        "orange,1.25,2\n" +
        "banana,0.80,4\n"
 
@@ -98,7 +98,7 @@ normally returned by the reader.
    }
 
    // Running the code above will print the cells from the second second column:
-   // Cell containing '1.0.09' at Row 1, Column B (1)
+   // Cell containing '0.99' at Row 1, Column B (1)
    // Cell containing '1.25' at Row 2, Column B (1)
    // Cell containing '0.80' at Row 3, Column B (1)
 ```
@@ -124,7 +124,7 @@ appropriate `Cell` sub type.
       // to a function providing streams.
       openStream =
         "product,price,number\n" +
-        "apple,1.0.09,3\n" +
+        "apple,0.99,3\n" +
         "orange,1.25,2\n" +
         "banana,0.80,4\n",
 
@@ -152,7 +152,7 @@ appropriate `Cell` sub type.
 
     // Get values from cells in column with type "price" on rows with type "data."
     table.getSingleCol("data", "price").map(_.value).toList)
-    // Will give List(1.0.09, 1.25, 0.8)
+    // Will give List(0.99, 1.25, 0.8)
 
 ```
 
