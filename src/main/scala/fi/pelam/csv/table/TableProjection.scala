@@ -1,4 +1,4 @@
-package fi.pelam.csv.table
+ package fi.pelam.csv.table
 
 import fi.pelam.csv.cell._
 import fi.pelam.csv.table.TableUtil._
@@ -25,7 +25,7 @@ import scala.collection.{SortedMap, SortedSet}
   * }}}
   */
 case class TableProjection[RT, CT, M <: TableMetadata](
-  baseTable: Table[RT, CT, M],
+  baseTable: Table[RT, CT, M], // TODO: Naming, should this be orig or something, because now projected is just projected
   rows: SortedSet[RowKey] = SortedSet(),
   cols: SortedSet[ColKey] = SortedSet()) {
 
