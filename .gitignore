@@ -2,3 +2,8 @@ build
 .gradle
 .idea
 *.iml
+
+# Exclude IntelliJ files, they will be recreated from Gradle files
+.idea
+# But keep dictionary in git to have less false positives in spellcheck inspection.
+!*/dictionaries/*
