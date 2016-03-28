@@ -47,7 +47,7 @@ import fi.pelam.csv.CsvConstants
  * {{{
     import fi.pelam.csv.table._
     import fi.pelam.csv.cell._
-    import TableReaderConfig._
+    import TableReaderConfig._ // Provides implicits for things like converting string to a stream provider
 
     val validColTypes = Set("header", "model", "price")
 
@@ -59,7 +59,7 @@ import fi.pelam.csv.CsvConstants
 
         // An implicit from the object TableReaderConfig converts the string
         // to a function providing streams.
-        openStream =
+        openStream = // Converted by implicit in TableReaderConfig
           "header;model;price\n" +
           "data;300D;1,234.0\n" +
           "data;SLS AMG;234,567.89",
@@ -106,11 +106,13 @@ import fi.pelam.csv.CsvConstants
  *                         locales, separator and charset specified by [[LocaleTableMetadata]] parameter.
  *
  * @param locales List of locales to try for `cellTypeLocale` and `dataLocale`.
- *                The default is [[CsvConstants.commonLocales]].
+ *                The default is [[CsvConstants.commonLocales]]. Provide a minimal list list here to optimize reading.
  *
  * @param charsets List of charsets to try. Default is [[CsvConstants.commonCharsets]].
+  *                 Provide a minimal list list here to optimize reading.
  *
  * @param separators List of separators to try. Default is [[CsvConstants.commonSeparators]].
+  *                   Provide a minimal list list here to optimize reading.
  *
  * @tparam RT The client specific row type.
  *
@@ -120,10 +122,13 @@ import fi.pelam.csv.CsvConstants
  *           This is used to manage the character set, separator, `cellTypeLocale` and `dataLocale`
  *           combinations when attempting to read the CSV data from the input stream.
  */
+// TODO: Simplest use of this class should just need an input string
+// TODO: Add example to docs with simplest possible use
+// TODO: Add some tie breaking "most rows times columns heuristic"
 // @formatter:on IntelliJ 14.1 (Scala plugin) formatter messes up Scaladoc
 final class DetectingTableReader[RT, CT, M <: LocaleTableMetadata[M]](
-  val initialMetadata: M,
-  val tableReaderMaker: (M) => TableReader[RT, CT, M],
+  val initialMetadata: M, // TODO: Should this be 2nd instead of 1st parameter, TODO: should have default value
+  val tableReaderMaker: (M) => TableReader[RT, CT, M], // TODO: Implicit to provide sensible default for this for quick use
   val locales: Seq[Locale] = CsvConstants.commonLocales,
   val charsets: Seq[Charset] = CsvConstants.commonCharsets,
   val separators: Seq[Char] = CsvConstants.commonSeparators) {
@@ -131,7 +136,7 @@ final class DetectingTableReader[RT, CT, M <: LocaleTableMetadata[M]](
   type ResultTable = Table[RT, CT, M]
 
   /**
-   * The main method in this class. Can be called several times.
+   * The main method in this class. Can be called again to reread the table.
    * The input stream is may be opened and closed many times
    * per each call.
    *
