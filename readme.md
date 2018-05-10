@@ -35,7 +35,7 @@ standardized format.
 
 ## Version History
 
-  * 1.1.0 Added table projection features and table resizing features.
+  * 1.2.0 Added table projection features and table resizing features.
   * 1.0.0 Initial release
 
 ## License
@@ -46,18 +46,18 @@ and [online](http://www.apache.org/licenses/LICENSE-2.0).
 
 
 ## Maven coordinates
-[The Maven Central Repository entry is here.](http://search.maven.org/#artifactdetails%7Cfi.pelam%7Cpelam-scala-csv%7C1.1.0%7Cjar)
+[The Maven Central Repository entry is here.](http://search.maven.org/#artifactdetails%7Cfi.pelam%7Cpelam-scala-csv%7C1.2.0%7Cjar)
 
 ### Gradle
 
 ```groovy
-compile 'fi.pelam:pelam-scala-csv:1.1.0'
+compile 'fi.pelam:pelam-scala-csv:1.2.0'
 ```
 
 ### SBT
 
 ```scala
-libraryDependencies += "fi.pelam" % "pelam-scala-csv" % "1.1.0"
+libraryDependencies += "fi.pelam" % "pelam-scala-csv" % "1.2.0"
 ```
 
 ### Maven
@@ -66,7 +66,7 @@ libraryDependencies += "fi.pelam" % "pelam-scala-csv" % "1.1.0"
 <dependency>
     <groupId>fi.pelam</groupId>
     <artifactId>pelam-scala-csv</artifactId>
-    <version>1.1.0</version>
+    <version>1.2.0</version>
 </dependency>
 ```
 
@@ -222,6 +222,8 @@ TBD
 
 ## TODO list
 
+  * TODO: Artifacts for scala 2.11 and 2.12 (possibly with SBT)
+  * TODO: Test with Java 9 and 10
   * TODO: Examples for projection API
   * TODO: Examples for new table updating methods/Users/pete/git-junk/pelam-scala-csv-2016
   * TODO: Some simple demo project
@@ -229,6 +231,13 @@ TBD
   * TODO: Some performance tests and profiling to at least have some idea of possible performance disasters.
   * TODO: Test the streaming api with massive data and document if it works.
   * TODO: A Gradle task to publish the built scaladoc to S3 into a sensible directory.
+
+## Building
+TODO: Add details to this section
+
+  * Gradle 4.7
+  * Java 1.8
+  * Scala 2.12
 
 ## History of this project
 

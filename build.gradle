@@ -8,13 +8,14 @@ if (Boolean.valueOf(signArtifacts)) {
 }
 
 group = 'fi.pelam'
-version = '1.1.0'
+version = '1.2.0'
 description = """
 Scala library for reading and writing CSV data with an optional high level
 API. Supports structured access to tabular data and a form of CSV format detection.
 """
 
 repositories {
+    mavenLocal()
     mavenCentral()
 }
 
@@ -90,26 +91,27 @@ tasks.withType(ScalaDoc) {
 
     scalaDocOptions.additionalParameters = [
             // TODO: convert readme.md to html and feed to scaladoc here? "-doc-root-content", "readme.???",
-            "-sourcepath", "${projectDir}/src/main/scala",
-            "-doc-source-url", "https://github.com/pelamfi/pelam-scala-csv/blob/master/src/main/scala€{FILE_PATH}.scala"]
+            "-sourcepath", "${projectDir}/src/main/scala".toString(),
+            "-doc-source-url", "https://github.com/pelamfi/pelam-scala-csv/blob/master/src/main/scala€{FILE_PATH}.scala".toString()]
 }
 
 dependencies {
     deployerJars "org.apache.maven.wagon:wagon-http:2.2"
 
-    compile 'org.scala-lang:scala-library:2.11.4'
+    compile 'org.scala-lang:scala-library:2.12.4'
 
     testCompile 'junit:junit:4.12'
 
     // For Java like enums with small amount of
     // boilerplate https://github.com/lloydmeta/enumeratum
     // Used in tests for row and column typing.
-    testCompile 'com.beachape:enumeratum_2.11:1.2.1'
+    testCompile 'com.beachape:enumeratum_2.12:1.5.12'
 
     // Used for reading resource in tests.
-    testCompile 'com.google.guava:guava:16.0'
-    testCompile 'org.scalatest:scalatest_2.11:2.2.2'
-    testCompile 'org.mockito:mockito-all:1.10.8'
+    testCompile 'com.google.guava:guava:23.0'
+
+    testCompile 'org.scalatest:scalatest_2.12:3.0.5'
+    testCompile 'org.mockito:mockito-all:1.10.19'
 }
 
 
