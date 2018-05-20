@@ -5,7 +5,7 @@ env:
 jdk:
   - oraclejdk8
 scala:
-  - 2.11.4
+  - 2.12.5
 script:
   - gradle clean check scaladoc
 addons:
