@@ -39,8 +39,10 @@ libraryDependencies ++= Seq(
   "com.google.guava" % "guava" % "23.0" % Test,
   "org.scalatest" %% "scalatest" % "3.0.0" % Test,
   "junit" % "junit" % "4.12" % Test,
+  "org.mockito" % "mockito-all" % "1.10.19" % Test,
   // https://stackoverflow.com/a/28051194/1148030
   "com.novocode" % "junit-interface" % "0.11" % Test exclude("junit", "junit-dep")
+
 )
 
 val printTests = taskKey[Unit]("something")
