@@ -17,7 +17,7 @@ problematic or missing.
 There are other CSV reading libraries and writing a CSV parser from scratch is not 
 very difficult.
 
-However, the specialty of this library is the higher level "table oriented" API.
+However, the specialty of this library is the higher level *table oriented* API.
 
 The higher level API helps in processing complex spreadsheets as well as detecting and handling
 differences in the CSV syntax. Such differences are common because the CSV is not a
