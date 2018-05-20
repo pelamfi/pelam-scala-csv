@@ -35,6 +35,7 @@ standardized format.
 
 ## Version History
 
+  * 1.3.0 Deploy with SBT and support 2 scala version Scala 2.11 and 2.12 (instead of just 2.11)
   * 1.2.0 Added table projection features and table resizing features.
   * 1.0.0 Initial release
 
@@ -51,13 +52,13 @@ and [online](http://www.apache.org/licenses/LICENSE-2.0).
 ### Gradle
 
 ```groovy
-compile 'fi.pelam:pelam-scala-csv:1.2.0'
+compile 'fi.pelam:pelam-scala-csv_2.12:1.3.0'
 ```
 
 ### SBT
 
 ```scala
-libraryDependencies += "fi.pelam" % "pelam-scala-csv" % "1.2.0"
+libraryDependencies += "fi.pelam" %% "pelam-scala-csv" % "1.3.0"
 ```
 
 ### Maven
@@ -65,8 +66,8 @@ libraryDependencies += "fi.pelam" % "pelam-scala-csv" % "1.2.0"
 ```xml
 <dependency>
     <groupId>fi.pelam</groupId>
-    <artifactId>pelam-scala-csv</artifactId>
-    <version>1.2.0</version>
+    <artifactId>pelam-scala-csv_2.12</artifactId>
+    <version>1.3.0</version>
 </dependency>
 ```
 
@@ -222,7 +223,6 @@ TBD
 
 ## TODO list
 
-  * TODO: Artifacts for scala 2.11 and 2.12 (possibly with SBT)
   * TODO: Test with Java 9 and 10
   * TODO: Examples for projection API
   * TODO: Examples for new table updating methods/Users/pete/git-junk/pelam-scala-csv-2016
@@ -233,11 +233,35 @@ TBD
   * TODO: A Gradle task to publish the built scaladoc to S3 into a sensible directory.
 
 ## Building
-TODO: Add details to this section
+Build files for both Gradle and SBT are provided. Gradle is the main tool for development, but
+SBT is used to deploy the builds with support for more than one Scala version.
 
-  * Gradle 4.7
+
+    gradle test
+
+
+### Making a release
+
+Using GPG version 1 is required due to SBT plugin having difficulties with the new keyring format.
+The passphrase needs to be input multiple times manually.
+
+File `~/.ivy2/.credentials_sonatype` needs to look something like this:
+
+    host=oss.sonatype.org
+    realm=Sonatype Nexus Repository Manager
+    user=SONATYPEUSER
+    password=SONATYPEPASSWORD
+
+The build is then deployed to a staging repository with a single `sbt` command:
+
+    sbt release
+
+### Tool versions used for 1.3.0 release
+
+  * GnuPG 1.4.22
+  * Gradle 4.7 or SBT 1.1.4
   * Java 1.8
-  * Scala 2.12
+  * Scala 2.12 / 2.11
 
 ## History of this project
 
