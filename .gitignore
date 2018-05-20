@@ -7,3 +7,10 @@ build
 .idea
 # But keep dictionary in git to have less false positives in spellcheck inspection.
 !*/dictionaries/*
+
+# sbt
+lib_managed
+project/boot
+project/target
+target
+logs
