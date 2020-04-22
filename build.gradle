@@ -8,7 +8,7 @@ if (Boolean.valueOf(signArtifacts)) {
 }
 
 group = 'fi.pelam'
-version = '1.3.0'
+version = '1.3.0-SNAPSHOT'
 description = """
 Scala library for reading and writing CSV data with an optional high level
 API. Supports structured access to tabular data and a form of CSV format detection.
@@ -98,14 +98,14 @@ tasks.withType(ScalaDoc) {
 dependencies {
     deployerJars "org.apache.maven.wagon:wagon-http:2.2"
 
-    compile 'org.scala-lang:scala-library:2.13.1'
+    compile 'org.scala-lang:scala-library:2.12.8'
 
     testImplementation 'junit:junit:4.12'
 
     // For Java like enums with small amount of
     // boilerplate https://github.com/lloydmeta/enumeratum
     // Used in tests for row and column typing.
-    testImplementation 'com.beachape:enumeratum_2.12:1.5.12'
+    testImplementation 'com.beachape:enumeratum_2.12:1.5.15'
 
     // Used for reading resource in tests.
     testImplementation 'com.google.guava:guava:29.0-jre'
