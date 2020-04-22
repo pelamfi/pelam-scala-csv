@@ -3,7 +3,7 @@ package fi.pelam.csv.table
 import fi.pelam.csv.cell._
 import fi.pelam.csv.util.SortedBiMap
 
-import scala.collection.SortedMap
+import scala.collection.{BuildFrom, SortedMap}
 import scala.collection.generic.CanBuildFrom
 
 /**
@@ -37,10 +37,10 @@ object TableUtil {
     a._2)
 
   // Helper method to find maximum key values from a sequence of cells.
-  private[table] def findKeyRangeEnd(keys: TraversableOnce[AxisKey[_]]) = keys.foldLeft(0)((max, key) => Math.max(max, key.index + 1))
+  private[table] def findKeyRangeEnd(keys: Iterable[AxisKey[_]]) = keys.foldLeft(0)((max, key) => Math.max(max, key.index + 1))
 
   // This is a helper method to convert a sequence of cells to a 2 dimensional IndexedSeq.
-  private[table] def buildCells(initialCells: TraversableOnce[Cell], rowCount: Int = 0, colCount: Int = 0): IndexedSeq[IndexedSeq[Cell]] = {
+  private[table] def buildCells(initialCells: Iterable[Cell], rowCount: Int = 0, colCount: Int = 0): IndexedSeq[IndexedSeq[Cell]] = {
 
     val initialCellMap = initialCells.map(cell => cell.cellKey -> cell).toMap
 
@@ -62,7 +62,7 @@ object TableUtil {
       for (colIndex <- 0 until finalColCount) {
 
         val cellKey = CellKey(rowKey, colIndex)
-        val cell = initialCellMap.get(cellKey).getOrElse(emptyStringCell(cellKey))
+        val cell = initialCellMap.getOrElse(cellKey, emptyStringCell(cellKey))
 
         colArray(colIndex) = cell
       }
@@ -73,7 +73,7 @@ object TableUtil {
 
   private[table] def getSingleKeyByType[K <: AxisKey[K], T](keysByType: SortedMap[T, IndexedSeq[K]], colType: T, axisName: String): K = {
     val keys = keysByType(colType)
-    if (keys.size == 0) {
+    if (keys.isEmpty) {
       sys.error(s"Expected 1 $axisName of type $colType but no $axisName of that type found.")
     } else if (keys.size > 1) {
       sys.error(s"Expected 1 $axisName of type $colType but more than 1 found.")
@@ -82,8 +82,8 @@ object TableUtil {
     }
   }
 
-  private[table] def renumberTypeMap[K <: AxisKey[K], T](firstIndex: Int, typeMap: SortedBiMap[K, T])(implicit builder: CanBuildFrom[SortedBiMap[K, T], (K, T), SortedBiMap[K, T]]): SortedBiMap[K, T] = {
-    val b = builder()
+  private[table] def renumberTypeMap[K <: AxisKey[K], T](firstIndex: Int, typeMap: SortedBiMap[K, T])(implicit builder: BuildFrom[SortedBiMap[K, T], (K, T), SortedBiMap[K, T]]): SortedBiMap[K, T] = {
+    val b = builder.newBuilder(typeMap)
     var offset = 0
     for ((axisKey, rowType) <- typeMap) {
       val index = firstIndex + offset
@@ -93,16 +93,16 @@ object TableUtil {
     b.result()
   }
 
-  private[table] def renumberTypeMapByMap[K <: AxisKey[K], T](typeMap: SortedBiMap[K, T], keyMap: K => K)(implicit builder: CanBuildFrom[SortedBiMap[K, T], (K, T), SortedBiMap[K, T]]): SortedBiMap[K, T] = {
-    val b = builder()
+  private[table] def renumberTypeMapByMap[K <: AxisKey[K], T](typeMap: SortedBiMap[K, T], keyMap: K => K)(implicit builder: BuildFrom[SortedBiMap[K, T], (K, T), SortedBiMap[K, T]]): SortedBiMap[K, T] = {
+    val b = builder(typeMap)
     for ((axisKey, rowType) <- typeMap) {
       b += ((keyMap(axisKey), rowType))
     }
     b.result()
   }
 
-  def deleteTypeMapSlice[K <: AxisKey[K], T](start: Int, end: Int, typeMap: SortedBiMap[K, T])(implicit builder: CanBuildFrom[SortedBiMap[K, T], (K, T), SortedBiMap[K, T]]): SortedBiMap[K, T] = {
-    val b = builder()
+  def deleteTypeMapSlice[K <: AxisKey[K], T](start: Int, end: Int, typeMap: SortedBiMap[K, T])(implicit builder: BuildFrom[SortedBiMap[K, T], (K, T), SortedBiMap[K, T]]): SortedBiMap[K, T] = {
+    val b = builder(typeMap)
     val size = end - start
     for (pair <- typeMap) {
       val index = pair._1.index
@@ -115,8 +115,8 @@ object TableUtil {
     b.result()
   }
 
-  def addTypeMapSlice[K <: AxisKey[K], T](start: K, count: Int, typeMap: SortedBiMap[K, T])(implicit builder: CanBuildFrom[SortedBiMap[K, T], (K, T), SortedBiMap[K, T]]): SortedBiMap[K, T] = {
-    val b = builder()
+  def addTypeMapSlice[K <: AxisKey[K], T](start: K, count: Int, typeMap: SortedBiMap[K, T])(implicit builder: BuildFrom[SortedBiMap[K, T], (K, T), SortedBiMap[K, T]]): SortedBiMap[K, T] = {
+    val b = builder(typeMap)
     for (pair <- typeMap) {
       val index = pair._1.index
       if (index < start.index) {
@@ -150,7 +150,7 @@ object TableUtil {
    * If there are more `cells` than can fit in `targetRegion` then the
    * numbering continues "below" `targetRegion`.
    */
-  private[table] def renumberedAsRows(cells: TraversableOnce[Cell], targetRegion: Region): TraversableOnce[Cell] = {
+  private[table] def renumberedAsRows(cells: Iterable[Cell], targetRegion: Region): Iterable[Cell] = {
     val top = targetRegion._1.rowIndex
     val left = targetRegion._1.colIndex
     var rowIndex = top
@@ -176,7 +176,7 @@ object TableUtil {
     * If there are more `cells` than can fit in `targetRegion` then the
     * numbering continues right of `targetRegion`.
     */
-  private[table] def renumberedAsCols(cells: TraversableOnce[Cell], targetRegion: Region): TraversableOnce[Cell] = {
+  private[table] def renumberedAsCols(cells: Iterable[Cell], targetRegion: Region): Iterable[Cell] = {
     val top = targetRegion._1.rowIndex
     val left = targetRegion._1.colIndex
     var rowIndex = top
@@ -195,7 +195,7 @@ object TableUtil {
     }
   }
 
-  private[table] def axisKeyRenumberingMap[K <: AxisKey[K]](rowsSeq: TraversableOnce[K]): Map[K, K] = {
+  private[table] def axisKeyRenumberingMap[K <: AxisKey[K]](rowsSeq: IterableOnce[K]): Map[K, K] = {
     val rowsToIndexBuilder = Map.newBuilder[K, K]
 
     var rowIndex = 0
